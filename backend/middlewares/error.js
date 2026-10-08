@@ -16,16 +16,16 @@ module.exports = (err, req, res, next) => {
         err = new ErrorHandler(message, 400);
     }
 
+    // jwt expire error
+    if (err.name === "TokenExpiredError") {
+        const message = 'JWT is Expired';
+        err = new ErrorHandler(message, 401);
+    }
+
     // wrong jwt error
     if (err.code === "JsonWebTokenError") {
         const message = 'JWT Error';
-        err = new ErrorHandler(message, 400);
-    }
-
-    // jwt expire error
-    if (err.code === "JsonWebTokenError") {
-        const message = 'JWT is Expired';
-        err = new ErrorHandler(message, 400);
+        err = new ErrorHandler(message, 401);
     }
 
     res.status(err.statusCode).json({

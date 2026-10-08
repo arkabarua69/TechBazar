@@ -59,6 +59,8 @@ exports.logoutUser = asyncErrorHandler(async (req, res, next) => {
     res.cookie("token", null, {
         expires: new Date(Date.now()),
         httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     });
 
     res.status(200).json({
@@ -254,7 +256,7 @@ exports.deleteUser = asyncErrorHandler(async (req, res, next) => {
         return next(new ErrorHandler(`User doesn't exist with id: ${req.params.id}`, 404));
     }
 
-    await user.remove();
+    await user.deleteOne();
 
     res.status(200).json({
         success: true

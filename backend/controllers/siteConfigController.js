@@ -6,7 +6,10 @@ const getSiteConfig = async (req, res) => {
     try {
         const doc = await SiteConfig.findOne().sort('-updatedAt');
         if (!doc) return res.status(200).json({ success: true, config: DEFAULT_CONFIG, isDefault: true });
-        return res.status(200).json({ success: true, config: doc.toObject(), isDefault: false });
+        // merge defaults so fields added later (e.g. categories) are
+        // still returned for documents saved before the field existed
+        const config = { ...DEFAULT_CONFIG, ...doc.toObject() };
+        return res.status(200).json({ success: true, config, isDefault: false });
     } catch (err) {
         return res.status(500).json({ success: false, message: err.message });
     }
