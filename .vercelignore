@@ -1,0 +1,8 @@
+# Files Vercel CLI should NOT upload (secrets + bulky local-only data)
+node_modules
+frontend/node_modules
+frontend/build
+.mongo-data
+.vercel
+backend/config/config.env
+*.log

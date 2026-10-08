@@ -1,0 +1,71 @@
+# Render blueprint — deploy config for the Flipkart-MERN web service.
+# Repo was originally written for Render (see "render-postbuild" in package.json).
+services:
+  - type: web
+    name: flipkart-mern
+    runtime: node
+    plan: free
+    buildCommand: npm install --omit=dev && npm install --prefix frontend && npm run build --prefix frontend
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # --- Secrets: entered when you create the service from this blueprint ---
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      # --- Regular config (same values as backend/config/config.env) ---
+      - key: JWT_EXPIRE
+        value: 7d
+      - key: COOKIE_EXPIRE
+        value: 5
+      - key: PAYMENT_BKASH_NUMBER
+        value: "01700000000"
+      - key: PAYMENT_NAGAD_NUMBER
+        value: "01700000000"
+      - key: BUSINESS_KORO_BASE_URL
+        value: https://api.businesskoro.com/api/v1/storefront
+      - key: BUSINESS_KORO_API_KEY
+        value: ""
+      - key: CLOUDINARY_NAME
+        value: store
+      - key: CLOUDINARY_API_KEY
+        value: "7467848571151"
+      - key: CLOUDINARY_API_SECRET
+        value: secret_key
+      - key: STRIPE_API_KEY
+        value: test_api_key
+      - key: STRIPE_SECRET_KEY
+        value: test_secret_key
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "465"
+      - key: SMTP_SERVICE
+        value: gmail
+      - key: SMTP_MAIL
+        value: jhondoe@gmail.com
+      - key: SMTP_PASSWORD
+        value: password@123
+      - key: SENDGRID_API_KEY
+        value: SG.apikey
+      - key: SENDGRID_MAIL
+        value: jhondoe@gmail.com
+      - key: SENDGRID_RESET_TEMPLATEID
+        value: d-sf5sf7s1g5ff8fd87df48dferg1
+      - key: SENDGRID_ORDER_TEMPLATEID
+        value: d-sf5sf7s1g5ff8fd87df48df51eg
+      - key: PAYTM_MID
+        value: dgfg515451514451
+      - key: PAYTM_MERCHANT_KEY
+        value: "848dvdvdv848dv"
+      - key: PAYTM_WEBSITE
+        value: WEBSTAGING
+      - key: PAYTM_CHANNEL_ID
+        value: WEB
+      - key: PAYTM_INDUSTRY_TYPE
+        value: Retail
+      - key: PAYTM_CUST_ID
+        value: dgfg515451514451

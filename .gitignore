@@ -1,0 +1,16 @@
+# dependencies
+node_modules
+
+# local env files
+/backend/config/config.env
+
+# build output
+frontend/build
+
+# local database data
+.mongo-data
+
+# vercel link
+.vercel
+
+*.log
