@@ -57,7 +57,7 @@ const ResetPassword = () => {
       <main className="w-full mt-4 sm:pt-6 sm:mt-0">
 
         {/* <!-- row --> */}
-        <div className="surface flex overflow-hidden sm:w-4/6 sm:mt-4 m-auto mb-7">
+        <div className="surface flex overflow-hidden sm:w-5/6 md:w-4/6 lg:w-3/5 sm:mt-4 m-auto mb-7 shadow-lg">
 
           <FormSidebar
             title="Reset Password"
@@ -65,14 +65,17 @@ const ResetPassword = () => {
           />
 
           {/* <!-- login column --> */}
-          <div className="flex-1 overflow-hidden p-6 sm:p-8">
-            <h2 className="text-center font-display font-extrabold text-xl sm:text-2xl text-slate-900">Reset Password</h2>
+          <div className="flex-1 overflow-hidden p-6 sm:p-10">
 
-            {/* <!-- edit info container --> */}
-            <div className="text-center mt-6">
+            <div className="max-w-md mx-auto flex flex-col gap-7">
+
+              <div className="text-center flex flex-col gap-2">
+                <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900">Reset Password</h2>
+                <p className="text-sm text-slate-500">Create a new password for your account</p>
+              </div>
 
               {/* <!-- input container --> */}
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
                 <div className="flex flex-col w-full gap-4">
 
@@ -84,6 +87,7 @@ const ResetPassword = () => {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
+                    autoComplete="new-password"
                   />
                   <TextField
                     fullWidth
@@ -93,12 +97,13 @@ const ResetPassword = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
+                    autoComplete="new-password"
                   />
 
                   {/* <!-- button container --> */}
-                  <div className="flex flex-col gap-2.5 mt-2 mb-32">
-                    <p className="text-xs text-slate-500 text-left">By continuing, you agree to TechBazar's <a href="/policy" className="text-primary-accent hover:underline"> Terms of Use</a> and <a href="/policy" className="text-primary-accent hover:underline"> Privacy Policy.</a></p>
-                    <button type="submit" className="btn-accent w-full py-3 text-sm font-bold">Submit</button>
+                  <div className="flex flex-col gap-3 mt-1">
+                    <p className="text-xs text-slate-500 text-left">By continuing, you agree to TechBazar's <a href="/policy" className="text-primary-accent hover:underline font-medium"> Terms of Use</a> and <a href="/policy" className="text-primary-accent hover:underline font-medium"> Privacy Policy.</a></p>
+                    <button type="submit" className="btn-accent w-full py-3 text-sm font-bold uppercase tracking-wide">Submit</button>
                   </div>
                   {/* <!-- button container --> */}
 
@@ -106,9 +111,10 @@ const ResetPassword = () => {
               </form>
               {/* <!-- input container --> */}
 
-              <Link to="/register" className="font-medium text-sm text-primary-accent hover:underline">New to TechBazar? Create an account</Link>
+              <div className="text-center">
+                <Link to="/register" className="font-medium text-sm text-primary-accent hover:underline">New to TechBazar? Create an account</Link>
+              </div>
             </div>
-            {/* <!-- edit info container --> */}
 
           </div>
           {/* <!-- login column --> */}

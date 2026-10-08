@@ -77,86 +77,99 @@ const UpdateProfile = () => {
             <main className="w-full mt-4 sm:pt-6 sm:mt-0">
 
                 {/* <!-- row --> */}
-                <div className="surface flex overflow-hidden sm:w-4/6 sm:mt-4 m-auto mb-7">
+                <div className="surface flex overflow-hidden sm:w-5/6 md:w-4/6 lg:w-3/5 sm:mt-4 m-auto mb-7 shadow-lg">
                     {/* <!-- sidebar column  --> */}
-                    <div className="loginSidebar bg-primary-accent px-9 py-10 hidden sm:flex flex-col gap-4 w-2/5">
-                        <h1 className="font-display font-bold text-white text-3xl">Looks like you're new here!</h1>
-                        <p className="text-blue-100 text-lg pr-2">Sign up with your mobile number to get started</p>
+                    <div className="loginSidebar bg-gradient-to-br from-primary-accent to-blue-700 px-9 py-10 hidden sm:flex flex-col justify-between gap-4 w-2/5 relative">
+                        <div className="flex flex-col gap-4">
+                            <h1 className="font-display font-bold text-white text-3xl sm:text-4xl leading-tight">Update Your Profile</h1>
+                            <p className="text-blue-100 text-base sm:text-lg pr-2">Keep your details up to date</p>
+                        </div>
+                        <div className="text-xs text-blue-100/90">Shop smarter. Track faster.</div>
                     </div>
                     {/* <!-- sidebar column  --> */}
 
                     {/* <!-- signup column --> */}
-                    <div className="flex-1 overflow-hidden p-6 sm:p-8">
+                    <div className="flex-1 overflow-hidden p-6 sm:p-10">
 
-                        <h2 className="text-center font-display font-extrabold text-xl sm:text-2xl text-slate-900">Update Profile</h2>
-                        {/* <!-- personal info procedure container --> */}
-                        <form
-                            onSubmit={updateProfileHandler}
-                            encType="multipart/form-data"
-                        >
-                            <div className="flex flex-col gap-4 items-start mt-6">
+                        <div className="max-w-md mx-auto flex flex-col gap-7">
 
-                                {/* <!-- input container column --> */}
-                                <div className="flex flex-col w-full justify-between sm:flex-col gap-3 items-center">
-                                    <TextField
-                                        fullWidth
-                                        label="Full Name"
-                                        name="name"
-                                        value={name}
-                                        onChange={(e) => setName(e.target.value)}
-                                        required
-                                    />
-                                    <TextField
-                                        fullWidth
-                                        label="Email"
-                                        type="email"
-                                        name="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                {/* <!-- input container column --> */}
-
-                                {/* <!-- gender input --> */}
-                                <div className="flex gap-4 items-center">
-                                    <h2 className="text-sm font-medium text-slate-700">Your Gender :</h2>
-                                    <div className="flex items-center gap-6" id="radioInput">
-                                        <RadioGroup
-                                            row
-                                            aria-labelledby="radio-buttons-group-label"
-                                            name="radio-buttons-group"
-                                        >
-                                            <FormControlLabel name="gender" value="male" checked={gender === "male"} onChange={(e) => setGender(e.target.value)} control={<Radio required />} label="Male" />
-                                            <FormControlLabel name="gender" value="female" checked={gender === "female"} onChange={(e) => setGender(e.target.value)} control={<Radio required />} label="Female" />
-                                        </RadioGroup>
-                                    </div>
-                                </div>
-                                {/* <!-- gender input --> */}
-
-                                <div className="flex flex-col w-full justify-between sm:flex-row gap-3 items-center">
-                                    <Avatar
-                                        alt="Avatar Preview"
-                                        src={avatarPreview}
-                                        sx={{ width: 56, height: 56 }}
-                                    />
-                                    <label className="btn-ghost w-full py-3 text-sm cursor-pointer text-center">
-                                        <input
-                                            type="file"
-                                            name="avatar"
-                                            accept="image/*"
-                                            onChange={handleUpdateDataChange}
-                                            className="hidden"
-                                        />
-                                        Choose File
-                                    </label>
-                                </div>
-                                <button type="submit" className="btn-accent w-full py-3 text-sm font-bold">Update</button>
-                                <Link className="btn-ghost w-full py-3 text-sm text-center" to="/account">Cancel</Link>
+                            <div className="text-center flex flex-col gap-2">
+                                <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900">Edit Profile</h2>
+                                <p className="text-sm text-slate-500">Update your personal information</p>
                             </div>
 
-                        </form>
-                        {/* <!-- personal info procedure container --> */}
+                            {/* <!-- personal info procedure container --> */}
+                            <form
+                                onSubmit={updateProfileHandler}
+                                encType="multipart/form-data"
+                                className="flex flex-col gap-5"
+                            >
+                                <div className="flex flex-col gap-4 items-start">
+
+                                    {/* <!-- input container column --> */}
+                                    <div className="flex flex-col w-full justify-between sm:flex-col gap-3 items-center">
+                                        <TextField
+                                            fullWidth
+                                            label="Full Name"
+                                            name="name"
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                            required
+                                            autoComplete="name"
+                                        />
+                                        <TextField
+                                            fullWidth
+                                            label="Email Address"
+                                            type="email"
+                                            name="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            required
+                                            autoComplete="email"
+                                        />
+                                    </div>
+                                    {/* <!-- input container column --> */}
+
+                                    {/* <!-- gender input --> */}
+                                    <div className="flex flex-col gap-2">
+                                        <h2 className="text-sm font-medium text-slate-700">Your Gender</h2>
+                                        <div className="flex items-center gap-6" id="radioInput">
+                                            <RadioGroup
+                                                row
+                                                aria-labelledby="radio-buttons-group-label"
+                                                name="radio-buttons-group"
+                                            >
+                                                <FormControlLabel name="gender" value="male" checked={gender === "male"} onChange={(e) => setGender(e.target.value)} control={<Radio required />} label="Male" />
+                                                <FormControlLabel name="gender" value="female" checked={gender === "female"} onChange={(e) => setGender(e.target.value)} control={<Radio required />} label="Female" />
+                                            </RadioGroup>
+                                        </div>
+                                    </div>
+                                    {/* <!-- gender input --> */}
+
+                                    <div className="flex flex-col w-full justify-between sm:flex-row gap-3 items-center">
+                                        <Avatar
+                                            alt="Avatar Preview"
+                                            src={avatarPreview}
+                                            sx={{ width: 56, height: 56 }}
+                                        />
+                                        <label className="btn-ghost w-full py-3 text-sm cursor-pointer text-center">
+                                            <input
+                                                type="file"
+                                                name="avatar"
+                                                accept="image/*"
+                                                onChange={handleUpdateDataChange}
+                                                className="hidden"
+                                            />
+                                            Change Profile Picture
+                                        </label>
+                                    </div>
+                                    <button type="submit" className="btn-accent w-full py-3 text-sm font-bold uppercase tracking-wide mt-1">Update Profile</button>
+                                    <Link className="btn-ghost w-full py-3 text-sm text-center" to="/account">Cancel</Link>
+                                </div>
+
+                            </form>
+                            {/* <!-- personal info procedure container --> */}
+                        </div>
 
                     </div>
                     {/* <!-- signup column --> */}
