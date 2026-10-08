@@ -27,6 +27,11 @@ const updateSiteConfig = async (req, res) => {
         if (body.payment) update.payment = body.payment;
         if (body.delivery) update.delivery = body.delivery;
         if (body.support) update.support = body.support;
+        if (Array.isArray(body.categories)) {
+            update.categories = [...new Set(
+                body.categories.map((c) => String(c).trim()).filter(Boolean)
+            )].slice(0, 30);
+        }
         if (Array.isArray(body.trustBadges)) update.trustBadges = body.trustBadges;
         if (Array.isArray(body.howToOrder)) update.howToOrder = body.howToOrder;
         if (Array.isArray(body.reviews)) update.reviews = body.reviews;

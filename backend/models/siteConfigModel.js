@@ -59,6 +59,15 @@ const DEFAULT_CONFIG = {
         hotline: '01700000000',
         whatsapp: '8801700000000',
     },
+    // browsable product categories (Admin → Homepage)
+    categories: [
+        'Electronics',
+        'Mobiles',
+        'Laptops',
+        'Fashion',
+        'Appliances',
+        'Home',
+    ],
     howToOrder: [
         { icon: '🛒', title: 'পণ্য পছন্দ করুন', description: "‘অর্ডার করুন’ বাটনে ক্লিক করুন।" },
         { icon: '📲', title: 'ডেলিভারি চার্জ পেমেন্ট', description: 'ঢাকার ভেতরে ৳৭০, বাইরে ৳১৩০ — বিকাশ বা নগদে দিন।' },
@@ -139,6 +148,10 @@ const siteConfigSchema = new mongoose.Schema({
     support: {
         hotline: { type: String, default: DEFAULT_CONFIG.support.hotline },
         whatsapp: { type: String, default: DEFAULT_CONFIG.support.whatsapp },
+    },
+    categories: {
+        type: [String],
+        default: DEFAULT_CONFIG.categories,
     },
     updatedAt: { type: Date, default: Date.now },
 });
