@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar/Sidebar';
-import MenuIcon from '@mui/icons-material/Menu';
+import AdminAppBar from './AdminAppBar';
 
 const Dashboard = ({ activeTab, children }) => {
 
@@ -30,13 +30,13 @@ const Dashboard = ({ activeTab, children }) => {
 
     return (
         <>
-            <main className="flex min-h-screen mt-4 sm:mt-0 sm:min-w-full">
+            <main className={`flex min-h-screen ${onMobile ? 'mt-0' : 'mt-4'} sm:mt-0 sm:min-w-full`}>
 
                 {!onMobile && <Sidebar activeTab={activeTab} />}
                 {onMobile && toggleSidebar && (
                     <>
                         <div
-                            className="fixed inset-0 bg-black/50 z-0 sm:hidden"
+                            className="fixed inset-0 bg-black/50 z-50 sm:hidden"
                             onClick={() => setToggleSidebar(false)}
                         ></div>
                         <Sidebar activeTab={activeTab} setToggleSidebar={setToggleSidebar} />
@@ -44,8 +44,8 @@ const Dashboard = ({ activeTab, children }) => {
                 )}
 
                 <div className="w-full sm:flex-1 sm:ml-72 min-h-screen">
-                    <div className="flex flex-col gap-6 sm:m-8 p-2 pb-6 overflow-hidden">
-                        <button onClick={() => setToggleSidebar(true)} className="sm:hidden bg-gray-700 w-10 h-10 rounded-full shadow text-white flex items-center justify-center"><MenuIcon /></button>
+                    {onMobile && <AdminAppBar onMenu={() => setToggleSidebar(true)} />}
+                    <div className={`flex flex-col gap-6 sm:m-8 p-2 pb-6 overflow-hidden ${onMobile ? 'pt-16' : ''}`}>
                         {children}
                     </div>
                 </div>

@@ -38,6 +38,8 @@ import ReviewsTable from './components/Admin/ReviewsTable';
 import StoreOrders from './components/Admin/StoreOrders';
 import SiteEditor from './components/Admin/SiteEditor';
 import ChatInbox from './components/Admin/ChatInbox';
+import More from './components/Admin/More';
+import AdminBottomNav from './components/Admin/AdminBottomNav';
 import ChatWidget from './components/Chat/ChatWidget';
 import Checkout from './components/Store/Checkout';
 import TrackOrder from './components/Store/TrackOrder';
@@ -108,6 +110,8 @@ function App() {
     <>
       <Header />
       <BottomBar />
+      {/* dedicated admin bottom bar (mobile only) — returns null off /admin */}
+      <AdminBottomNav />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
@@ -291,6 +295,15 @@ function App() {
           <ProtectedRoute isAdmin={true}>
             <Dashboard activeTab={8}>
               <ChatInbox />
+            </Dashboard>
+          </ProtectedRoute>
+        } ></Route>
+
+        {/* "More" tab of the admin bottom nav */}
+        <Route path="/admin/more" element={
+          <ProtectedRoute isAdmin={true}>
+            <Dashboard activeTab={-1}>
+              <More />
             </Dashboard>
           </ProtectedRoute>
         } ></Route>

@@ -6,7 +6,7 @@ import Searchbar from './Searchbar';
 import PrimaryDropDownMenu from './PrimaryDropDownMenu';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import AnnouncementBar from '../../Home/AnnouncementBar';
 
 // Modern desktop navbar (Cloud White): logo · centered pill search ·
@@ -20,13 +20,18 @@ const Header = () => {
 
   const [togglePrimaryDropDown, setTogglePrimaryDropDown] = useState(false);
 
+  // /admin has its own app bar (mobile) + sidebar (desktop) — hide the store
+  // announcement strip there so the admin chrome owns the top edge.
+  const { pathname } = useLocation();
+  const isAdmin = pathname.startsWith('/admin');
+
   return (
 
     <header className="bg-white border-b border-line fixed top-0 w-full z-10">
 
       {/* top announcement strip — above the navbar; visible on mobile too
           (only the navbar row below is desktop-only) */}
-      <AnnouncementBar />
+      {!isAdmin && <AnnouncementBar />}
 
       {/* navbar row (desktop only — mobile uses the bottom bar) */}
       <div className="hidden md:flex w-full sm:w-11/12 px-4 py-2.5 m-auto items-center gap-4 relative">

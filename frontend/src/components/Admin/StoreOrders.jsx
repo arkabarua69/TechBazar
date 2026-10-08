@@ -1,9 +1,20 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import MetaData from '../Layouts/MetaData';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import { formatDate } from '../../utils/functions';
+import BottomSheet from './BottomSheet';
+import {
+    bn,
+    shortOrderId,
+    timeAgoBn,
+    copyText,
+    emitOrdersAlert,
+    SEARCH_FOCUS_EVENT,
+    LAST_SEEN_KEY,
+} from '../../utils/adminHelpers';
 
 const STATUS_STYLES = {
     PENDING_APPROVAL: 'bg-yellow-100 text-yellow-800',
@@ -27,30 +38,84 @@ const FULFILMENT_LABELS = {
     DELIVERED: 'Delivered',
     CANCELLED: 'Cancelled',
 };
+// merchant-app wording for the bottom-sheet stepper
+const STEPPER_LABELS = {
+    PLACED: 'Pending',
+    CONFIRMED: 'Confirmed',
+    SHIPPED: 'Handed to Courier',
+    DELIVERED: 'Delivered',
+};
 // selectable progression (Cancelled happens through the Cancel button)
 const FULFILMENT_OPTIONS = ['PLACED', 'CONFIRMED', 'SHIPPED', 'DELIVERED'];
 
-// one-tap WhatsApp chat link for a BD phone number
-const waLink = (phone) => {
+// queue filters (chips)
+const FILTERS = [
+    { id: 'all', label: 'All' },
+    { id: 'verify', label: '⚠ Verify TrxID' },
+    { id: 'pending', label: 'Pending approval' },
+    { id: 'confirmed', label: 'Confirmed' },
+    { id: 'shipped', label: 'Shipped' },
+    { id: 'delivered', label: 'Delivered' },
+];
+const matchesFilter = (order, f) => {
+    switch (f) {
+        case 'verify':
+            return (
+                order.payment?.verified === false &&
+                order.status !== 'CANCELLED' &&
+                order.fulfilment !== 'DELIVERED' &&
+                order.fulfilment !== 'CANCELLED'
+            );
+        case 'pending':
+            return order.status === 'PENDING_APPROVAL' || order.status === 'FORWARD_FAILED';
+        case 'confirmed':
+            return order.fulfilment === 'CONFIRMED';
+        case 'shipped':
+            return order.fulfilment === 'SHIPPED';
+        case 'delivered':
+            return order.fulfilment === 'DELIVERED';
+        default:
+            return true;
+    }
+};
+
+// one-tap WhatsApp chat link for a BD phone number (optional pre-filled text)
+const waLink = (phone, text) => {
     const digits = String(phone || '').replace(/\D/g, '');
     const intl = digits.startsWith('880') ? digits : `88${digits.replace(/^0/, '')}`;
-    return `https://wa.me/${intl}`;
+    return `https://wa.me/${intl}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
 };
 
 const StoreOrders = () => {
 
     const { enqueueSnackbar } = useSnackbar();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(false);
     const [busyId, setBusyId] = useState(null);
     const [syncing, setSyncing] = useState(false);
 
+    // mobile UX state: search box, queue filter chips, bottom sheets
+    const [search, setSearch] = useState('');
+    const [filter, setFilter] = useState(() => searchParams.get('filter') || 'all');
+    const [sheet, setSheet] = useState(null); // { id, mode: 'details' | 'actions' }
+    const searchRef = useRef(null);
+
     const fetchOrders = useCallback(async () => {
         try {
             setLoading(true);
             const { data } = await axios.get('/api/v1/admin/store/orders', { headers: { Accept: 'application/json' } });
-            setOrders(data.orders || []);
+            const list = data.orders || [];
+            setOrders(list);
+
+            // viewing the queue marks everything as seen → badges clear
+            try {
+                const newest = list.length ? new Date(list[0].createdAt).getTime() : Date.now();
+                localStorage.setItem(LAST_SEEN_KEY, String(Math.max(newest, Number(localStorage.getItem(LAST_SEEN_KEY) || 0))));
+            } catch (e) { /* ignore */ }
+            const pendingVerify = list.filter((o) => matchesFilter(o, 'verify')).length;
+            emitOrdersAlert({ unseen: 0, pendingVerify });
         } catch (err) {
             enqueueSnackbar(err.response?.data?.message || 'Failed to load store orders', { variant: 'error' });
         } finally {
@@ -61,6 +126,13 @@ const StoreOrders = () => {
     useEffect(() => {
         fetchOrders();
     }, [fetchOrders]);
+
+    // the app bar's 🔍 icon dispatches this after navigating here
+    useEffect(() => {
+        const focus = () => searchRef.current?.focus();
+        window.addEventListener(SEARCH_FOCUS_EVENT, focus);
+        return () => window.removeEventListener(SEARCH_FOCUS_EVENT, focus);
+    }, []);
 
     const act = async (id, action) => {
         setBusyId(id);
@@ -106,6 +178,48 @@ const StoreOrders = () => {
         }
     };
 
+    const doCopy = async (text) => {
+        const ok = await copyText(text);
+        enqueueSnackbar(ok ? 'TrxID copied' : 'Copy failed', { variant: ok ? 'success' : 'error' });
+    };
+
+    const pickFilter = (id) => {
+        setFilter(id);
+        const next = new URLSearchParams(searchParams);
+        if (id === 'all') next.delete('filter');
+        else next.set('filter', id);
+        setSearchParams(next, { replace: true });
+    };
+
+    // search across customer / phone / TrxID / product / ids
+    const filtered = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        return orders.filter((o) => {
+            if (!matchesFilter(o, filter)) return false;
+            if (!q) return true;
+            return [o.customer?.name, o.customer?.phone, o.customer?.address, o.payment?.transactionId,
+                o.product?.name, o.groupId, o.bkOrderId, o._id]
+                .filter(Boolean)
+                .some((v) => String(v).toLowerCase().includes(q));
+        });
+    }, [orders, filter, search]);
+
+    const counts = useMemo(() => {
+        const c = { all: orders.length };
+        FILTERS.slice(1).forEach((f) => { c[f.id] = orders.filter((o) => matchesFilter(o, f.id)).length; });
+        return c;
+    }, [orders]);
+
+    // keep the open sheet in sync with refreshed data (close if it vanished)
+    const sheetOrder = sheet ? orders.find((o) => o._id === sheet.id) : null;
+    useEffect(() => {
+        if (sheet && !sheetOrder) setSheet(null);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [orders]);
+
+    const zoneLabel = (o) => (o.delivery?.zone === 'inside-dhaka' ? 'ঢাকার ভিতরে' : 'ঢাকার বাইরে');
+    const codDue = (o) => (o.pricing?.sellingPrice || 0) * (o.pricing?.quantity || 0);
+
     return (
         <>
             <MetaData title="Store Orders | TechBazar" />
@@ -123,7 +237,149 @@ const StoreOrders = () => {
                 Guest orders wait here until you approve them — approving forwards the order to the Business Koro API.
             </p>
 
-            <div className="bg-white rounded-xl shadow-lg mt-4 overflow-x-auto">
+            {/* search — one-tap lookup by name / phone / TrxID */}
+            <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+                <input
+                    ref={searchRef}
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="নাম, ফোন নম্বর বা TrxID দিয়ে খুঁজুন…"
+                    className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-300 rounded-xl bg-white focus:border-primary-blue focus:outline-none"
+                />
+            </div>
+
+            {/* queue filter chips */}
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+                {FILTERS.map((f) => (
+                    <button
+                        key={f.id}
+                        onClick={() => pickFilter(f.id)}
+                        className={`shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border transition ${
+                            filter === f.id
+                                ? 'bg-primary-blue text-white border-primary-blue'
+                                : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                        }`}
+                    >
+                        {f.label}
+                        <span className={`ml-1.5 font-bold ${filter === f.id ? 'text-blue-100' : 'text-gray-400'}`}>
+                            {bn(counts[f.id] || 0)}
+                        </span>
+                    </button>
+                ))}
+            </div>
+
+            {/* ===== MOBILE: merchant-app order cards (no horizontal scroll) ===== */}
+            <div className="sm:hidden flex flex-col gap-3">
+                {filtered.length === 0 && (
+                    <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-8 text-center text-gray-400 text-sm">
+                        No orders match.
+                    </div>
+                )}
+                {filtered.map((order) => {
+                    const busy = busyId === order._id;
+                    return (
+                        <article key={order._id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                            {/* card header: #id • time • delivery badge */}
+                            <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border-b border-gray-100">
+                                <span className="font-bold text-gray-900 text-sm">#{shortOrderId(order._id)}</span>
+                                <span className="text-[11px] text-gray-400">• {timeAgoBn(order.createdAt)}</span>
+                                <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 whitespace-nowrap">
+                                    ৳{bn(order.delivery?.charge)} {zoneLabel(order)}
+                                </span>
+                            </div>
+
+                            {/* tappable body → details bottom sheet */}
+                            <div
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => setSheet({ id: order._id, mode: 'details' })}
+                                onKeyDown={(e) => { if (e.key === 'Enter') setSheet({ id: order._id, mode: 'details' }); }}
+                                className="px-3 py-3 cursor-pointer active:bg-gray-50 transition-colors"
+                            >
+                                <div className="flex gap-2.5 items-center">
+                                    {order.product?.image && (
+                                        <img src={order.product.image} alt="" className="w-11 h-11 object-contain rounded-lg border bg-white shrink-0" />
+                                    )}
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-medium text-gray-900 truncate">{order.product?.name}</p>
+                                        <p className="text-xs text-gray-500">{order.customer?.name} · Qty {bn(order.pricing?.quantity)}</p>
+                                    </div>
+                                </div>
+
+                                <p className="text-xs text-gray-600 mt-2 flex items-start gap-1">
+                                    <span className="text-gray-400">📍</span>
+                                    <span className="line-clamp-2">{order.customer?.address}{order.customer?.area ? `, ${order.customer.area}` : ''}, {order.customer?.district}, {order.customer?.division}</span>
+                                </p>
+
+                                {/* payment box: TrxID + one-tap copy + advance/due */}
+                                <div className="mt-2 rounded-xl border border-dashed border-gray-200 bg-gray-50 p-2.5">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-white border text-gray-600">{order.payment?.method}</span>
+                                        <span className="font-mono text-xs text-gray-800">{order.payment?.transactionId}</span>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); doCopy(order.payment?.transactionId); }}
+                                            className="ml-auto text-[11px] font-medium bg-white border rounded px-2 py-1 text-gray-600 active:bg-gray-100"
+                                        >
+                                            ⧉ Copy
+                                        </button>
+                                    </div>
+                                    <div className="flex items-center justify-between mt-1.5 text-[11px] gap-2">
+                                        <span className="text-gray-600">অগ্রিম (ডেলিভারি): <b>৳{bn(order.delivery?.charge)}</b></span>
+                                        <span className={order.payment?.verified ? 'text-green-600 font-semibold' : 'text-amber-600 font-semibold'}>
+                                            {order.payment?.verified ? '✓ Verified' : '⚠ TrxID যাচাই বাকি'}
+                                        </span>
+                                    </div>
+                                    <p className="text-[11px] text-gray-600 mt-0.5">
+                                        ক্যাশ অন ডেলিভারি: <b className="text-gray-900">৳{bn(codDue(order).toLocaleString())}</b>
+                                    </p>
+                                </div>
+
+                                {/* status chips */}
+                                <div className="flex gap-1.5 mt-2 flex-wrap">
+                                    <span className={`text-[10px] p-1 px-2 font-medium rounded-full ${STATUS_STYLES[order.status] || ''}`}>{order.status}</span>
+                                    <span className={`text-[10px] p-1 px-2 font-medium rounded-full ${FULFILMENT_STYLES[order.fulfilment] || ''}`}>
+                                        {FULFILMENT_LABELS[order.fulfilment] || 'Placed'}
+                                    </span>
+                                    {order.bkOrderId && <span className="text-[10px] text-gray-400 font-mono self-center">BK: {order.bkOrderId}</span>}
+                                    {order.bkError && <span className="text-[10px] text-red-500 w-full">{order.bkError}</span>}
+                                </div>
+                            </div>
+
+                            {/* one-tap quick actions */}
+                            <div className="flex gap-2 px-3 py-2 border-t border-gray-100 bg-white">
+                                <a
+                                    href={`tel:${order.customer?.phone}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="flex-1 text-xs font-semibold bg-blue-50 text-blue-700 rounded-lg py-2 text-center active:bg-blue-100"
+                                >
+                                    📞 Call
+                                </a>
+                                <a
+                                    href={waLink(order.customer?.phone, `TechBazar: আপনার অর্ডার #${shortOrderId(order._id)} নিয়ে যোগাযোগ করছি।`)}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="flex-1 text-xs font-semibold bg-green-50 text-green-700 rounded-lg py-2 text-center active:bg-green-100"
+                                >
+                                    💬 WhatsApp
+                                </a>
+                                <button
+                                    onClick={() => setSheet({ id: order._id, mode: 'actions' })}
+                                    disabled={busy}
+                                    className="flex-1 text-xs font-semibold bg-primary-blue text-white rounded-lg py-2 active:bg-blue-700 disabled:opacity-50"
+                                >
+                                    Status ▸
+                                </button>
+                            </div>
+                        </article>
+                    );
+                })}
+            </div>
+
+            {/* ===== DESKTOP: table (unchanged) ===== */}
+            <div className="hidden sm:block bg-white rounded-xl shadow-lg mt-4 overflow-x-auto">
                 <table className="w-full text-sm text-left">
                     <thead className="bg-gray-50 text-gray-500 uppercase text-xs">
                         <tr>
@@ -137,10 +393,10 @@ const StoreOrders = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                        {orders.length === 0 && (
+                        {filtered.length === 0 && (
                             <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">No store orders yet.</td></tr>
                         )}
-                        {orders.map((order) => (
+                        {filtered.map((order) => (
                             <tr key={order._id} className="hover:bg-gray-50 align-top">
                                 <td className="px-4 py-3">
                                     <div className="flex gap-2 items-center">
@@ -239,6 +495,164 @@ const StoreOrders = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* ===== BOTTOM SHEET: order details ===== */}
+            <BottomSheet
+                open={!!sheet && sheet.mode === 'details' && !!sheetOrder}
+                onClose={() => setSheet(null)}
+                title={sheetOrder ? `#${shortOrderId(sheetOrder._id)} · Details` : 'Details'}
+            >
+                {sheetOrder && (
+                    <div className="space-y-3">
+                        <div className="flex gap-3 items-center">
+                            {sheetOrder.product?.image && (
+                                <img src={sheetOrder.product.image} alt="" className="w-14 h-14 object-contain rounded-lg border bg-white" />
+                            )}
+                            <div className="min-w-0">
+                                <p className="font-medium text-gray-900">{sheetOrder.product?.name}</p>
+                                <p className="text-sm text-gray-500">
+                                    ৳{sheetOrder.pricing?.sellingPrice?.toLocaleString()} × {bn(sheetOrder.pricing?.quantity)}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="rounded-xl bg-gray-50 p-3 text-sm space-y-1">
+                            <p className="font-semibold text-gray-900">{sheetOrder.customer?.name}</p>
+                            <a href={`tel:${sheetOrder.customer?.phone}`} className="block text-blue-600">📞 {sheetOrder.customer?.phone}</a>
+                            <p className="text-gray-600">
+                                {sheetOrder.customer?.address}{sheetOrder.customer?.area ? `, ${sheetOrder.customer.area}` : ''},
+                                {' '}{sheetOrder.customer?.district}, {sheetOrder.customer?.division}
+                            </p>
+                        </div>
+
+                        <div className="rounded-xl bg-gray-50 p-3 text-sm space-y-1.5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-white border text-gray-600">{sheetOrder.payment?.method}</span>
+                                <span className="font-mono text-xs">{sheetOrder.payment?.transactionId}</span>
+                                <button
+                                    onClick={() => doCopy(sheetOrder.payment?.transactionId)}
+                                    className="ml-auto text-xs bg-white border rounded px-2 py-1"
+                                >⧉ Copy</button>
+                            </div>
+                            <p className="text-xs text-gray-600">
+                                অগ্রিম (ডেলিভারি): <b>৳{bn(sheetOrder.delivery?.charge)}</b> · {zoneLabel(sheetOrder)}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                                ক্যাশ অন ডেলিভারি: <b>৳{bn(codDue(sheetOrder).toLocaleString())}</b>
+                            </p>
+                            <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
+                                sheetOrder.payment?.verified ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                                {sheetOrder.payment?.verified ? '✓ TrxID verified' : '⚠ TrxID pending'}
+                            </span>
+                        </div>
+
+                        <div className="flex flex-wrap gap-1.5 items-center text-xs">
+                            <span className={`p-1 px-2 font-medium rounded-full ${STATUS_STYLES[sheetOrder.status] || ''}`}>{sheetOrder.status}</span>
+                            <span className={`p-1 px-2 font-medium rounded-full ${FULFILMENT_STYLES[sheetOrder.fulfilment] || ''}`}>
+                                {FULFILMENT_LABELS[sheetOrder.fulfilment] || 'Placed'}
+                            </span>
+                            <span className="text-gray-400">{formatDate(sheetOrder.createdAt)}</span>
+                        </div>
+                        {sheetOrder.bkOrderId && <p className="text-xs text-gray-500 font-mono">BK order: {sheetOrder.bkOrderId}</p>}
+                        {sheetOrder.bkError && <p className="text-xs text-red-500">{sheetOrder.bkError}</p>}
+
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                            <button
+                                onClick={() => setSheet({ id: sheetOrder._id, mode: 'actions' })}
+                                className="bg-primary-blue text-white rounded-xl py-2.5 text-sm font-semibold active:bg-blue-700"
+                            >
+                                Update status ▸
+                            </button>
+                            <a
+                                href={waLink(sheetOrder.customer?.phone, `TechBazar: আপনার অর্ডার #${shortOrderId(sheetOrder._id)} নিয়ে যোগাযোগ করছি।`)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="bg-green-50 text-green-700 border border-green-200 rounded-xl py-2.5 text-sm font-semibold text-center active:bg-green-100"
+                            >
+                                💬 WhatsApp
+                            </a>
+                        </div>
+                    </div>
+                )}
+            </BottomSheet>
+
+            {/* ===== BOTTOM SHEET: status actions (one-tap stepper) ===== */}
+            <BottomSheet
+                open={!!sheet && sheet.mode === 'actions' && !!sheetOrder}
+                onClose={() => setSheet(null)}
+                title={sheetOrder ? `#${shortOrderId(sheetOrder._id)} · Status` : 'Status'}
+            >
+                {sheetOrder && (
+                    <div className="space-y-4">
+                        {/* fulfilment stepper */}
+                        <div className="space-y-2">
+                            {FULFILMENT_OPTIONS.map((key, idx) => {
+                                const current = (sheetOrder.fulfilment || 'PLACED') === key;
+                                const done = FULFILMENT_OPTIONS.indexOf(sheetOrder.fulfilment || 'PLACED') > idx;
+                                return (
+                                    <button
+                                        key={key}
+                                        onClick={() => updateStatus(sheetOrder._id, { fulfilment: key }, `Status → ${STEPPER_LABELS[key]}`)}
+                                        disabled={busyId === sheetOrder._id}
+                                        className={`w-full flex items-center gap-3 rounded-xl border px-3 py-3 text-sm font-medium transition disabled:opacity-50 ${
+                                            current
+                                                ? 'border-primary-blue bg-blue-50 text-primary-blue'
+                                                : done
+                                                    ? 'border-green-200 bg-green-50 text-green-700'
+                                                    : 'border-gray-200 bg-white text-gray-700 active:bg-gray-50'
+                                        }`}
+                                    >
+                                        <span className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
+                                            current ? 'bg-primary-blue text-white' : done ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                                        }`}>
+                                            {done && !current ? '✓' : bn(idx + 1)}
+                                        </span>
+                                        {STEPPER_LABELS[key]}
+                                        {current && <span className="ml-auto text-xs">current</span>}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* TrxID verification toggle */}
+                        <button
+                            onClick={() => updateStatus(sheetOrder._id, { paymentVerified: !sheetOrder.payment?.verified }, sheetOrder.payment?.verified ? 'TrxID unverified' : 'TrxID verified ✓')}
+                            disabled={busyId === sheetOrder._id}
+                            className={`w-full rounded-xl border px-3 py-3 text-sm font-semibold disabled:opacity-50 ${
+                                sheetOrder.payment?.verified
+                                    ? 'border-green-200 bg-green-50 text-green-700'
+                                    : 'border-amber-200 bg-amber-50 text-amber-700'
+                            }`}
+                        >
+                            {sheetOrder.payment?.verified ? '✓ TrxID verified — tap to undo' : '⚠ Verify TrxID (অগ্রিম যাচাই)'}
+                        </button>
+
+                        <div className="grid grid-cols-2 gap-2">
+                            {(sheetOrder.status === 'PENDING_APPROVAL' || sheetOrder.status === 'FORWARD_FAILED') && (
+                                <button
+                                    onClick={() => act(sheetOrder._id, 'approve')}
+                                    disabled={busyId === sheetOrder._id}
+                                    className="bg-green-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-green-700 disabled:opacity-50"
+                                >
+                                    {sheetOrder.status === 'FORWARD_FAILED' ? 'Retry → BK' : 'Approve → BK'}
+                                </button>
+                            )}
+                            {sheetOrder.status !== 'CANCELLED' && sheetOrder.fulfilment !== 'DELIVERED' && (
+                                <button
+                                    onClick={() => act(sheetOrder._id, 'cancel')}
+                                    disabled={busyId === sheetOrder._id}
+                                    className={`border border-red-300 text-red-600 rounded-xl py-2.5 text-sm font-semibold hover:bg-red-50 disabled:opacity-50 ${
+                                        !(sheetOrder.status === 'PENDING_APPROVAL' || sheetOrder.status === 'FORWARD_FAILED') ? 'col-span-2' : ''
+                                    }`}
+                                >
+                                    Cancel order
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </BottomSheet>
         </>
     );
 };

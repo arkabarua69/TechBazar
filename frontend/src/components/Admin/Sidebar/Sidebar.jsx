@@ -87,7 +87,7 @@ const Sidebar = ({ activeTab, setToggleSidebar }) => {
     }
 
     return (
-        <aside className="sidebar z-10 sm:z-0 block min-h-screen fixed left-0 pb-14 max-h-screen w-3/4 sm:w-72 bg-gray-800 text-white overflow-x-hidden border-r">
+        <aside className="sidebar z-50 sm:z-0 block min-h-screen fixed left-0 pb-14 max-h-screen w-3/4 sm:w-72 bg-gray-800 text-white overflow-x-hidden border-r">
             <div className="flex items-center gap-3 bg-gray-700 p-2 rounded-lg shadow-lg my-4 mx-3.5">
                 <Avatar
                     alt="Avatar"
