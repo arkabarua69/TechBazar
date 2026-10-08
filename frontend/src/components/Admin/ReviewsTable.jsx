@@ -103,10 +103,10 @@ const ReviewsTable = () => {
 
             {loading && <BackdropLoader />}
             <div className="flex justify-between items-center gap-2 sm:gap-12">
-                <h1 className="text-lg font-medium uppercase">reviews</h1>
-                <input type="text" placeholder="Product ID" value={productId} onChange={(e) => setProductId(e.target.value)} className="outline-none border-0 rounded p-2 w-full shadow hover:shadow-lg" />
+                <h1 className="text-lg sm:text-xl font-extrabold text-gray-900 shrink-0">Reviews</h1>
+                <input type="text" placeholder="Product ID" value={productId} onChange={(e) => setProductId(e.target.value)} className="outline-none border border-gray-200 rounded-xl px-3 py-2 text-sm w-full bg-white focus:border-black" />
             </div>
-            <div className="bg-white rounded-xl shadow-lg w-full" style={{ height: 450 }}>
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm w-full overflow-hidden" style={{ height: 450 }}>
 
                 <DataGrid
                     rows={rows}

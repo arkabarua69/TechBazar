@@ -177,18 +177,18 @@ const ChatInbox = () => {
             <MetaData title="Chat Inbox | TechBazar" />
 
             <div className="flex items-center justify-between gap-3 flex-wrap">
-                <h1 className="text-lg font-medium uppercase">chat inbox</h1>
+                <h1 className="text-lg sm:text-xl font-extrabold text-gray-900">Chat Inbox</h1>
                 <div className="flex gap-2 items-center">
                     {unreadTotal > 0 && (
                         <span className="text-xs font-semibold bg-red-100 text-red-700 rounded-full px-2.5 py-1">
                             {unreadTotal} unread
                         </span>
                     )}
-                    <button onClick={() => { searchRef.current = search.trim(); fetchList(true); }} className="text-sm border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-100">Refresh</button>
+                    <button onClick={() => { searchRef.current = search.trim(); fetchList(true); }} className="text-sm font-semibold border border-gray-300 bg-white rounded-full px-4 py-2 text-gray-700 hover:bg-gray-100">Refresh</button>
                 </div>
             </div>
 
-            <div className="flex bg-white border border-line rounded-lg overflow-hidden" style={{ minHeight: '65vh' }}>
+            <div className="flex bg-white border border-line rounded-2xl overflow-hidden" style={{ minHeight: '65vh' }}>
 
                 {/* ── conversation list ── */}
                 <div className={`w-full sm:w-1/3 md:w-1/4 border-r border-line flex flex-col ${activeId ? 'hidden sm:flex' : 'flex'}`}>

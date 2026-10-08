@@ -204,11 +204,11 @@ const ProductTable = () => {
 
             {loading && <BackdropLoader />}
 
-            <div className="flex justify-between items-center">
-                <h1 className="text-lg font-medium uppercase">products</h1>
-                <Link to="/admin/new_product" className="py-2 px-4 rounded shadow font-medium text-white bg-black hover:shadow-lg">New Product</Link>
+            <div className="flex justify-between items-center gap-3 flex-wrap">
+                <h1 className="text-lg sm:text-xl font-extrabold text-gray-900">Products</h1>
+                <Link to="/admin/new_product" className="bg-black text-white rounded-full px-4 py-2 text-sm font-semibold hover:bg-gray-800 active:scale-95 transition">+ New Product</Link>
             </div>
-            <div className="bg-white rounded-xl shadow-lg w-full" style={{ height: 470 }}>
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm w-full overflow-hidden" style={{ height: 470 }}>
 
                 <DataGrid
                     rows={rows}

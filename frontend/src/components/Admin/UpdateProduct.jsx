@@ -202,7 +202,8 @@ const UpdateProduct = () => {
 
             {loading && <BackdropLoader />}
             {updateLoading && <BackdropLoader />}
-            <form onSubmit={newProductSubmitHandler} encType="multipart/form-data" className="flex flex-col sm:flex-row bg-white rounded-lg shadow p-4" id="mainform">
+            <h1 className="text-lg sm:text-xl font-extrabold text-gray-900">Update Product</h1>
+            <form onSubmit={newProductSubmitHandler} encType="multipart/form-data" className="flex flex-col sm:flex-row bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6" id="mainform">
 
                 <div className="flex flex-col gap-3 m-2 sm:w-1/2">
                     <TextField
@@ -341,7 +342,7 @@ const UpdateProduct = () => {
                         />
                     </div>
 
-                    <h2 className="font-medium">Brand Details</h2>
+                    <h2 className="font-semibold text-gray-900">Brand Details</h2>
                     <div className="flex justify-between gap-4 items-start">
                         <TextField
                             label="Brand"
@@ -372,7 +373,7 @@ const UpdateProduct = () => {
                 </div>
 
                 <div className="flex flex-col gap-2 m-2 sm:w-1/2">
-                    <h2 className="font-medium">Specifications</h2>
+                    <h2 className="font-semibold text-gray-900">Specifications</h2>
 
                     <div className="flex justify-evenly gap-2 items-center">
                         <TextField value={specsInput.title} onChange={handleSpecsChange} name="title" label="Name" placeholder="Model No" variant="outlined" size="small" />
@@ -392,16 +393,16 @@ const UpdateProduct = () => {
                         ))}
                     </div>
 
-                    <h2 className="font-medium">Product Images</h2>
-                    <div className="flex gap-2 overflow-x-auto h-32 border rounded">
+                    <h2 className="font-semibold text-gray-900">Product Images</h2>
+                    <div className="grid grid-cols-4 gap-2 h-32 border border-gray-200 rounded-xl overflow-y-auto p-2">
                         {oldImages && oldImages.map((image, i) => (
-                            <img draggable="false" src={image.url} alt="Product" key={i} className="w-full h-full object-contain" />
+                            <img draggable="false" src={image.url} alt="Product" key={i} className="w-full h-24 object-contain bg-gray-50 rounded-lg border" />
                         ))}
                         {imagesPreview.map((image, i) => (
-                            <img draggable="false" src={image} alt="Product" key={i} className="w-full h-full object-contain" />
+                            <img draggable="false" src={image} alt="Product" key={i} className="w-full h-24 object-contain bg-gray-50 rounded-lg border" />
                         ))}
                     </div>
-                    <label className="rounded font-medium bg-gray-400 text-center cursor-pointer text-white p-2 shadow hover:shadow-lg my-2">
+                    <label className="rounded-xl font-semibold bg-gray-100 border border-gray-200 text-center cursor-pointer text-gray-800 p-2.5 shadow-sm hover:shadow my-2">
                         <input
                             type="file"
                             name="images"
@@ -414,7 +415,7 @@ const UpdateProduct = () => {
                     </label>
 
                     <div className="flex justify-end">
-                        <input form="mainform" type="submit" className="bg-primary-orange uppercase w-1/3 p-3 text-white font-medium rounded shadow hover:shadow-lg cursor-pointer" value="Update" />
+                        <input form="mainform" type="submit" className="bg-black w-full sm:w-1/3 p-3 text-white font-semibold rounded-xl shadow hover:shadow-lg cursor-pointer active:scale-[0.98] transition" value="Update" />
                     </div>
 
                 </div>

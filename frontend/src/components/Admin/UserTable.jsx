@@ -126,8 +126,8 @@ const UserTable = () => {
 
             {loading && <BackdropLoader />}
 
-            <h1 className="text-lg font-medium uppercase">users</h1>
-            <div className="bg-white rounded-xl shadow-lg w-full" style={{ height: 470 }}>
+            <h1 className="text-lg sm:text-xl font-extrabold text-gray-900">Users</h1>
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm w-full overflow-hidden" style={{ height: 470 }}>
 
                 <DataGrid
                     rows={rows}

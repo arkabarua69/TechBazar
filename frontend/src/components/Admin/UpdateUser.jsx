@@ -78,8 +78,8 @@ const UpdateUser = () => {
 
             {loading ? <Loading /> : (
                 <>
-                    <div className="flex flex-col bg-white shadow-lg rounded-lg mx-auto w-lg max-w-xl">
-                        <h2 className="text-center text-2xl font-medium mt-6 text-gray-800">Update Profile</h2>
+                    <div className="flex flex-col bg-white rounded-2xl border border-gray-200 shadow-sm mx-auto w-lg max-w-xl">
+                        <h2 className="text-center text-xl font-extrabold mt-6 text-gray-900">Update Profile</h2>
 
                         <form
                             onSubmit={updateUserSubmitHandler}
@@ -145,7 +145,7 @@ const UpdateUser = () => {
                                     </TextField>
                                 </div>
                                 
-                                <button type="submit" className="text-white py-3 w-full bg-primary-orange shadow hover:shadow-lg rounded-sm font-medium">Update</button>
+                                <button type="submit" className="text-white py-3 w-full bg-black shadow hover:shadow-lg rounded-xl font-semibold active:scale-[0.99] transition">Update</button>
                                 <Link className="hover:bg-gray-100 text-black text-center py-3 w-full shadow border rounded-sm font-medium" to="/admin/users">Cancel</Link>
                             </div>
 

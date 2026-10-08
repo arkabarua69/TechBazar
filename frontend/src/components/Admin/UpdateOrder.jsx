@@ -54,9 +54,9 @@ const UpdateOrder = () => {
                 <>
                     {order && order.user && order.shippingInfo && (
                         <div className="flex flex-col gap-4">
-                            <Link to="/admin/orders" className="ml-1 flex items-center gap-0 font-medium text-black uppercase"><ArrowBackIosIcon sx={{ fontSize: "18px" }} />Go Back</Link>
+                            <Link to="/admin/orders" className="ml-1 flex items-center gap-1 text-sm font-semibold text-gray-600 hover:text-black"><ArrowBackIosIcon sx={{ fontSize: "18px" }} />Go Back</Link>
 
-                            <div className="flex flex-col sm:flex-row bg-white shadow-lg rounded-lg min-w-full">
+                            <div className="flex flex-col sm:flex-row bg-white rounded-2xl border border-gray-200 shadow-sm min-w-full">
                                 <div className="sm:w-1/2 border-r">
                                     <div className="flex flex-col gap-3 my-8 mx-10">
                                         <h3 className="font-medium text-lg">Delivery Address</h3>
@@ -97,7 +97,7 @@ const UpdateOrder = () => {
                                             {order.orderStatus === "Delivered" && (<MenuItem value={"Delivered"}>Delivered</MenuItem>)}
                                         </Select>
                                     </FormControl>
-                                    <button type="submit" className="bg-primary-orange p-2.5 text-white font-medium rounded shadow hover:shadow-lg">
+                                    <button type="submit" className="bg-black p-2.5 text-white font-semibold rounded-xl shadow hover:shadow-lg active:scale-95 transition">
                                         Update
                                     </button>
                                 </form>

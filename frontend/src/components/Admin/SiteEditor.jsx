@@ -16,7 +16,7 @@ const Field = ({ label, value, onChange, textarea, type = 'text', placeholder = 
                 onChange={(e) => onChange(e.target.value)}
                 rows={3}
                 placeholder={placeholder}
-                className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
+                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-black"
             />
         ) : (
             <input
@@ -24,15 +24,15 @@ const Field = ({ label, value, onChange, textarea, type = 'text', placeholder = 
                 value={value ?? ''}
                 onChange={(e) => onChange(type === 'number' ? Number(e.target.value) : e.target.value)}
                 placeholder={placeholder}
-                className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
+                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-black"
             />
         )}
     </div>
 );
 
 const Card = ({ title, children }) => (
-    <section className="bg-white rounded-xl shadow-lg p-5 flex flex-col gap-4">
-        <h2 className="font-semibold uppercase text-sm tracking-wide text-gray-600 border-b pb-2">{title}</h2>
+    <section className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col gap-4">
+        <h2 className="font-bold text-sm text-gray-900 border-b border-gray-100 pb-2">{title}</h2>
         {children}
     </section>
 );
@@ -135,10 +135,10 @@ const SiteEditor = () => {
             {(loading || saving) && <BackdropLoader />}
 
             <div className="flex items-center justify-between gap-3 flex-wrap">
-                <h1 className="text-lg font-medium uppercase">homepage editor</h1>
+                <h1 className="text-lg sm:text-xl font-extrabold text-gray-900">Homepage Settings</h1>
                 <div className="flex gap-2">
-                    <button onClick={reset} className="text-sm border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-100">Reset defaults</button>
-                    <button onClick={save} className="text-sm bg-black text-white rounded px-3 py-1.5 hover:bg-gray-800">Save changes</button>
+                    <button onClick={reset} className="text-sm font-semibold border border-gray-300 bg-white rounded-full px-4 py-2 text-gray-700 hover:bg-gray-100">Reset defaults</button>
+                    <button onClick={save} className="bg-black text-white rounded-full px-4 py-2 text-sm font-semibold hover:bg-gray-800 active:scale-95 transition">Save changes</button>
                 </div>
             </div>
             <p className="text-sm text-gray-500">এখানে পরিবর্তন করে Save চাপলেই ল্যান্ডিং পেজে সরাসরি আপডেট হবে।</p>
@@ -299,7 +299,7 @@ const SiteEditor = () => {
                                     value={cat}
                                     onChange={(e) => updateCategory(i, e.target.value)}
                                     placeholder="ক্যাটাগরির নাম"
-                                    className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
+                                    className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-black"
                                 />
                                 <button onClick={() => removeCategory(i)}
                                     className="text-xs text-red-500 hover:underline shrink-0">মুছুন</button>
@@ -312,7 +312,7 @@ const SiteEditor = () => {
                             onChange={(e) => setNewCategory(e.target.value)}
                             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCategory(); } }}
                             placeholder="নতুন ক্যাটাগরির নাম"
-                            className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
+                            className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-black"
                         />
                         <button onClick={addCategory}
                             className="text-sm border border-dashed border-gray-400 rounded px-3 py-1.5 hover:bg-gray-50">+ ক্যাটাগরি যোগ করুন</button>
