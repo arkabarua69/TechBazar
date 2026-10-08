@@ -9,6 +9,7 @@ import { ORDERS_ALERT_EVENT } from '../../utils/adminHelpers';
 
 // Dedicated ADMIN bottom bar (mobile only) — replaces the customer bottom bar
 // on /admin routes. Thumb-friendly: Dashboard · Orders · Products · Settings · More
+// Monochrome: active tab = black icon + label + top indicator.
 const AdminBottomNav = () => {
     const { pathname } = useLocation();
     const [ordersBadge, setOrdersBadge] = useState(0);
@@ -48,7 +49,7 @@ const AdminBottomNav = () => {
                             key={it.label}
                             to={it.href}
                             className={`relative flex flex-col items-center justify-center gap-0.5 py-2 transition-colors ${
-                                active ? 'text-primary-blue' : 'text-gray-500'
+                                active ? 'text-black' : 'text-gray-400'
                             }`}
                         >
                             <span className="relative">
@@ -59,10 +60,10 @@ const AdminBottomNav = () => {
                                     </span>
                                 )}
                             </span>
-                            <span className={`text-[10px] leading-none ${active ? 'font-semibold' : 'font-medium'}`}>
+                            <span className={`text-[10px] leading-none ${active ? 'font-bold' : 'font-medium'}`}>
                                 {it.label}
                             </span>
-                            {active && <span className="absolute top-0 w-8 h-[3px] rounded-b-full bg-primary-blue"></span>}
+                            {active && <span className="absolute top-0 w-8 h-[3px] rounded-b-full bg-black"></span>}
                         </Link>
                     );
                 })}

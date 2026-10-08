@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import Chart from 'chart.js/auto'
-import { Doughnut, Line, Pie, Bar } from 'react-chartjs-2';
+import 'chart.js/auto'; // registers every controller/element/scale for react-chartjs-2
+import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import { getAdminProducts } from '../../actions/productAction';
 import { useSelector, useDispatch } from 'react-redux';
 import { getAllOrders } from '../../actions/orderAction';
@@ -21,21 +21,44 @@ import BoltIcon from '@mui/icons-material/Bolt';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import SyncIcon from '@mui/icons-material/Sync';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
-import { bn, timeAgoBn, shortOrderId } from '../../utils/adminHelpers';
+import { bn, shortOrderId, timeAgoBn } from '../../utils/adminHelpers';
+
+// ── monochrome design tokens (iOS-style admin redesign) ──
+const INK = '#0A0A0A';
+const PINK = '#F472B6';
 
 const isToday = (d) => new Date(d).toDateString() === new Date().toDateString();
+const pct = (n, d) => (d > 0 ? Math.min(100, Math.round((n / d) * 100)) : 0);
 
-// fulfilment chip styles for the recent-orders list
-const FULFIL_CHIP = {
-    PLACED: 'bg-blue-50 text-blue-700',
-    CONFIRMED: 'bg-indigo-50 text-indigo-700',
-    SHIPPED: 'bg-purple-50 text-purple-700',
-    DELIVERED: 'bg-green-50 text-green-700',
-    CANCELLED: 'bg-red-50 text-red-600',
+const monthLabels = () => {
+    try {
+        return Array.from({ length: 12 }, (_, m) =>
+            new Date(2024, m, 1).toLocaleDateString('bn-BD', { month: 'short' }));
+    } catch (e) {
+        return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    }
 };
-const FULFIL_TEXT = {
-    PLACED: 'Placed', CONFIRMED: 'Confirmed', SHIPPED: 'Shipped',
-    DELIVERED: 'Delivered', CANCELLED: 'Cancelled',
+
+// customer initials for the order-list avatars (JS style)
+const initials = (name) => {
+    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    return ((parts[0] && parts[0][0]) || '?') + ((parts[1] && parts[1][0]) || '');
+};
+
+// order-list pills (reference: muted slate "New Order" badge)
+const ORDER_PILL = {
+    PLACED: 'bg-[#8E9AF5] text-white',
+    CONFIRMED: 'bg-black text-white',
+    SHIPPED: 'bg-zinc-500 text-white',
+    DELIVERED: 'bg-emerald-600 text-white',
+    CANCELLED: 'bg-red-500 text-white',
+};
+const ORDER_PILL_TEXT = {
+    PLACED: 'New Order',
+    CONFIRMED: 'Confirmed',
+    SHIPPED: 'Shipped',
+    DELIVERED: 'Delivered',
+    CANCELLED: 'Cancelled',
 };
 
 const todayLabel = () => {
@@ -48,6 +71,20 @@ const todayLabel = () => {
     }
 };
 
+// revenue line dataset (black current / pink previous)
+const mkLine = (label, data, color, fill) => ({
+    label,
+    data,
+    borderColor: color,
+    backgroundColor: fill ? (color === INK ? 'rgba(10,10,10,0.06)' : 'rgba(244,114,182,0.15)') : 'transparent',
+    fill: !!fill,
+    tension: 0.4,
+    borderWidth: 2.5,
+    pointRadius: 0,
+    pointHoverRadius: 5,
+    pointBackgroundColor: color,
+});
+
 const MainData = () => {
 
     const dispatch = useDispatch();
@@ -55,16 +92,16 @@ const MainData = () => {
     const navigate = useNavigate();
 
     const { products } = useSelector((state) => state.products);
-    const { orders } = useSelector((state) => state.allOrders);
     const { users } = useSelector((state) => state.users);
     const { user } = useSelector((state) => state.user);
 
-    // store (Business Koro) orders — power the pipeline cards + recent list
+    // store (Business Koro) orders — power the pipeline, revenue, trending & order list
     const [storeOrders, setStoreOrders] = useState([]);
     const [charges, setCharges] = useState(null); // delivery charges from /store/config
     const [manualOpen, setManualOpen] = useState(false);
     const [savingManual, setSavingManual] = useState(false);
     const [syncing, setSyncing] = useState(false);
+    const [range, setRange] = useState('monthly'); // revenue chart range
     const [form, setForm] = useState({
         productId: '', qty: '1', name: '', phone: '', division: '', district: '', address: '',
         zone: 'inside-dhaka', method: 'bKash', trxid: '',
@@ -78,11 +115,8 @@ const MainData = () => {
     };
 
     let outOfStock = 0;
-
     products?.forEach((item) => {
-        if (item.stock === 0) {
-            outOfStock += 1;
-        }
+        if (item.stock === 0) outOfStock += 1;
     });
 
     useEffect(() => {
@@ -93,146 +127,177 @@ const MainData = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dispatch]);
 
-    let totalAmount = orders?.reduce((total, order) => total + order.totalPrice, 0);
+    // non-cancelled store orders drive every money metric below
+    const activeOrders = useMemo(
+        () => storeOrders.filter((o) => o.status !== 'CANCELLED' && o.fulfilment !== 'CANCELLED'),
+        [storeOrders]
+    );
 
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-    const date = new Date();
-    const lineState = {
-        labels: months,
-        datasets: [
-            {
-                label: `Sales in ${date.getFullYear() - 2}`,
-                borderColor: '#8A39E1',
-                backgroundColor: 'rgba(138, 57, 225, 0.12)',
-                data: months.map((m, i) => orders?.filter((od) => new Date(od.createdAt).getMonth() === i && new Date(od.createdAt).getFullYear() === date.getFullYear() - 2).reduce((total, od) => total + od.totalPrice, 0)),
-                fill: true, tension: 0.35, borderWidth: 2, pointRadius: 0,
-            },
-            {
-                label: `Sales in ${date.getFullYear() - 1}`,
-                borderColor: 'orange',
-                backgroundColor: 'rgba(251, 146, 60, 0.12)',
-                data: months.map((m, i) => orders?.filter((od) => new Date(od.createdAt).getMonth() === i && new Date(od.createdAt).getFullYear() === date.getFullYear() - 1).reduce((total, od) => total + od.totalPrice, 0)),
-                fill: true, tension: 0.35, borderWidth: 2, pointRadius: 0,
-            },
-            {
-                label: `Sales in ${date.getFullYear()}`,
-                borderColor: '#22c55e',
-                backgroundColor: 'rgba(34, 197, 94, 0.15)',
-                data: months.map((m, i) => orders?.filter((od) => new Date(od.createdAt).getMonth() === i && new Date(od.createdAt).getFullYear() === date.getFullYear()).reduce((total, od) => total + od.totalPrice, 0)),
-                fill: true, tension: 0.35, borderWidth: 2, pointRadius: 0,
-            },
-        ],
-    };
-
-    const statuses = ['Processing', 'Shipped', 'Delivered'];
-
-    const pieState = {
-        labels: statuses,
-        datasets: [
-            {
-                backgroundColor: ['#9333ea', '#facc15', '#4ade80'],
-                hoverBackgroundColor: ['#a855f7', '#fde047', '#86efac'],
-                data: statuses.map((status) => orders?.filter((item) => item.orderStatus === status).length),
-            },
-        ],
-    };
-
-    const doughnutState = {
-        labels: ['Out of Stock', 'In Stock'],
-        datasets: [
-            {
-                backgroundColor: ['#ef4444', '#22c55e'],
-                hoverBackgroundColor: ['#dc2626', '#16a34a'],
-                data: [outOfStock, products.length - outOfStock],
-            },
-        ],
-    };
-
-    const barState = {
-        labels: categories,
-        datasets: [
-            {
-                label: "Products",
-                borderColor: '#9333ea',
-                backgroundColor: '#9333ea',
-                hoverBackgroundColor: '#6b21a8',
-                data: categories.map((cat) => products?.filter((item) => item.category === cat).length),
-            },
-        ],
-    };
-
-    // ===== store-order pipeline metrics (swipe on mobile, grid on desktop) =====
+    // ===== store-order pipeline (grid — NO horizontal scroll) =====
     const metrics = useMemo(() => {
-        const active = storeOrders.filter((o) => o.status !== 'CANCELLED' && o.fulfilment !== 'CANCELLED');
-        const pendingVerify = active.filter((o) => o.payment?.verified === false && o.fulfilment !== 'DELIVERED').length;
-        const processing = active.filter((o) => o.fulfilment === 'CONFIRMED').length;
-        const shipped = active.filter((o) => o.fulfilment === 'SHIPPED').length;
+        const pendingVerify = activeOrders.filter((o) => o.payment?.verified === false && o.fulfilment !== 'DELIVERED').length;
+        const processing = activeOrders.filter((o) => o.fulfilment === 'CONFIRMED').length;
+        const shipped = activeOrders.filter((o) => o.fulfilment === 'SHIPPED').length;
         const deliveredToday = storeOrders.filter((o) => o.fulfilment === 'DELIVERED' && isToday(o.createdAt));
         const cashToday = deliveredToday.reduce((s, o) => s + (o.pricing?.total || 0), 0);
         return { pendingVerify, processing, shipped, deliveredToday: deliveredToday.length, cashToday };
-    }, [storeOrders]);
+    }, [activeOrders, storeOrders]);
 
-    const metricCards = [
+    // ===== headline KPIs (featured black card + 3 white cards, with progress) =====
+    const revenue = activeOrders.reduce((s, o) => s + (o.pricing?.total || 0), 0);
+    const deliveredCount = activeOrders.filter((o) => o.fulfilment === 'DELIVERED').length;
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    const monthRev = activeOrders.filter((o) => new Date(o.createdAt) >= monthStart)
+        .reduce((s, o) => s + (o.pricing?.total || 0), 0);
+    const inStockCount = (products?.length || 0) - outOfStock;
+    const monthUsers = (users || []).filter((u) => new Date(u.createdAt) >= monthStart).length;
+
+    const kpiCards = [
         {
-            key: 'verify', bg: 'bg-amber-500', icon: '⚡',
-            label: 'Pending Verification', value: bn(metrics.pendingVerify),
-            sub: 'TrxID যাচাই বাকি', to: '/admin/store_orders?filter=verify',
+            icon: PaidIcon, featured: true, label: 'মোট বিক্রয়',
+            value: `৳${bn(revenue.toLocaleString())}`,
+            p: pct(monthRev, revenue), plabel: 'এই মাসের অংশ',
         },
         {
-            key: 'confirmed', bg: 'bg-blue-600', icon: '🔵',
-            label: 'Confirmed / Processing', value: bn(metrics.processing),
-            sub: 'কুরিয়ার বুকিংয়ের অপেক্ষায়', to: '/admin/store_orders?filter=confirmed',
+            icon: ReceiptLongIcon, label: 'মোট অর্ডার',
+            value: bn(activeOrders.length),
+            p: pct(deliveredCount, activeOrders.length), plabel: 'ডেলিভারড',
         },
         {
-            key: 'shipped', bg: 'bg-violet-600', icon: '🚚',
-            label: 'In Transit / Shipped', value: bn(metrics.shipped),
-            sub: 'ডেলিভারি চলছে', to: '/admin/store_orders?filter=shipped',
+            icon: Inventory2Icon, label: 'পণ্য',
+            value: bn(products?.length || 0),
+            p: pct(inStockCount, products?.length || 0), plabel: 'স্টকে আছে',
         },
         {
-            key: 'today', bg: 'bg-green-600', icon: '🟢',
-            label: "Today's Delivered & Cash", value: `৳${bn(metrics.cashToday.toLocaleString())}`,
-            sub: `${bn(metrics.deliveredToday)} অর্ডার ডেলিভারড`, to: '/admin/store_orders?filter=delivered',
+            icon: GroupsIcon, label: 'ব্যবহারকারী',
+            value: bn(users?.length || 0),
+            p: pct(monthUsers, users?.length || 0), plabel: 'এই মাসে নতুন',
         },
     ];
 
-    // ===== headline KPI cards (desktop + mobile) =====
-    const kpiCards = [
-        {
-            icon: PaidIcon, label: 'মোট বিক্রয়', value: `৳${bn((totalAmount || 0).toLocaleString())}`,
-            sub: 'পেইড অর্ডার থেকে', iconBg: 'bg-indigo-100 text-indigo-600', subColor: 'text-gray-400',
-        },
-        {
-            icon: ReceiptLongIcon, label: 'মোট অর্ডার', value: bn(orders?.length || 0),
-            sub: `স্টোর অর্ডার: ${bn(storeOrders.length)}`, iconBg: 'bg-rose-100 text-rose-600', subColor: 'text-gray-400',
-        },
-        {
-            icon: Inventory2Icon, label: 'পণ্য', value: bn(products?.length || 0),
-            sub: outOfStock > 0 ? `${bn(outOfStock)} টি স্টক শেষ ⚠️` : 'সব পণ্য স্টকে আছে',
-            iconBg: 'bg-amber-100 text-amber-600', subColor: outOfStock > 0 ? 'text-red-500 font-semibold' : 'text-emerald-600',
-        },
-        {
-            icon: GroupsIcon, label: 'ব্যবহারকারী', value: bn(users?.length || 0),
-            sub: 'নিবন্ধিত কাস্টমার', iconBg: 'bg-emerald-100 text-emerald-600', subColor: 'text-gray-400',
-        },
+    const metricCards = [
+        { key: 'verify', dot: 'bg-amber-500', label: 'Pending Verification', value: bn(metrics.pendingVerify), sub: 'TrxID যাচাই বাকি', to: '/admin/store_orders?filter=verify' },
+        { key: 'confirmed', dot: 'bg-blue-500', label: 'Confirmed / Processing', value: bn(metrics.processing), sub: 'কুরিয়ার বুকিংয়ের অপেক্ষায়', to: '/admin/store_orders?filter=confirmed' },
+        { key: 'shipped', dot: 'bg-violet-500', label: 'In Transit / Shipped', value: bn(metrics.shipped), sub: 'ডেলিভারি চলছে', to: '/admin/store_orders?filter=shipped' },
+        { key: 'today', dot: 'bg-green-500', label: "Today's Delivered & Cash", value: `৳${bn(metrics.cashToday.toLocaleString())}`, sub: `${bn(metrics.deliveredToday)} অর্ডার ডেলিভারড`, to: '/admin/store_orders?filter=delivered' },
     ];
 
     // ===== quick action tiles =====
     const quickActions = [
-        { icon: AddShoppingCartIcon, label: '+ ম্যানুয়াল অর্ডার', sub: 'ফোনের অর্ডার', bg: 'bg-blue-100 text-blue-600', onClick: openManual },
-        { icon: BoltIcon, label: 'ভেরিফিকেশন কিউ', sub: `${bn(metrics.pendingVerify)} টি TrxID বাকি`, bg: 'bg-amber-100 text-amber-700', onClick: () => navigate('/admin/store_orders?filter=verify') },
-        { icon: WarningAmberIcon, label: 'স্টক শেষ', sub: `${bn(outOfStock)} টি পণ্য`, bg: 'bg-red-100 text-red-600', onClick: () => navigate('/admin/products') },
-        { icon: SyncIcon, label: 'ক্যাটালগ সিংক', sub: 'Business Koro', bg: 'bg-violet-100 text-violet-600', onClick: syncCatalog },
-        { icon: ReceiptLongIcon, label: 'স্টোর অর্ডার', sub: `${bn(storeOrders.length)} টি`, bg: 'bg-sky-100 text-sky-600', onClick: () => navigate('/admin/store_orders') },
-        { icon: ChatBubbleOutlineIcon, label: 'লাইভ চ্যাট', sub: 'ইনবক্স', bg: 'bg-emerald-100 text-emerald-600', onClick: () => navigate('/admin/chat') },
+        { icon: AddShoppingCartIcon, label: '+ ম্যানুয়াল অর্ডার', sub: 'ফোনের অর্ডার', chip: 'bg-gray-100 text-black', onClick: openManual },
+        { icon: BoltIcon, label: 'ভেরিফিকেশন কিউ', sub: `${bn(metrics.pendingVerify)} টি TrxID বাকি`, chip: 'bg-amber-100 text-amber-700', onClick: () => navigate('/admin/store_orders?filter=verify') },
+        { icon: WarningAmberIcon, label: 'স্টক শেষ', sub: `${bn(outOfStock)} টি পণ্য`, chip: 'bg-red-100 text-red-600', onClick: () => navigate('/admin/products') },
+        { icon: SyncIcon, label: 'ক্যাটালগ সিংক', sub: 'Business Koro', chip: 'bg-gray-100 text-black', onClick: syncCatalog },
+        { icon: ReceiptLongIcon, label: 'স্টোর অর্ডার', sub: `${bn(storeOrders.length)} টি`, chip: 'bg-gray-100 text-black', onClick: () => navigate('/admin/store_orders') },
+        { icon: ChatBubbleOutlineIcon, label: 'লাইভ চ্যাট', sub: 'ইনবক্স', chip: 'bg-gray-100 text-black', onClick: () => navigate('/admin/chat') },
     ];
+
+    // ===== revenue chart (Monthly / Weekly / Today) =====
+    const revenueData = useMemo(() => {
+        const now = new Date();
+        const sumOver = (test) => activeOrders.reduce(
+            (s, o) => (test(new Date(o.createdAt)) ? s + (o.pricing?.total || 0) : s), 0);
+
+        if (range === 'today') {
+            const labels = [], data = [];
+            for (let b = 0; b < 12; b++) {
+                const start = new Date(now); start.setHours(b * 2, 0, 0, 0);
+                const end = new Date(now); end.setHours(b * 2 + 2, 0, 0, 0);
+                labels.push(`${String(b * 2).padStart(2, '0')}:00`);
+                data.push(sumOver((t) => t >= start && t < end));
+            }
+            return { labels, datasets: [mkLine('আজকের রাজস্ব', data, INK, true)] };
+        }
+
+        if (range === 'weekly') {
+            const labels = [], data = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(now); d.setDate(now.getDate() - i); d.setHours(0, 0, 0, 0);
+                const e = new Date(d); e.setDate(d.getDate() + 1);
+                labels.push(d.toLocaleDateString('bn-BD', { weekday: 'short' }));
+                data.push(sumOver((t) => t >= d && t < e));
+            }
+            return { labels, datasets: [mkLine('৭ দিনের রাজস্ব', data, INK, true)] };
+        }
+
+        const yr = now.getFullYear();
+        const perMonth = (y) => Array.from({ length: 12 },
+            (_, m) => sumOver((t) => t.getFullYear() === y && t.getMonth() === m));
+        return {
+            labels: monthLabels(),
+            datasets: [
+                mkLine(String(yr), perMonth(yr), INK, true),
+                mkLine(String(yr - 1), perMonth(yr - 1), PINK, false),
+            ],
+        };
+    }, [activeOrders, range]);
+
+    // ===== trending items (this month vs last month) =====
+    const trending = useMemo(() => {
+        const now = new Date();
+        const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const map = {};
+        activeOrders.forEach((o) => {
+            const name = o.product?.name;
+            if (!name) return;
+            if (!map[name]) map[name] = { name, image: o.product?.image, qty: 0, total: 0, thisQty: 0, lastQty: 0 };
+            const q = o.pricing?.quantity || 1;
+            const t = new Date(o.createdAt);
+            map[name].qty += q;
+            map[name].total += o.pricing?.total || 0;
+            if (t.getMonth() === now.getMonth() && t.getFullYear() === now.getFullYear()) {
+                map[name].thisQty += q;
+            } else if (t.getMonth() === prev.getMonth() && t.getFullYear() === prev.getFullYear()) {
+                map[name].lastQty += q;
+            }
+        });
+        return Object.values(map).sort((a, b) => b.qty - a.qty).slice(0, 5);
+    }, [activeOrders]);
 
     // recent store orders (newest first)
     const recent = useMemo(
-        () => [...storeOrders]
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-            .slice(0, 5),
+        () => [...storeOrders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5),
         [storeOrders]
     );
+
+    const barState = {
+        labels: categories,
+        datasets: [{
+            label: 'পণ্য',
+            borderColor: INK, backgroundColor: INK, hoverBackgroundColor: '#333',
+            data: categories.map((cat) => products?.filter((item) => item.category === cat).length),
+            borderRadius: 6, borderSkipped: false,
+        }],
+    };
+
+    const doughnutState = {
+        labels: ['স্টক শেষ', 'স্টকে আছে'],
+        datasets: [{
+            backgroundColor: [PINK, INK],
+            hoverBackgroundColor: ['#f9a8d4', '#333'],
+            data: [outOfStock, (products?.length || 0) - outOfStock],
+            borderWidth: 0,
+        }],
+    };
+
+    const lineOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: range === 'monthly',
+                position: 'top', align: 'end',
+                labels: { usePointStyle: true, boxWidth: 8, font: { size: 11 }, color: '#6b7280' },
+            },
+            tooltip: { callbacks: { label: (c) => ` ৳${bn(c.parsed.y.toLocaleString())}` } },
+        },
+        scales: {
+            x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } },
+            y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { color: '#9ca3af', font: { size: 10 }, callback: (v) => `৳${bn(v)}` } },
+        },
+    };
 
     // ===== manual order (bottom sheet → public guest-checkout API) =====
     function openManual() {
@@ -307,7 +372,7 @@ const MainData = () => {
     };
 
     const inStockProducts = (products || []).filter((p) => p.stock > 0);
-    const fieldCls = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-primary-blue focus:outline-none bg-white';
+    const fieldCls = 'w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:border-black focus:outline-none bg-white';
     const sectionLabel = 'text-[11px] font-semibold uppercase tracking-wider text-gray-400';
 
     return (
@@ -315,71 +380,182 @@ const MainData = () => {
             <MetaData title="Admin Dashboard | TechBazar" />
             {syncing && <BackdropLoader />}
 
-            {/* ═══ 1. greeting header ═══ */}
+            {/* ═══ 1. header ═══ */}
             <div className="flex flex-wrap items-end justify-between gap-3">
                 <div className="min-w-0">
-                    <h1 className="text-lg sm:text-2xl font-bold text-slate-900 truncate">
-                        স্বাগতম, {user?.name || 'Admin'} 👋
-                    </h1>
-                    <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{todayLabel()} · আপনার ব্যবসার সারসংক্ষেপ</p>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Dashboard</h1>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                        {todayLabel()} · স্বাগতম, {user?.name || 'Admin'}
+                    </p>
                 </div>
                 <div className="flex gap-2 shrink-0">
                     <button
                         onClick={refreshAll}
-                        className="text-xs sm:text-sm border border-gray-300 bg-white rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-50 active:scale-95 transition"
+                        className="text-xs sm:text-sm font-semibold border border-gray-300 bg-white rounded-full px-4 py-2 text-gray-700 hover:bg-gray-100 active:scale-95 transition"
                     >
                         🔄 রিফ্রেশ
                     </button>
                     <button
                         onClick={openManual}
-                        className="text-xs sm:text-sm bg-primary-blue text-white rounded-lg px-3 py-2 font-semibold hover:bg-blue-700 active:scale-95 transition"
+                        className="text-xs sm:text-sm font-semibold bg-black text-white rounded-full px-4 py-2 hover:bg-gray-800 active:scale-95 transition"
                     >
                         + নতুন অর্ডার
                     </button>
                 </div>
             </div>
 
-            {/* ═══ 2. headline KPI cards ═══ */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* ═══ 2. KPI — featured black card + 3 white cards, with progress bars ═══ */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {kpiCards.map((k, i) => {
                     const Icon = k.icon;
                     return (
-                        <div key={i} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 flex flex-col gap-1.5 hover:shadow-md transition">
-                            <span className={`w-9 h-9 rounded-xl flex items-center justify-center ${k.iconBg}`}>
+                        <div key={i} className={`rounded-2xl p-4 border transition ${k.featured ? 'bg-[#0A0A0A] border-[#0A0A0A] shadow-lg' : 'bg-white border-gray-200 shadow-sm hover:shadow-md'}`}>
+                            <span className={`w-9 h-9 rounded-xl flex items-center justify-center ${k.featured ? 'bg-white/15 text-white' : 'bg-gray-100 text-black'}`}>
                                 <Icon sx={{ fontSize: '20px' }} />
                             </span>
-                            <p className="text-xs text-gray-500 font-medium mt-1">{k.label}</p>
-                            <p className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight">{k.value}</p>
-                            <p className={`text-[11px] ${k.subColor}`}>{k.sub}</p>
+                            <p className={`text-xs font-medium mt-3 ${k.featured ? 'text-gray-300' : 'text-gray-500'}`}>{k.label}</p>
+                            <p className={`text-xl sm:text-2xl font-extrabold leading-tight mt-0.5 ${k.featured ? 'text-white' : 'text-gray-900'}`}>{k.value}</p>
+                            <div className="flex justify-between text-[10px] font-medium mt-3 mb-1 text-gray-400">
+                                <span>0%</span>
+                                <span className={k.featured ? 'text-white font-bold' : 'text-gray-900 font-bold'}>{bn(k.p)}%</span>
+                            </div>
+                            <div className={`h-1.5 rounded-full ${k.featured ? 'bg-white/20' : 'bg-gray-200'}`}>
+                                <div className={`h-full rounded-full ${k.featured ? 'bg-white' : 'bg-black'}`} style={{ width: `${k.p}%` }}></div>
+                            </div>
+                            <p className="text-[10px] text-gray-400 mt-1.5">{k.plabel}</p>
                         </div>
                     );
                 })}
             </div>
 
-            {/* ═══ 3. store-order pipeline (swipe → on mobile, grid on desktop) ═══ */}
+            {/* ═══ 3. store-order pipeline — grid wrap, NO horizontal scroll ═══ */}
             <div>
                 <p className={`${sectionLabel} mb-2`}>স্টোর অর্ডার পাইপলাইন</p>
-                <div className="-mx-2 px-2 overflow-x-auto sm:mx-0 sm:px-0 sm:overflow-visible">
-                    <div className="flex gap-3 w-max pb-1 snap-x snap-mandatory sm:w-auto sm:grid sm:grid-cols-4">
-                        {metricCards.map((m) => (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {metricCards.map((m) => (
+                        <button
+                            key={m.key}
+                            onClick={() => navigate(m.to)}
+                            className="bg-white border border-gray-200 rounded-2xl p-4 text-left shadow-sm hover:shadow-md active:scale-[0.98] transition"
+                        >
+                            <span className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500">
+                                <span className={`w-2 h-2 rounded-full shrink-0 ${m.dot}`}></span>
+                                <span className="truncate">{m.label}</span>
+                            </span>
+                            <p className="text-2xl font-extrabold text-gray-900 mt-1.5">{m.value}</p>
+                            <p className="text-[11px] text-gray-400 mt-0.5 truncate">{m.sub}</p>
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* ═══ 4. revenue with segmented Monthly / Weekly / Today pills ═══ */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+                <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
+                    <div>
+                        <h2 className="text-sm font-bold text-gray-900">রাজস্ব / Revenue</h2>
+                        <p className="text-[11px] text-gray-400">স্টোর অর্ডার থেকে আয়</p>
+                    </div>
+                    <div className="flex bg-gray-100 rounded-full p-1 gap-1">
+                        {[['monthly', 'Monthly'], ['weekly', 'Weekly'], ['today', 'Today']].map(([key, label]) => (
                             <button
-                                key={m.key}
-                                onClick={() => navigate(m.to)}
-                                className={`${m.bg} sm:min-w-0 snap-start rounded-2xl p-4 text-left text-white shadow-lg active:scale-[0.98] transition`}
+                                key={key}
+                                onClick={() => setRange(key)}
+                                className={`px-3 py-1 rounded-full text-xs font-semibold transition ${range === key ? 'bg-black text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                             >
-                                <div className="flex items-center gap-2">
-                                    <span className="text-lg">{m.icon}</span>
-                                    <span className="text-[11px] font-medium text-white/85 leading-tight">{m.label}</span>
-                                </div>
-                                <p className="text-2xl sm:text-3xl font-extrabold mt-2">{m.value}</p>
-                                <p className="text-[11px] text-white/80 mt-0.5">{m.sub}</p>
+                                {label}
                             </button>
                         ))}
                     </div>
                 </div>
+                <Line data={revenueData} options={lineOptions} />
             </div>
 
-            {/* ═══ 4. quick action tiles ═══ */}
+            {/* ═══ 5. trending items + order list ═══ */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                {/* trending items */}
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm">
+                    <div className="px-4 pt-4 pb-2">
+                        <h2 className="text-sm font-bold text-gray-900">Trending Items</h2>
+                        <p className="text-[11px] text-gray-400">সর্বাধিক বিক্রিত পণ্য</p>
+                    </div>
+                    <div>
+                        {trending.length === 0 && (
+                            <p className="px-4 py-8 text-center text-sm text-gray-400">এখনো কোনো বিক্রি হয়নি।</p>
+                        )}
+                        {trending.map((it, i) => {
+                            const delta = it.lastQty > 0 ? Math.round(((it.thisQty - it.lastQty) / it.lastQty) * 100) : null;
+                            const deltaText = delta === null
+                                ? (it.thisQty > 0 ? 'নতুন' : '—')
+                                : `${delta >= 0 ? '+' : '−'}${bn(Math.abs(delta))}%`;
+                            const deltaCls = delta === null
+                                ? (it.thisQty > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400')
+                                : (delta >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500');
+                            return (
+                                <div key={i} className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 last:border-0">
+                                    {it.image ? (
+                                        <img src={it.image} alt="" className="w-10 h-10 rounded-xl object-contain border bg-white shrink-0" />
+                                    ) : (
+                                        <span className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">📦</span>
+                                    )}
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-semibold text-gray-900 truncate">{it.name}</p>
+                                        <p className="text-xs text-gray-400">{bn(it.qty)} বিক্রি · ৳{bn(it.total.toLocaleString())}</p>
+                                    </div>
+                                    <span className={`text-[11px] font-bold px-2 py-1 rounded-full shrink-0 ${deltaCls}`}>{deltaText}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* order list (reference style: initials avatar · name · date · +৳ · pill) */}
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm">
+                    <div className="flex items-center justify-between px-4 pt-4 pb-2 gap-2">
+                        <div className="min-w-0">
+                            <h2 className="text-sm font-bold text-gray-900">Order List</h2>
+                            <p className="text-[11px] text-gray-400">মোট {bn(storeOrders.length)} টি অর্ডার</p>
+                        </div>
+                        <button
+                            onClick={() => navigate('/admin/store_orders')}
+                            className="text-xs font-bold text-black shrink-0 hover:underline"
+                        >
+                            সব দেখুন →
+                        </button>
+                    </div>
+                    <div>
+                        {recent.length === 0 && (
+                            <p className="px-4 py-8 text-center text-sm text-gray-400">এখনো কোনো অর্ডার নেই।</p>
+                        )}
+                        {recent.map((o) => {
+                            const f = o.fulfilment || 'PLACED';
+                            return (
+                                <button
+                                    key={o._id}
+                                    onClick={() => navigate('/admin/store_orders')}
+                                    className="w-full flex items-center gap-3 px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 active:bg-gray-100 transition-colors text-left"
+                                >
+                                    <span className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 text-gray-700 flex items-center justify-center text-xs font-bold shrink-0">
+                                        {initials(o.customer?.name)}
+                                    </span>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-semibold text-gray-900 truncate">{o.customer?.name}</p>
+                                        <p className="text-xs text-gray-400 truncate">{timeAgoBn(o.createdAt)} · #{shortOrderId(o._id)} · {o.product?.name}</p>
+                                    </div>
+                                    <div className="shrink-0 text-right">
+                                        <p className="text-sm font-bold text-gray-900">+৳{bn((o.pricing?.total || 0).toLocaleString())}</p>
+                                        <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mt-1 ${ORDER_PILL[f] || 'bg-zinc-100 text-zinc-500'}`}>
+                                            {ORDER_PILL_TEXT[f] || 'New Order'}
+                                        </span>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+
+            {/* ═══ 6. quick actions ═══ */}
             <div>
                 <p className={`${sectionLabel} mb-2`}>কুইক অ্যাকশন</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
@@ -389,9 +565,9 @@ const MainData = () => {
                             <button
                                 key={i}
                                 onClick={a.onClick}
-                                className="bg-white border border-gray-200 rounded-2xl p-3 flex flex-col items-start gap-2 hover:border-primary-blue hover:shadow-sm transition active:scale-[0.97] text-left"
+                                className="bg-white border border-gray-200 rounded-2xl p-3 flex flex-col items-start gap-2 hover:border-black hover:shadow-sm transition active:scale-[0.97] text-left"
                             >
-                                <span className={`w-8 h-8 rounded-lg flex items-center justify-center ${a.bg}`}>
+                                <span className={`w-8 h-8 rounded-lg flex items-center justify-center ${a.chip}`}>
                                     <Icon sx={{ fontSize: '18px' }} />
                                 </span>
                                 <span className="text-xs font-semibold text-gray-800 leading-tight">{a.label}</span>
@@ -402,79 +578,15 @@ const MainData = () => {
                 </div>
             </div>
 
-            {/* ═══ 5. recent store orders ═══ */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
-                <div className="flex items-center justify-between px-4 pt-4 pb-2 gap-2">
-                    <div className="min-w-0">
-                        <h2 className="text-sm font-bold text-gray-900">সাম্প্রতিক স্টোর অর্ডার</h2>
-                        <p className="text-[11px] text-gray-400">মোট {bn(storeOrders.length)} টি অর্ডার</p>
-                    </div>
-                    <button
-                        onClick={() => navigate('/admin/store_orders')}
-                        className="text-xs font-semibold text-primary-blue shrink-0 hover:underline"
-                    >
-                        সব দেখুন →
-                    </button>
-                </div>
-                <div className="divide-y divide-gray-100">
-                    {recent.length === 0 && (
-                        <p className="px-4 py-8 text-center text-sm text-gray-400">
-                            এখনো কোনো স্টোর অর্ডার নেই — প্রথম অর্ডারটা এসে গেলে এখানে দেখা যাবে।
-                        </p>
-                    )}
-                    {recent.map((o) => (
-                        <button
-                            key={o._id}
-                            onClick={() => navigate('/admin/store_orders')}
-                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 active:bg-gray-100 transition-colors text-left"
-                        >
-                            {o.product?.image ? (
-                                <img src={o.product.image} alt="" className="w-10 h-10 object-contain rounded-lg border bg-white shrink-0" />
-                            ) : (
-                                <span className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 shrink-0">📦</span>
-                            )}
-                            <div className="min-w-0 flex-1">
-                                <p className="text-sm font-medium text-gray-900 truncate">
-                                    #{shortOrderId(o._id)} · {o.product?.name}
-                                </p>
-                                <p className="text-xs text-gray-500 truncate">
-                                    {o.customer?.name} · {timeAgoBn(o.createdAt)}
-                                </p>
-                            </div>
-                            <div className="shrink-0 text-right">
-                                <p className="text-sm font-bold text-gray-900">৳{bn((o.pricing?.total || 0).toLocaleString())}</p>
-                                <span className={`inline-block text-[10px] font-medium px-1.5 py-0.5 rounded-full mt-0.5 ${FULFIL_CHIP[o.fulfilment] || 'bg-slate-100 text-slate-500'}`}>
-                                    {FULFIL_TEXT[o.fulfilment] || 'Placed'}
-                                </span>
-                            </div>
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* ═══ 6. analytics ═══ */}
+            {/* ═══ 7. analytics ═══ */}
             <p className={sectionLabel}>অ্যানালিটিক্স</p>
-
-            <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-8 min-w-full">
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm w-full p-3">
-                    <p className="text-xs font-semibold text-gray-700 mb-1 px-1">মাসিক বিক্রয় (৳)</p>
-                    <Line data={lineState} />
-                </div>
-
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 text-center flex flex-col justify-center">
-                    <span className="text-xs font-semibold text-gray-700">পেইড অর্ডার স্ট্যাটাস</span>
-                    <Pie data={pieState} />
-                </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-8 min-w-full mb-6">
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm w-full p-3">
-                    <p className="text-xs font-semibold text-gray-700 mb-1 px-1">ক্যাটাগরি অনুযায়ী পণ্য</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+                    <p className="text-sm font-bold text-gray-900 mb-2">ক্যাটাগরি অনুযায়ী পণ্য</p>
                     <Bar data={barState} />
                 </div>
-
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 text-center flex flex-col justify-center">
-                    <span className="text-xs font-semibold text-gray-700">স্টক অবস্থা</span>
+                <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+                    <p className="text-sm font-bold text-gray-900 mb-2">স্টক অবস্থা</p>
                     <Doughnut data={doughnutState} />
                 </div>
             </div>
@@ -537,8 +649,8 @@ const MainData = () => {
                                     onClick={() => setForm((f) => ({ ...f, zone: z.id }))}
                                     className={`text-xs font-semibold rounded-lg border px-2 py-2.5 transition ${
                                         form.zone === z.id
-                                            ? 'border-primary-blue bg-blue-50 text-primary-blue'
-                                            : 'border-gray-300 bg-white text-gray-600'
+                                            ? 'border-black bg-black text-white'
+                                            : 'border-gray-200 bg-white text-gray-600'
                                     }`}
                                 >
                                     {z.label}
@@ -557,8 +669,8 @@ const MainData = () => {
                                     onClick={() => setForm((f) => ({ ...f, method: m }))}
                                     className={`text-xs font-semibold rounded-lg border px-2 py-2.5 transition ${
                                         form.method === m
-                                            ? 'border-primary-blue bg-blue-50 text-primary-blue'
-                                            : 'border-gray-300 bg-white text-gray-600'
+                                            ? 'border-black bg-black text-white'
+                                            : 'border-gray-200 bg-white text-gray-600'
                                     }`}
                                 >
                                     {m}
@@ -580,7 +692,7 @@ const MainData = () => {
                     <button
                         type="submit"
                         disabled={savingManual}
-                        className="w-full bg-primary-blue text-white rounded-xl py-3 text-sm font-semibold active:bg-blue-700 disabled:opacity-60"
+                        className="w-full bg-black text-white rounded-xl py-3 text-sm font-semibold active:bg-gray-800 disabled:opacity-60"
                     >
                         {savingManual ? 'তৈরি হচ্ছে…' : 'অর্ডার তৈরি করুন'}
                     </button>

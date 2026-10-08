@@ -54,7 +54,7 @@ const UpdateOrder = () => {
                 <>
                     {order && order.user && order.shippingInfo && (
                         <div className="flex flex-col gap-4">
-                            <Link to="/admin/orders" className="ml-1 flex items-center gap-0 font-medium text-primary-blue uppercase"><ArrowBackIosIcon sx={{ fontSize: "18px" }} />Go Back</Link>
+                            <Link to="/admin/orders" className="ml-1 flex items-center gap-0 font-medium text-black uppercase"><ArrowBackIosIcon sx={{ fontSize: "18px" }} />Go Back</Link>
 
                             <div className="flex flex-col sm:flex-row bg-white shadow-lg rounded-lg min-w-full">
                                 <div className="sm:w-1/2 border-r">

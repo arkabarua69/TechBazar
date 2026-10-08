@@ -43,9 +43,9 @@ const Dashboard = ({ activeTab, children }) => {
                     </>
                 )}
 
-                <div className="w-full sm:flex-1 sm:ml-72 min-h-screen">
+                <div className="w-full sm:flex-1 sm:ml-72 min-h-screen bg-[#F4F4F5]">
                     {onMobile && <AdminAppBar onMenu={() => setToggleSidebar(true)} />}
-                    <div className={`flex flex-col gap-6 sm:m-8 p-2 pb-6 overflow-hidden ${onMobile ? 'pt-16' : ''}`}>
+                    <div className={`flex flex-col gap-4 sm:gap-6 sm:m-8 p-3 pb-24 sm:pb-8 overflow-hidden ${onMobile ? 'pt-16' : ''}`}>
                         {children}
                     </div>
                 </div>

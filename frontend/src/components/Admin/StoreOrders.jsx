@@ -226,10 +226,10 @@ const StoreOrders = () => {
             {(loading || syncing) && <BackdropLoader />}
 
             <div className="flex items-center justify-between gap-3 flex-wrap">
-                <h1 className="text-lg font-medium uppercase">store orders (business koro)</h1>
+                <h1 className="text-lg sm:text-xl font-extrabold text-gray-900">Store Orders</h1>
                 <div className="flex gap-2">
-                    <button onClick={fetchOrders} className="text-sm border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-100">Refresh</button>
-                    <button onClick={syncCatalog} className="text-sm bg-primary-blue text-white rounded px-3 py-1.5 hover:bg-blue-700">Sync catalogue</button>
+                    <button onClick={fetchOrders} className="text-sm font-semibold border border-gray-300 bg-white rounded-full px-4 py-1.5 hover:bg-gray-100">Refresh</button>
+                    <button onClick={syncCatalog} className="text-sm font-semibold bg-black text-white rounded-full px-4 py-1.5 hover:bg-gray-800">Sync catalogue</button>
                 </div>
             </div>
 
@@ -246,24 +246,24 @@ const StoreOrders = () => {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="নাম, ফোন নম্বর বা TrxID দিয়ে খুঁজুন…"
-                    className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-300 rounded-xl bg-white focus:border-primary-blue focus:outline-none"
+                    className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-2xl bg-white focus:border-black focus:outline-none"
                 />
             </div>
 
             {/* queue filter chips */}
-            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+            <div className="flex flex-wrap gap-2 pb-1">
                 {FILTERS.map((f) => (
                     <button
                         key={f.id}
                         onClick={() => pickFilter(f.id)}
-                        className={`shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border transition ${
+                        className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border transition ${
                             filter === f.id
-                                ? 'bg-primary-blue text-white border-primary-blue'
-                                : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                                ? 'bg-black text-white border-black'
+                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                         }`}
                     >
                         {f.label}
-                        <span className={`ml-1.5 font-bold ${filter === f.id ? 'text-blue-100' : 'text-gray-400'}`}>
+                        <span className={`ml-1.5 font-bold ${filter === f.id ? 'text-white/70' : 'text-gray-400'}`}>
                             {bn(counts[f.id] || 0)}
                         </span>
                     </button>
@@ -285,7 +285,7 @@ const StoreOrders = () => {
                             <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border-b border-gray-100">
                                 <span className="font-bold text-gray-900 text-sm">#{shortOrderId(order._id)}</span>
                                 <span className="text-[11px] text-gray-400">• {timeAgoBn(order.createdAt)}</span>
-                                <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 whitespace-nowrap">
+                                <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-full bg-black text-white whitespace-nowrap">
                                     ৳{bn(order.delivery?.charge)} {zoneLabel(order)}
                                 </span>
                             </div>
@@ -352,7 +352,7 @@ const StoreOrders = () => {
                                 <a
                                     href={`tel:${order.customer?.phone}`}
                                     onClick={(e) => e.stopPropagation()}
-                                    className="flex-1 text-xs font-semibold bg-blue-50 text-blue-700 rounded-lg py-2 text-center active:bg-blue-100"
+                                    className="flex-1 text-xs font-semibold bg-gray-100 text-gray-800 rounded-lg py-2 text-center active:bg-gray-200"
                                 >
                                     📞 Call
                                 </a>
@@ -368,7 +368,7 @@ const StoreOrders = () => {
                                 <button
                                     onClick={() => setSheet({ id: order._id, mode: 'actions' })}
                                     disabled={busy}
-                                    className="flex-1 text-xs font-semibold bg-primary-blue text-white rounded-lg py-2 active:bg-blue-700 disabled:opacity-50"
+                                    className="flex-1 text-xs font-semibold bg-black text-white rounded-lg py-2 active:bg-gray-800 disabled:opacity-50"
                                 >
                                     Status ▸
                                 </button>
@@ -379,7 +379,7 @@ const StoreOrders = () => {
             </div>
 
             {/* ===== DESKTOP: table (unchanged) ===== */}
-            <div className="hidden sm:block bg-white rounded-xl shadow-lg mt-4 overflow-x-auto">
+            <div className="hidden sm:block bg-white rounded-2xl border border-gray-200 shadow-sm mt-4 overflow-x-auto">
                 <table className="w-full text-sm text-left">
                     <thead className="bg-gray-50 text-gray-500 uppercase text-xs">
                         <tr>
@@ -420,7 +420,7 @@ const StoreOrders = () => {
                                     <div className="flex gap-1.5 mt-1.5">
                                         <a
                                             href={`tel:${order.customer?.phone}`}
-                                            className="text-xs bg-blue-50 text-blue-700 rounded px-2 py-1 hover:bg-blue-100 font-medium">
+                                            className="text-xs bg-gray-100 text-gray-800 rounded px-2 py-1 hover:bg-gray-200 font-medium">
                                             📞 Call
                                         </a>
                                         <a
@@ -518,7 +518,7 @@ const StoreOrders = () => {
 
                         <div className="rounded-xl bg-gray-50 p-3 text-sm space-y-1">
                             <p className="font-semibold text-gray-900">{sheetOrder.customer?.name}</p>
-                            <a href={`tel:${sheetOrder.customer?.phone}`} className="block text-blue-600">📞 {sheetOrder.customer?.phone}</a>
+                            <a href={`tel:${sheetOrder.customer?.phone}`} className="block text-black font-medium">📞 {sheetOrder.customer?.phone}</a>
                             <p className="text-gray-600">
                                 {sheetOrder.customer?.address}{sheetOrder.customer?.area ? `, ${sheetOrder.customer.area}` : ''},
                                 {' '}{sheetOrder.customer?.district}, {sheetOrder.customer?.division}
@@ -560,7 +560,7 @@ const StoreOrders = () => {
                         <div className="grid grid-cols-2 gap-2 pt-1">
                             <button
                                 onClick={() => setSheet({ id: sheetOrder._id, mode: 'actions' })}
-                                className="bg-primary-blue text-white rounded-xl py-2.5 text-sm font-semibold active:bg-blue-700"
+                                className="bg-black text-white rounded-xl py-2.5 text-sm font-semibold active:bg-gray-800"
                             >
                                 Update status ▸
                             </button>
@@ -597,14 +597,14 @@ const StoreOrders = () => {
                                         disabled={busyId === sheetOrder._id}
                                         className={`w-full flex items-center gap-3 rounded-xl border px-3 py-3 text-sm font-medium transition disabled:opacity-50 ${
                                             current
-                                                ? 'border-primary-blue bg-blue-50 text-primary-blue'
+                                                ? 'border-black bg-gray-100 text-black'
                                                 : done
                                                     ? 'border-green-200 bg-green-50 text-green-700'
                                                     : 'border-gray-200 bg-white text-gray-700 active:bg-gray-50'
                                         }`}
                                     >
                                         <span className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
-                                            current ? 'bg-primary-blue text-white' : done ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                                            current ? 'bg-black text-white' : done ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
                                         }`}>
                                             {done && !current ? '✓' : bn(idx + 1)}
                                         </span>

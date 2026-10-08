@@ -198,7 +198,7 @@ const ChatInbox = () => {
                             <button
                                 key={f.key}
                                 onClick={() => setFilter(f.key)}
-                                className={`flex-1 text-xs font-medium py-2.5 border-b-2 transition ${filter === f.key ? 'border-primary-blue text-primary-blue' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                                className={`flex-1 text-xs font-medium py-2.5 border-b-2 transition ${filter === f.key ? 'border-black text-black' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
                             >
                                 {f.label}
                             </button>
@@ -211,7 +211,7 @@ const ChatInbox = () => {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Search name, phone, message..."
-                            className="w-full border border-line rounded px-3 py-1.5 text-sm focus:outline-none focus:border-primary-blue"
+                            className="w-full border border-line rounded px-3 py-1.5 text-sm focus:outline-none focus:border-black"
                         />
                     </div>
 
@@ -232,11 +232,11 @@ const ChatInbox = () => {
                                 key={c._id}
                                 onClick={() => openConversation(c._id)}
                                 className={`w-full text-left flex gap-3 px-3 py-3 border-b border-line transition ${
-                                    activeId === c._id ? 'bg-blue-50' : 'hover:bg-gray-50'
+                                    activeId === c._id ? 'bg-gray-100' : 'hover:bg-gray-50'
                                 }`}
                             >
                                 <span className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold ${
-                                    c.status === 'closed' ? 'bg-gray-200 text-gray-500' : 'bg-primary-blue text-white'
+                                    c.status === 'closed' ? 'bg-gray-200 text-gray-500' : 'bg-black text-white'
                                 }`}>
                                     {initials(c.name)}
                                 </span>
@@ -279,7 +279,7 @@ const ChatInbox = () => {
                                     <ArrowBackIcon sx={{ fontSize: '20px' }} />
                                 </button>
                                 <span className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold ${
-                                    active?.status === 'closed' ? 'bg-gray-200 text-gray-500' : 'bg-primary-blue text-white'
+                                    active?.status === 'closed' ? 'bg-gray-200 text-gray-500' : 'bg-black text-white'
                                 }`}>
                                     {initials(active?.name)}
                                 </span>
@@ -322,12 +322,12 @@ const ChatInbox = () => {
                                         key={msg._id}
                                         className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm break-words ${
                                             msg.sender === 'admin'
-                                                ? 'self-end bg-primary-blue text-white rounded-br-sm'
+                                                ? 'self-end bg-black text-white rounded-br-sm'
                                                 : 'self-start bg-white text-slate-700 border border-line rounded-bl-sm'
                                         }`}
                                     >
                                         <p className="whitespace-pre-wrap">{msg.message}</p>
-                                        <span className={`block text-xxs mt-1 text-right ${msg.sender === 'admin' ? 'text-blue-100' : 'text-slate-400'}`}>
+                                        <span className={`block text-xxs mt-1 text-right ${msg.sender === 'admin' ? 'text-gray-400' : 'text-slate-400'}`}>
                                             {msg.sender === 'admin' ? 'You' : active?.name} · {timeOf(msg.createdAt)}
                                         </span>
                                     </div>
@@ -344,13 +344,13 @@ const ChatInbox = () => {
                                     onChange={(e) => setText(e.target.value)}
                                     placeholder="রিপ্লাই লিখুন..."
                                     maxLength={2000}
-                                    className="flex-1 border border-line rounded-full px-4 py-2 text-sm focus:outline-none focus:border-primary-blue"
+                                    className="flex-1 border border-line rounded-full px-4 py-2 text-sm focus:outline-none focus:border-black"
                                 />
                                 <button
                                     type="submit"
                                     disabled={sending || !(text || '').trim()}
                                     aria-label="Send reply"
-                                    className="w-10 h-10 shrink-0 rounded-full bg-primary-blue text-white flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-10 h-10 shrink-0 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <SendIcon sx={{ fontSize: '18px' }} />
                                 </button>

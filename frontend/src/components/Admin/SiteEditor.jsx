@@ -16,7 +16,7 @@ const Field = ({ label, value, onChange, textarea, type = 'text', placeholder = 
                 onChange={(e) => onChange(e.target.value)}
                 rows={3}
                 placeholder={placeholder}
-                className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-primary-blue"
+                className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
             />
         ) : (
             <input
@@ -24,7 +24,7 @@ const Field = ({ label, value, onChange, textarea, type = 'text', placeholder = 
                 value={value ?? ''}
                 onChange={(e) => onChange(type === 'number' ? Number(e.target.value) : e.target.value)}
                 placeholder={placeholder}
-                className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-primary-blue"
+                className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
             />
         )}
     </div>
@@ -84,6 +84,23 @@ const SiteEditor = () => {
             return { ...prev, [arrayKey]: arr };
         });
 
+    // categories (plain string list)
+    const [newCategory, setNewCategory] = useState('');
+    const setCategories = (cats) =>
+        setConfig((prev) => ({ ...prev, categories: cats }));
+    const updateCategory = (index, value) =>
+        setCategories((config.categories || []).map((c, i) => (i === index ? value : c)));
+    const addCategory = () => {
+        const name = newCategory.trim();
+        if (!name) return;
+        if (!(config.categories || []).includes(name)) {
+            setCategories([...(config.categories || []), name]);
+        }
+        setNewCategory('');
+    };
+    const removeCategory = (index) =>
+        setCategories((config.categories || []).filter((_, i) => i !== index));
+
     const save = async () => {
         setSaving(true);
         try {
@@ -121,7 +138,7 @@ const SiteEditor = () => {
                 <h1 className="text-lg font-medium uppercase">homepage editor</h1>
                 <div className="flex gap-2">
                     <button onClick={reset} className="text-sm border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-100">Reset defaults</button>
-                    <button onClick={save} className="text-sm bg-primary-blue text-white rounded px-3 py-1.5 hover:bg-blue-700">Save changes</button>
+                    <button onClick={save} className="text-sm bg-black text-white rounded px-3 py-1.5 hover:bg-gray-800">Save changes</button>
                 </div>
             </div>
             <p className="text-sm text-gray-500">এখানে পরিবর্তন করে Save চাপলেই ল্যান্ডিং পেজে সরাসরি আপডেট হবে।</p>
@@ -239,7 +256,7 @@ const SiteEditor = () => {
                                         <select
                                             value={review.rating || 5}
                                             onChange={(e) => setArrayItem('reviews', i, 'rating', Number(e.target.value))}
-                                            className="border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:border-primary-blue">
+                                            className="border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:border-black">
                                             {[5, 4, 3, 2, 1].map((r) => <option key={r} value={r}>{r} ★</option>)}
                                         </select>
                                     </div>
@@ -273,8 +290,40 @@ const SiteEditor = () => {
                     </p>
                 </Card>
 
+                {/* 8. categories */}
+                <Card title="৮. পণ্যের ক্যাটাগরি">
+                    <div className="flex flex-col gap-2">
+                        {(config.categories || []).map((cat, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                                <input
+                                    value={cat}
+                                    onChange={(e) => updateCategory(i, e.target.value)}
+                                    placeholder="ক্যাটাগরির নাম"
+                                    className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
+                                />
+                                <button onClick={() => removeCategory(i)}
+                                    className="text-xs text-red-500 hover:underline shrink-0">মুছুন</button>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="flex gap-2">
+                        <input
+                            value={newCategory}
+                            onChange={(e) => setNewCategory(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCategory(); } }}
+                            placeholder="নতুন ক্যাটাগরির নাম"
+                            className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
+                        />
+                        <button onClick={addCategory}
+                            className="text-sm border border-dashed border-gray-400 rounded px-3 py-1.5 hover:bg-gray-50">+ ক্যাটাগরি যোগ করুন</button>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                        এই ক্যাটাগরিগুলো শপ পেজের ফিল্টার, মোবাইল মেনু, টপ ক্যাটাগরি বার, প্রোডাক্ট ফর্মের সিলেক্ট ও অ্যাডমিন চার্টে দেখাবে।
+                    </p>
+                </Card>
+
                 <div className="flex justify-end pb-6">
-                    <button onClick={save} className="bg-primary-blue text-white rounded px-6 py-2.5 text-sm font-medium hover:bg-blue-700">Save changes</button>
+                    <button onClick={save} className="bg-black text-white rounded px-6 py-2.5 text-sm font-medium hover:bg-gray-800">Save changes</button>
                 </div>
             </div>
         </>

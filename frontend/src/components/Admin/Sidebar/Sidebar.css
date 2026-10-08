@@ -3,9 +3,9 @@
 }
    
 .sidebar::-webkit-scrollbar-track {
-    background-color: #1f2937;
+    background-color: #f4f4f5;
 }
    
 .sidebar::-webkit-scrollbar-thumb {
-    background-color: #4b5563;
+    background-color: #d4d4d8;
 }

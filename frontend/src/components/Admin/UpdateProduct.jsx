@@ -9,7 +9,7 @@ import { REMOVE_PRODUCT_DETAILS, UPDATE_PRODUCT_RESET } from '../../constants/pr
 import { clearErrors, getProductDetails, updateProduct } from '../../actions/productAction';
 import ImageIcon from '@mui/icons-material/Image';
 import BackdropLoader from '../Layouts/BackdropLoader';
-import { categories } from '../../utils/constants';
+import { useCategories } from '../../utils/useCategories';
 import MetaData from '../Layouts/MetaData';
 
 const UpdateProduct = () => {
@@ -18,6 +18,7 @@ const UpdateProduct = () => {
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
     const params = useParams();
+    const categories = useCategories();
 
     const { loading, product, error } = useSelector((state) => state.productDetails);
     const { loading: updateLoading, isUpdated, error: updateError } = useSelector((state) => state.product);
@@ -302,7 +303,7 @@ const UpdateProduct = () => {
                     <div className="flex flex-col gap-2">
                         <div className="flex justify-between items-center border rounded">
                             <input value={highlightInput} onChange={(e) => setHighlightInput(e.target.value)} type="text" placeholder="Highlight" className="px-2 flex-1 outline-none border-none" />
-                            <span onClick={() => addHighlight()} className="py-2 px-6 bg-primary-blue text-white rounded-r hover:shadow-lg cursor-pointer">Add</span>
+                            <span onClick={() => addHighlight()} className="py-2 px-6 bg-black text-white rounded-r hover:shadow-lg cursor-pointer">Add</span>
                         </div>
 
                         <div className="flex flex-col gap-1.5">
@@ -376,12 +377,12 @@ const UpdateProduct = () => {
                     <div className="flex justify-evenly gap-2 items-center">
                         <TextField value={specsInput.title} onChange={handleSpecsChange} name="title" label="Name" placeholder="Model No" variant="outlined" size="small" />
                         <TextField value={specsInput.description} onChange={handleSpecsChange} name="description" label="Description" placeholder="WJDK42DF5" variant="outlined" size="small" />
-                        <span onClick={() => addSpecs()} className="py-2 px-6 bg-primary-blue text-white rounded hover:shadow-lg cursor-pointer">Add</span>
+                        <span onClick={() => addSpecs()} className="py-2 px-6 bg-black text-white rounded hover:shadow-lg cursor-pointer">Add</span>
                     </div>
 
                     <div className="flex flex-col gap-1.5">
                         {specs.map((spec, i) => (
-                            <div className="flex justify-between items-center text-sm rounded bg-blue-50 py-1 px-2">
+                            <div className="flex justify-between items-center text-sm rounded bg-gray-100 py-1 px-2">
                                 <p className="text-gray-500 font-medium">{spec.title}</p>
                                 <p>{spec.description}</p>
                                 <span onClick={() => deleteSpec(i)} className="text-red-600 hover:bg-red-200 bg-red-100 p-1 rounded-full cursor-pointer">

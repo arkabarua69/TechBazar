@@ -47,10 +47,10 @@ const More = () => {
 
     return (
         <>
-            <MetaData title='More - Admin' />
+            <MetaData title='More | TechBazar Admin' />
 
             <div className="pb-4">
-                <h2 className="text-lg font-semibold text-gray-900 mb-1">More</h2>
+                <h2 className="text-xl font-extrabold text-gray-900 mb-1">More</h2>
                 <p className="text-xs text-gray-500 mb-4">Account, settings &amp; management</p>
 
                 {sections.map((sec) => (
@@ -58,18 +58,18 @@ const More = () => {
                         <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-2">
                             {sec.title}
                         </p>
-                        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
                             {sec.items.map((it) => {
                                 const Icon = it.icon;
                                 const content = (
                                     <>
                                         <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                                            it.danger ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-primary-blue'
+                                            it.danger ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-black'
                                         }`}>
                                             <Icon sx={{ fontSize: '19px' }} />
                                         </span>
                                         <span className="min-w-0 flex-1 text-left">
-                                            <span className={`block text-sm font-medium ${
+                                            <span className={`block text-sm font-semibold ${
                                                 it.danger ? 'text-red-600' : 'text-gray-900'
                                             }`}>
                                                 {it.label}
