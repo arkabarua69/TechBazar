@@ -1,0 +1,25 @@
+name: Seed MongoDB
+
+# One-time utility: seeds the Atlas database (admin + demo users + products).
+# Trigger manually from the Actions tab. Only runs when dispatched.
+on:
+  workflow_dispatch:
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install --omit=dev
+
+      - name: Run seed
+        run: node seed.js
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
