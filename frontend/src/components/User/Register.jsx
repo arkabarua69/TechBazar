@@ -94,7 +94,7 @@ const Register = () => {
             <main className="w-full mt-4 sm:pt-6 sm:mt-0">
 
                 {/* <!-- row --> */}
-                <div className="surface flex overflow-hidden sm:w-5/6 md:w-4/6 lg:w-3/5 sm:mt-4 m-auto mb-7 shadow-lg">
+                <div className="surface flex flex-col sm:flex-row overflow-hidden w-full sm:w-5/6 md:w-4/6 lg:w-3/5 sm:mt-4 m-auto mb-7 shadow-lg rounded-lg">
 
                     <FormSidebar
                         title="Looks like you're new here!"
@@ -102,7 +102,7 @@ const Register = () => {
                     />
 
                     {/* <!-- signup column --> */}
-                    <div className="flex-1 overflow-hidden p-6 sm:p-10">
+                    <div className="flex-1 overflow-hidden p-4 sm:p-10 order-1 sm:order-2">
 
                         <div className="max-w-md mx-auto flex flex-col gap-7">
 
@@ -188,7 +188,7 @@ const Register = () => {
                                     </div>
                                     {/* <!-- input container column --> */}
 
-                                    <div className="flex flex-col w-full justify-between sm:flex-row gap-3 items-center">
+                                    <div className="flex flex-col sm:flex-row w-full justify-between gap-3 items-center">
                                         <Avatar
                                             alt="Avatar Preview"
                                             src={avatarPreview}
@@ -212,7 +212,7 @@ const Register = () => {
                             {/* <!-- personal info procedure container --> */}
 
                             <div className="text-center">
-                                <Link to="/login" className="font-medium text-sm text-primary-accent hover:underline">Existing User? Log in</Link>
+                                <Link to="/login" className="font-medium text-sm text-primary-accent hover:underline block w-full text-center">Existing User? Log in</Link>
                             </div>
                         </div>
 

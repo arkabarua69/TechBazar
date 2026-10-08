@@ -57,7 +57,7 @@ const ResetPassword = () => {
       <main className="w-full mt-4 sm:pt-6 sm:mt-0">
 
         {/* <!-- row --> */}
-        <div className="surface flex overflow-hidden sm:w-5/6 md:w-4/6 lg:w-3/5 sm:mt-4 m-auto mb-7 shadow-lg">
+        <div className="surface flex flex-col sm:flex-row overflow-hidden w-full sm:w-5/6 md:w-4/6 lg:w-3/5 sm:mt-4 m-auto mb-7 shadow-lg rounded-lg">
 
           <FormSidebar
             title="Reset Password"
@@ -65,7 +65,7 @@ const ResetPassword = () => {
           />
 
           {/* <!-- login column --> */}
-          <div className="flex-1 overflow-hidden p-6 sm:p-10">
+          <div className="flex-1 overflow-hidden p-4 sm:p-10 order-1 sm:order-2">
 
             <div className="max-w-md mx-auto flex flex-col gap-7">
 
@@ -102,7 +102,7 @@ const ResetPassword = () => {
 
                   {/* <!-- button container --> */}
                   <div className="flex flex-col gap-3 mt-1">
-                    <p className="text-xs text-slate-500 text-left">By continuing, you agree to TechBazar's <a href="/policy" className="text-primary-accent hover:underline font-medium"> Terms of Use</a> and <a href="/policy" className="text-primary-accent hover:underline font-medium"> Privacy Policy.</a></p>
+                    <p className="text-xs text-slate-500 text-center sm:text-left">By continuing, you agree to TechBazar's <a href="/policy" className="text-primary-accent hover:underline font-medium"> Terms of Use</a> and <a href="/policy" className="text-primary-accent hover:underline font-medium"> Privacy Policy.</a></p>
                     <button type="submit" className="btn-accent w-full py-3 text-sm font-bold uppercase tracking-wide">Submit</button>
                   </div>
                   {/* <!-- button container --> */}
@@ -112,7 +112,7 @@ const ResetPassword = () => {
               {/* <!-- input container --> */}
 
               <div className="text-center">
-                <Link to="/register" className="font-medium text-sm text-primary-accent hover:underline">New to TechBazar? Create an account</Link>
+                <Link to="/register" className="font-medium text-sm text-primary-accent hover:underline block w-full text-center">New to TechBazar? Create an account</Link>
               </div>
             </div>
 

@@ -77,7 +77,7 @@ const UpdateProfile = () => {
             <main className="w-full mt-4 sm:pt-6 sm:mt-0">
 
                 {/* <!-- row --> */}
-                <div className="surface flex overflow-hidden sm:w-5/6 md:w-4/6 lg:w-3/5 sm:mt-4 m-auto mb-7 shadow-lg">
+                <div className="surface flex flex-col sm:flex-row overflow-hidden w-full sm:w-5/6 md:w-4/6 lg:w-3/5 sm:mt-4 m-auto mb-7 shadow-lg rounded-lg">
                     {/* <!-- sidebar column  --> */}
                     <div className="loginSidebar bg-gradient-to-br from-primary-accent to-blue-700 px-9 py-10 hidden sm:flex flex-col justify-between gap-4 w-2/5 relative">
                         <div className="flex flex-col gap-4">
@@ -89,7 +89,7 @@ const UpdateProfile = () => {
                     {/* <!-- sidebar column  --> */}
 
                     {/* <!-- signup column --> */}
-                    <div className="flex-1 overflow-hidden p-6 sm:p-10">
+                    <div className="flex-1 overflow-hidden p-4 sm:p-10 order-1 sm:order-2">
 
                         <div className="max-w-md mx-auto flex flex-col gap-7">
 
@@ -146,7 +146,7 @@ const UpdateProfile = () => {
                                     </div>
                                     {/* <!-- gender input --> */}
 
-                                    <div className="flex flex-col w-full justify-between sm:flex-row gap-3 items-center">
+                                    <div className="flex flex-col sm:flex-row w-full justify-between gap-3 items-center">
                                         <Avatar
                                             alt="Avatar Preview"
                                             src={avatarPreview}

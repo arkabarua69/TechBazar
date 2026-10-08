@@ -63,7 +63,7 @@ const UpdatePassword = () => {
             <main className="w-full mt-4 sm:pt-6 sm:mt-0">
 
                 {/* <!-- row --> */}
-                <div className="surface flex overflow-hidden sm:w-5/6 md:w-4/6 lg:w-3/5 sm:mt-4 m-auto mb-7 shadow-lg">
+                <div className="surface flex flex-col sm:flex-row overflow-hidden w-full sm:w-5/6 md:w-4/6 lg:w-3/5 sm:mt-4 m-auto mb-7 shadow-lg rounded-lg">
 
                     <FormSidebar
                         title="Looks like you want to update password!"
@@ -71,7 +71,7 @@ const UpdatePassword = () => {
                     />
 
                     {/* <!-- signup column --> */}
-                    <div className="flex-1 overflow-hidden p-6 sm:p-10">
+                    <div className="flex-1 overflow-hidden p-4 sm:p-10 order-1 sm:order-2">
 
                         <div className="max-w-md mx-auto flex flex-col gap-7">
 
