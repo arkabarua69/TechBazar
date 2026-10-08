@@ -87,7 +87,7 @@ const Sidebar = ({ activeTab, setToggleSidebar }) => {
     }
 
     return (
-        <aside className="sidebar z-10 sm:z-0 block min-h-screen fixed left-0 pb-14 max-h-screen w-3/4 sm:w-1/5 bg-gray-800 text-white overflow-x-hidden border-r">
+        <aside className="sidebar z-10 sm:z-0 block min-h-screen fixed left-0 pb-14 max-h-screen w-3/4 sm:w-72 bg-gray-800 text-white overflow-x-hidden border-r">
             <div className="flex items-center gap-3 bg-gray-700 p-2 rounded-lg shadow-lg my-4 mx-3.5">
                 <Avatar
                     alt="Avatar"
@@ -124,12 +124,9 @@ const Sidebar = ({ activeTab, setToggleSidebar }) => {
                 )}
             </div>
 
-            <div className="flex flex-col gap-1 bg-gray-700 p-3 rounded-lg shadow-lg mb-6 mt-28 mx-3.5 overflow-hidden">
-                <h5>Developed with ❤️ by:</h5>
-                <div className="flex flex-col gap-0">
-                    <a href="https://www.linkedin.com/in/jigar-sable" target="_blank" rel="noreferrer" className="font-medium text-lg hover:text-blue-500">Jigar Sable</a>
-                    <a href="mailto:jigarsable21@gmail.com" className="text-gray-300 text-sm hover:text-blue-500">jigarsable21@gmail.com</a>
-                </div>
+            <div className="flex flex-col gap-1 bg-gray-700 p-3 rounded-lg shadow-lg mb-6 mt-28 mx-3.5 overflow-hidden text-center">
+                <h5 className="font-medium">TechBazar Admin</h5>
+                <span className="text-gray-400 text-sm">© {new Date().getFullYear()} · All rights reserved</span>
             </div>
         </aside>
     )

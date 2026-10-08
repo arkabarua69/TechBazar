@@ -6,6 +6,14 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import store from './store';
 import { SnackbarProvider } from 'notistack';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+
+// Match MUI components (forms, DataGrid, buttons) to the site's `primary-blue`
+const theme = createTheme({
+    palette: {
+        primary: { main: '#3b82f6' },
+    },
+});
 
 ReactDOM.render(
   <React.StrictMode>
@@ -18,7 +26,9 @@ ReactDOM.render(
         }}
       >
         <Router>
-          <App />
+          <ThemeProvider theme={theme}>
+            <App />
+          </ThemeProvider>
         </Router>
       </SnackbarProvider>
     </Provider>

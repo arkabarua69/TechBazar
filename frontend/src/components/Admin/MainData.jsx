@@ -101,19 +101,19 @@ const MainData = () => {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-6">
                 <div className="flex flex-col bg-purple-600 text-white gap-2 rounded-xl shadow-lg hover:shadow-xl p-6">
-                    <h4 className="text-gray-100 font-medium">Total Sales Amount</h4>
+                    <h4 className="text-purple-100 font-medium">Total Sales Amount</h4>
                     <h2 className="text-2xl font-bold">৳{totalAmount?.toLocaleString()}</h2>
                 </div>
-                <div className="flex flex-col bg-red-500 text-white gap-2 rounded-xl shadow-lg hover:shadow-xl p-6">
-                    <h4 className="text-gray-100 font-medium">Total Orders</h4>
+                <div className="flex flex-col bg-red-600 text-white gap-2 rounded-xl shadow-lg hover:shadow-xl p-6">
+                    <h4 className="text-red-100 font-medium">Total Orders</h4>
                     <h2 className="text-2xl font-bold">{orders?.length}</h2>
                 </div>
-                <div className="flex flex-col bg-yellow-500 text-white gap-2 rounded-xl shadow-lg hover:shadow-xl p-6">
-                    <h4 className="text-gray-100 font-medium">Total Products</h4>
+                <div className="flex flex-col bg-yellow-500 text-gray-900 gap-2 rounded-xl shadow-lg hover:shadow-xl p-6">
+                    <h4 className="text-yellow-900 font-medium">Total Products</h4>
                     <h2 className="text-2xl font-bold">{products?.length}</h2>
                 </div>
-                <div className="flex flex-col bg-green-500 text-white gap-2 rounded-xl shadow-lg hover:shadow-xl p-6">
-                    <h4 className="text-gray-100 font-medium">Total Users</h4>
+                <div className="flex flex-col bg-green-500 text-gray-900 gap-2 rounded-xl shadow-lg hover:shadow-xl p-6">
+                    <h4 className="text-green-900 font-medium">Total Users</h4>
                     <h2 className="text-2xl font-bold">{users?.length}</h2>
                 </div>
             </div>
@@ -123,7 +123,7 @@ const MainData = () => {
                     <Line data={lineState} />
                 </div>
 
-                <div className="bg-white rounded-xl shadow-lg p-4 text-center">
+                <div className="bg-white rounded-xl shadow-lg p-4 text-center flex flex-col justify-center">
                     <span className="font-medium uppercase text-gray-800">Order Status</span>
                     <Pie data={pieState} />
                 </div>
@@ -134,7 +134,7 @@ const MainData = () => {
                     <Bar data={barState} />
                 </div>
 
-                <div className="bg-white rounded-xl shadow-lg p-4 text-center">
+                <div className="bg-white rounded-xl shadow-lg p-4 text-center flex flex-col justify-center">
                     <span className="font-medium uppercase text-gray-800">Stock Status</span>
                     <Doughnut data={doughnutState} />
                 </div>
