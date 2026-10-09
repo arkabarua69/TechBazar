@@ -352,18 +352,20 @@ const StoreOrders = () => {
                                 <a
                                     href={`tel:${order.customer?.phone}`}
                                     onClick={(e) => e.stopPropagation()}
-                                    className="flex-1 text-xs font-semibold bg-gray-100 text-gray-800 rounded-lg py-2 text-center active:bg-gray-200"
+                                    className="flex-1 text-xs font-semibold bg-gray-100 text-gray-800 rounded-lg py-2 text-center active:bg-gray-200 flex items-center justify-center gap-1"
                                 >
-                                    📞 Call
+                                    <PhoneIcon sx={{ fontSize: '14px' }} />
+                                    Call
                                 </a>
                                 <a
                                     href={waLink(order.customer?.phone, `TechBazar: inquiry about your order #${shortOrderId(order._id)}`)}
                                     target="_blank"
                                     rel="noreferrer"
                                     onClick={(e) => e.stopPropagation()}
-                                    className="flex-1 text-xs font-semibold bg-green-50 text-green-700 rounded-lg py-2 text-center active:bg-green-100"
+                                    className="flex-1 text-xs font-semibold bg-green-50 text-green-700 rounded-lg py-2 text-center active:bg-green-100 flex items-center justify-center gap-1"
                                 >
-                                    💬 WhatsApp
+                                    <ChatIcon sx={{ fontSize: '14px' }} />
+                                    WhatsApp
                                 </a>
                                 <button
                                     onClick={() => setSheet({ id: order._id, mode: 'actions' })}
@@ -420,15 +422,17 @@ const StoreOrders = () => {
                                     <div className="flex gap-1.5 mt-1.5">
                                         <a
                                             href={`tel:${order.customer?.phone}`}
-                                            className="text-xs bg-gray-100 text-gray-800 rounded px-2 py-1 hover:bg-gray-200 font-medium">
-                                            📞 Call
+                                            className="text-xs bg-gray-100 text-gray-800 rounded px-2 py-1 hover:bg-gray-200 font-medium flex items-center gap-1">
+                                            <PhoneIcon sx={{ fontSize: '12px' }} />
+                                            Call
                                         </a>
                                         <a
                                             href={waLink(order.customer?.phone)}
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="text-xs bg-green-50 text-green-700 rounded px-2 py-1 hover:bg-green-100 font-medium">
-                                            💬 WhatsApp
+                                            className="text-xs bg-green-50 text-green-700 rounded px-2 py-1 hover:bg-green-100 font-medium flex items-center gap-1">
+                                            <ChatIcon sx={{ fontSize: '12px' }} />
+                                            WhatsApp
                                         </a>
                                     </div>
                                 </td>
@@ -443,7 +447,7 @@ const StoreOrders = () => {
                                                 ? 'bg-green-100 text-green-700 hover:bg-green-200'
                                                 : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
                                         }`}>
-                                        {order.payment?.verified ? '✓ Verified' : 'Verify TrxID'}
+                                        {order.payment?.verified ? <><CheckCircleIcon sx={{ fontSize: '12px' }} /> Verified</> : 'Verify TrxID'}
                                     </button>
                                 </td>
                                 <td className="px-4 py-3">
