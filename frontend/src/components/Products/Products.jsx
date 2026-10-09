@@ -9,7 +9,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { clearErrors, getProducts } from '../../actions/productAction';
 import Loader from '../Layouts/Loader';
 import MinCategory from '../Layouts/MinCategory';
-import ProductCard from '../Home/ProductCard';
+import ProductCardDesktop from './ProductCardDesktop';
 import { useCategories } from '../../utils/useCategories';
 import MetaData from '../Layouts/MetaData';
 
@@ -149,7 +149,7 @@ const Products = () => {
 
             {/* ── shop header band — full-bleed, content centered ── */}
             <section className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-100 border-b border-line">
-                <div className="mx-auto max-w-4xl px-5 sm:px-6 py-6 sm:py-8 flex flex-col gap-4">
+                <div className="mx-auto max-w-7xl px-5 sm:px-6 py-6 sm:py-8 flex flex-col gap-4">
 
                     {/* page header — same rhythm as the home page */}
                     <div className="flex items-end justify-between gap-3 flex-wrap">
@@ -225,8 +225,8 @@ const Products = () => {
             </section>
             {/* ── /shop header band ── */}
 
-            {/* main centered content column */}
-            <main className="mx-auto max-w-4xl px-5 sm:px-6 flex flex-col gap-6 pb-16 mt-6 sm:mt-8">
+            {/* main content column — desktop-optimized width */}
+            <main className="mx-auto max-w-7xl px-5 sm:px-6 flex flex-col gap-6 pb-16 mt-6 sm:mt-8">
 
                 {/* mobile / tablet filter panel */}
                 {filtersOpen && <div className="lg:hidden">{filtersCard}</div>}
@@ -254,9 +254,9 @@ const Products = () => {
 
                         {loading ? <Loader /> : (
                             <>
-                                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
                                     {sortedProducts.map((product) => (
-                                        <ProductCard key={product._id} product={product} />
+                                        <ProductCardDesktop key={product._id} product={product} />
                                     ))}
                                 </div>
 
