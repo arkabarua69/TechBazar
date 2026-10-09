@@ -156,42 +156,42 @@ const MainData = () => {
 
     const kpiCards = [
         {
-            icon: PaidIcon, featured: true, label: 'মোট বিক্রয়',
-            value: `৳${bn(revenue.toLocaleString())}`,
-            p: pct(monthRev, revenue), plabel: 'এই মাসের অংশ',
+            icon: PaidIcon, featured: true, label: 'Total Revenue',
+            value: `Tk ${bn(revenue.toLocaleString())}`,
+            p: pct(monthRev, revenue), plabel: "This month's share",
         },
         {
-            icon: ReceiptLongIcon, label: 'মোট অর্ডার',
+            icon: ReceiptLongIcon, label: 'Total Orders',
             value: bn(activeOrders.length),
-            p: pct(deliveredCount, activeOrders.length), plabel: 'ডেলিভারড',
+            p: pct(deliveredCount, activeOrders.length), plabel: 'Delivered',
         },
         {
-            icon: Inventory2Icon, label: 'পণ্য',
+            icon: Inventory2Icon, label: 'Products',
             value: bn(products?.length || 0),
-            p: pct(inStockCount, products?.length || 0), plabel: 'স্টকে আছে',
+            p: pct(inStockCount, products?.length || 0), plabel: 'In Stock',
         },
         {
-            icon: GroupsIcon, label: 'ব্যবহারকারী',
+            icon: GroupsIcon, label: 'Users',
             value: bn(users?.length || 0),
-            p: pct(monthUsers, users?.length || 0), plabel: 'এই মাসে নতুন',
+            p: pct(monthUsers, users?.length || 0), plabel: 'New this month',
         },
     ];
 
     const metricCards = [
-        { key: 'verify', dot: 'bg-amber-500', label: 'Pending Verification', value: bn(metrics.pendingVerify), sub: 'TrxID যাচাই বাকি', to: '/admin/store_orders?filter=verify' },
-        { key: 'confirmed', dot: 'bg-blue-500', label: 'Confirmed / Processing', value: bn(metrics.processing), sub: 'কুরিয়ার বুকিংয়ের অপেক্ষায়', to: '/admin/store_orders?filter=confirmed' },
-        { key: 'shipped', dot: 'bg-violet-500', label: 'In Transit / Shipped', value: bn(metrics.shipped), sub: 'ডেলিভারি চলছে', to: '/admin/store_orders?filter=shipped' },
-        { key: 'today', dot: 'bg-green-500', label: "Today's Delivered & Cash", value: `৳${bn(metrics.cashToday.toLocaleString())}`, sub: `${bn(metrics.deliveredToday)} অর্ডার ডেলিভারড`, to: '/admin/store_orders?filter=delivered' },
+        { key: 'verify', dot: 'bg-amber-500', label: 'Pending Verification', value: bn(metrics.pendingVerify), sub: 'TrxID verification pending', to: '/admin/store_orders?filter=verify' },
+        { key: 'confirmed', dot: 'bg-blue-500', label: 'Confirmed / Processing', value: bn(metrics.processing), sub: 'Awaiting courier booking', to: '/admin/store_orders?filter=confirmed' },
+        { key: 'shipped', dot: 'bg-violet-500', label: 'In Transit / Shipped', value: bn(metrics.shipped), sub: 'Delivery in progress', to: '/admin/store_orders?filter=shipped' },
+        { key: 'today', dot: 'bg-green-500', label: "Today's Delivered & Cash", value: `Tk ${bn(metrics.cashToday.toLocaleString())}`, sub: `${bn(metrics.deliveredToday)} orders delivered`, to: '/admin/store_orders?filter=delivered' },
     ];
 
     // ===== quick action tiles =====
     const quickActions = [
-        { icon: AddShoppingCartIcon, label: '+ ম্যানুয়াল অর্ডার', sub: 'ফোনের অর্ডার', chip: 'bg-gray-100 text-black', onClick: openManual },
-        { icon: BoltIcon, label: 'ভেরিফিকেশন কিউ', sub: `${bn(metrics.pendingVerify)} টি TrxID বাকি`, chip: 'bg-amber-100 text-amber-700', onClick: () => navigate('/admin/store_orders?filter=verify') },
-        { icon: WarningAmberIcon, label: 'স্টক শেষ', sub: `${bn(outOfStock)} টি পণ্য`, chip: 'bg-red-100 text-red-600', onClick: () => navigate('/admin/products') },
-        { icon: SyncIcon, label: 'ক্যাটালগ সিংক', sub: 'Business Koro', chip: 'bg-gray-100 text-black', onClick: syncCatalog },
-        { icon: ReceiptLongIcon, label: 'স্টোর অর্ডার', sub: `${bn(storeOrders.length)} টি`, chip: 'bg-gray-100 text-black', onClick: () => navigate('/admin/store_orders') },
-        { icon: ChatBubbleOutlineIcon, label: 'লাইভ চ্যাট', sub: 'ইনবক্স', chip: 'bg-gray-100 text-black', onClick: () => navigate('/admin/chat') },
+        { icon: AddShoppingCartIcon, label: '+ Manual Order', sub: 'Phone order', chip: 'bg-gray-100 text-black', onClick: openManual },
+        { icon: BoltIcon, label: 'Verification Queue', sub: `${bn(metrics.pendingVerify)} TrxIDs pending`, chip: 'bg-amber-100 text-amber-700', onClick: () => navigate('/admin/store_orders?filter=verify') },
+        { icon: WarningAmberIcon, label: 'Out of Stock', sub: `${bn(outOfStock)} products`, chip: 'bg-red-100 text-red-600', onClick: () => navigate('/admin/products') },
+        { icon: SyncIcon, label: 'Catalog Sync', sub: 'Business Koro', chip: 'bg-gray-100 text-black', onClick: syncCatalog },
+        { icon: ReceiptLongIcon, label: 'Store Order', sub: `${bn(storeOrders.length)} items`, chip: 'bg-gray-100 text-black', onClick: () => navigate('/admin/store_orders') },
+        { icon: ChatBubbleOutlineIcon, label: 'Live Chat', sub: 'Inbox', chip: 'bg-gray-100 text-black', onClick: () => navigate('/admin/chat') },
     ];
 
     // ===== revenue chart (Monthly / Weekly / Today) =====
@@ -208,7 +208,7 @@ const MainData = () => {
                 labels.push(`${String(b * 2).padStart(2, '0')}:00`);
                 data.push(sumOver((t) => t >= start && t < end));
             }
-            return { labels, datasets: [mkLine('আজকের রাজস্ব', data, INK, true)] };
+            return { labels, datasets: [mkLine("Today's Revenue", data, INK, true)] };
         }
 
         if (range === 'weekly') {
@@ -219,7 +219,7 @@ const MainData = () => {
                 labels.push(d.toLocaleDateString('bn-BD', { weekday: 'short' }));
                 data.push(sumOver((t) => t >= d && t < e));
             }
-            return { labels, datasets: [mkLine('৭ দিনের রাজস্ব', data, INK, true)] };
+            return { labels, datasets: [mkLine('7-Day Revenue', data, INK, true)] };
         }
 
         const yr = now.getFullYear();
@@ -265,7 +265,7 @@ const MainData = () => {
     const barState = {
         labels: categories,
         datasets: [{
-            label: 'পণ্য',
+            label: 'Products',
             borderColor: INK, backgroundColor: INK, hoverBackgroundColor: '#333',
             data: categories.map((cat) => products?.filter((item) => item.category === cat).length),
             borderRadius: 6, borderSkipped: false,
@@ -273,7 +273,7 @@ const MainData = () => {
     };
 
     const doughnutState = {
-        labels: ['স্টক শেষ', 'স্টকে আছে'],
+        labels: ['Out of Stock', 'In Stock'],
         datasets: [{
             backgroundColor: [PINK, INK],
             hoverBackgroundColor: ['#f9a8d4', '#333'],
@@ -291,11 +291,11 @@ const MainData = () => {
                 position: 'top', align: 'end',
                 labels: { usePointStyle: true, boxWidth: 8, font: { size: 11 }, color: '#6b7280' },
             },
-            tooltip: { callbacks: { label: (c) => ` ৳${bn(c.parsed.y.toLocaleString())}` } },
+            tooltip: { callbacks: { label: (c) => ` Tk ${bn(c.parsed.y.toLocaleString())}` } },
         },
         scales: {
             x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } },
-            y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { color: '#9ca3af', font: { size: 10 }, callback: (v) => `৳${bn(v)}` } },
+            y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { color: '#9ca3af', font: { size: 10 }, callback: (v) => `Tk ${bn(v)}` } },
         },
     };
 
@@ -328,20 +328,20 @@ const MainData = () => {
         dispatch(getAllOrders());
         dispatch(getAllUsers());
         fetchStoreOrders();
-        enqueueSnackbar('ডেটা রিফ্রেশ হয়েছে', { variant: 'success' });
+            enqueueSnackbar('Data refreshed', { variant: 'success' });
     }
 
     const setField = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
     const submitManual = async (e) => {
         e.preventDefault();
-        if (!form.productId) return enqueueSnackbar('একটি প্রোডাক্ট নির্বাচন করুন', { variant: 'error' });
+        if (!form.productId) return enqueueSnackbar('Select a product', { variant: 'error' });
         if (!form.name.trim() || !form.address.trim() || !form.division.trim() || !form.district.trim())
-            return enqueueSnackbar('নাম, ঠিকানা, বিভাগ ও জেলা দিন', { variant: 'error' });
+            return enqueueSnackbar('Provide name, address, division and district', { variant: 'error' });
         if (!/^01[3-9]\d{8}$/.test(form.phone.trim()))
-            return enqueueSnackbar('সঠিক মোবাইল নম্বর দিন (যেমন 01712345678)', { variant: 'error' });
+            return enqueueSnackbar('Enter a valid mobile number (e.g. 01712345678)', { variant: 'error' });
         if (form.trxid.trim().length < 4)
-            return enqueueSnackbar('TrxID দিন (কমপক্ষে ৪ অক্ষর)', { variant: 'error' });
+            return enqueueSnackbar('Enter TrxID (at least 4 characters)', { variant: 'error' });
 
         setSavingManual(true);
         try {
@@ -357,7 +357,7 @@ const MainData = () => {
                 payment: { method: form.method, transactionId: form.trxid.trim() },
                 delivery: { zone: form.zone },
             }, { headers: { 'Content-Type': 'application/json', Accept: 'application/json' } });
-            enqueueSnackbar('অর্ডার তৈরি হয়েছে — অনুমোদনের অপেক্ষায়', { variant: 'success' });
+            enqueueSnackbar('Order created — pending approval', { variant: 'success' });
             setManualOpen(false);
             setForm({
                 productId: '', qty: '1', name: '', phone: '', division: '', district: '', address: '',
@@ -365,7 +365,7 @@ const MainData = () => {
             });
             fetchStoreOrders();
         } catch (err) {
-            enqueueSnackbar(err.response?.data?.message || 'অর্ডার তৈরি ব্যর্থ', { variant: 'error' });
+            enqueueSnackbar(err.response?.data?.message || 'Order creation failed', { variant: 'error' });
         } finally {
             setSavingManual(false);
         }
@@ -385,7 +385,7 @@ const MainData = () => {
                 <div className="min-w-0">
                     <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Dashboard</h1>
                     <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                        {todayLabel()} · স্বাগতম, {user?.name || 'Admin'}
+                        {todayLabel()} · Welcome, {user?.name || 'Admin'}
                     </p>
                 </div>
                 <div className="flex gap-2 shrink-0">
@@ -393,13 +393,13 @@ const MainData = () => {
                         onClick={refreshAll}
                         className="text-xs sm:text-sm font-semibold border border-gray-300 bg-white rounded-full px-4 py-2 text-gray-700 hover:bg-gray-100 active:scale-95 transition"
                     >
-                        🔄 রিফ্রেশ
+                        🔄                         Refresh
                     </button>
                     <button
                         onClick={openManual}
                         className="text-xs sm:text-sm font-semibold bg-black text-white rounded-full px-4 py-2 hover:bg-gray-800 active:scale-95 transition"
                     >
-                        + নতুন অর্ডার
+                        +                         New Order
                     </button>
                 </div>
             </div>
@@ -430,7 +430,7 @@ const MainData = () => {
 
             {/* ═══ 3. store-order pipeline — grid wrap, NO horizontal scroll ═══ */}
             <div>
-                <p className={`${sectionLabel} mb-2`}>স্টোর অর্ডার পাইপলাইন</p>
+                <p className={`${sectionLabel} mb-2`}>Store Order Pipeline</p>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     {metricCards.map((m) => (
                         <button
@@ -453,8 +453,8 @@ const MainData = () => {
             <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
                 <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
                     <div>
-                        <h2 className="text-sm font-bold text-gray-900">রাজস্ব / Revenue</h2>
-                        <p className="text-[11px] text-gray-400">স্টোর অর্ডার থেকে আয়</p>
+                        <h2 className="text-sm font-bold text-gray-900">Revenue</h2>
+                        <p className="text-[11px] text-gray-400">Revenue from store orders</p>
                     </div>
                     <div className="flex bg-gray-100 rounded-full p-1 gap-1">
                         {[['monthly', 'Monthly'], ['weekly', 'Weekly'], ['today', 'Today']].map(([key, label]) => (
@@ -477,16 +477,16 @@ const MainData = () => {
                 <div className="bg-white border border-gray-200 rounded-2xl shadow-sm">
                     <div className="px-4 pt-4 pb-2">
                         <h2 className="text-sm font-bold text-gray-900">Trending Items</h2>
-                        <p className="text-[11px] text-gray-400">সর্বাধিক বিক্রিত পণ্য</p>
+                        <p className="text-[11px] text-gray-400">Top Selling Products</p>
                     </div>
                     <div>
                         {trending.length === 0 && (
-                            <p className="px-4 py-8 text-center text-sm text-gray-400">এখনো কোনো বিক্রি হয়নি।</p>
+                            <p className="px-4 py-8 text-center text-sm text-gray-400">No sales yet.</p>
                         )}
                         {trending.map((it, i) => {
                             const delta = it.lastQty > 0 ? Math.round(((it.thisQty - it.lastQty) / it.lastQty) * 100) : null;
                             const deltaText = delta === null
-                                ? (it.thisQty > 0 ? 'নতুন' : '—')
+                                ? (it.thisQty > 0 ? 'New' : '—')
                                 : `${delta >= 0 ? '+' : '−'}${bn(Math.abs(delta))}%`;
                             const deltaCls = delta === null
                                 ? (it.thisQty > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400')
@@ -500,7 +500,7 @@ const MainData = () => {
                                     )}
                                     <div className="min-w-0 flex-1">
                                         <p className="text-sm font-semibold text-gray-900 truncate">{it.name}</p>
-                                        <p className="text-xs text-gray-400">{bn(it.qty)} বিক্রি · ৳{bn(it.total.toLocaleString())}</p>
+                                        <p className="text-xs text-gray-400">{bn(it.qty)} sold · Tk {bn(it.total.toLocaleString())}</p>
                                     </div>
                                     <span className={`text-[11px] font-bold px-2 py-1 rounded-full shrink-0 ${deltaCls}`}>{deltaText}</span>
                                 </div>
@@ -509,23 +509,23 @@ const MainData = () => {
                     </div>
                 </div>
 
-                {/* order list (reference style: initials avatar · name · date · +৳ · pill) */}
+                {/* order list (reference style: initials avatar · name · date · +Tk  · pill) */}
                 <div className="bg-white border border-gray-200 rounded-2xl shadow-sm">
                     <div className="flex items-center justify-between px-4 pt-4 pb-2 gap-2">
                         <div className="min-w-0">
                             <h2 className="text-sm font-bold text-gray-900">Order List</h2>
-                            <p className="text-[11px] text-gray-400">মোট {bn(storeOrders.length)} টি অর্ডার</p>
+                            <p className="text-[11px] text-gray-400">{bn(storeOrders.length)} total orders</p>
                         </div>
                         <button
                             onClick={() => navigate('/admin/store_orders')}
                             className="text-xs font-bold text-black shrink-0 hover:underline"
                         >
-                            সব দেখুন →
+                            View all →
                         </button>
                     </div>
                     <div>
                         {recent.length === 0 && (
-                            <p className="px-4 py-8 text-center text-sm text-gray-400">এখনো কোনো অর্ডার নেই।</p>
+                            <p className="px-4 py-8 text-center text-sm text-gray-400">No orders yet.</p>
                         )}
                         {recent.map((o) => {
                             const f = o.fulfilment || 'PLACED';
@@ -543,7 +543,7 @@ const MainData = () => {
                                         <p className="text-xs text-gray-400 truncate">{timeAgoBn(o.createdAt)} · #{shortOrderId(o._id)} · {o.product?.name}</p>
                                     </div>
                                     <div className="shrink-0 text-right">
-                                        <p className="text-sm font-bold text-gray-900">+৳{bn((o.pricing?.total || 0).toLocaleString())}</p>
+                                        <p className="text-sm font-bold text-gray-900">+Tk {bn((o.pricing?.total || 0).toLocaleString())}</p>
                                         <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mt-1 ${ORDER_PILL[f] || 'bg-zinc-100 text-zinc-500'}`}>
                                             {ORDER_PILL_TEXT[f] || 'New Order'}
                                         </span>
@@ -557,7 +557,7 @@ const MainData = () => {
 
             {/* ═══ 6. quick actions ═══ */}
             <div>
-                <p className={`${sectionLabel} mb-2`}>কুইক অ্যাকশন</p>
+                <p className={`${sectionLabel} mb-2`}>Quick Actions</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
                     {quickActions.map((a, i) => {
                         const Icon = a.icon;
@@ -579,69 +579,69 @@ const MainData = () => {
             </div>
 
             {/* ═══ 7. analytics ═══ */}
-            <p className={sectionLabel}>অ্যানালিটিক্স</p>
+            <p className={sectionLabel}>Analytics</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-                    <p className="text-sm font-bold text-gray-900 mb-2">ক্যাটাগরি অনুযায়ী পণ্য</p>
+                    <p className="text-sm font-bold text-gray-900 mb-2">Products by Category</p>
                     <Bar data={barState} />
                 </div>
                 <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-                    <p className="text-sm font-bold text-gray-900 mb-2">স্টক অবস্থা</p>
+                    <p className="text-sm font-bold text-gray-900 mb-2">Stock Status</p>
                     <Doughnut data={doughnutState} />
                 </div>
             </div>
 
             {/* ===== BOTTOM SHEET: manual order ===== */}
-            <BottomSheet open={manualOpen} onClose={() => setManualOpen(false)} title="ম্যানুয়াল অর্ডার তৈরি">
+            <BottomSheet open={manualOpen} onClose={() => setManualOpen(false)} title="Create Manual Order">
                 <form onSubmit={submitManual} className="space-y-3">
                     <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">প্রোডাক্ট</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Product</label>
                         <select value={form.productId} onChange={setField('productId')} className={fieldCls} required>
-                            <option value="">— নির্বাচন করুন —</option>
+                            <option value="">— Select —</option>
                             {inStockProducts.map((p) => (
-                                <option key={p._id} value={p._id}>{p.name} (৳{p.price})</option>
+                                <option key={p._id} value={p._id}>{p.name} (Tk {p.price})</option>
                             ))}
                         </select>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">পরিমাণ (১–১০)</label>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Quantity (1–10)</label>
                             <input type="number" min="1" max="10" value={form.qty} onChange={setField('qty')} className={fieldCls} />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">মোবাইল</label>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Mobile</label>
                             <input type="tel" inputMode="numeric" placeholder="01712345678" value={form.phone} onChange={setField('phone')} className={fieldCls} />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">কাস্টমারের নাম</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Customer Name</label>
                         <input type="text" value={form.name} onChange={setField('name')} className={fieldCls} />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">ঠিকানা</label>
-                        <input type="text" placeholder="বাড়ি, রোড, এলাকা" value={form.address} onChange={setField('address')} className={fieldCls} />
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Address</label>
+                        <input type="text" placeholder="House, road, area" value={form.address} onChange={setField('address')} className={fieldCls} />
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">বিভাগ</label>
-                            <input type="text" placeholder="যেমন: ঢাকা" value={form.division} onChange={setField('division')} className={fieldCls} />
+<label className="block text-xs font-medium text-gray-600 mb-1">Division</label>
+                        <input type="text" placeholder="e.g. Dhaka" value={form.division} onChange={setField('division')} className={fieldCls} />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">জেলা</label>
-                            <input type="text" placeholder="যেমন: ঢাকা" value={form.district} onChange={setField('district')} className={fieldCls} />
+<label className="block text-xs font-medium text-gray-600 mb-1">District</label>
+                        <input type="text" placeholder="e.g. Dhaka" value={form.district} onChange={setField('district')} className={fieldCls} />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">ডেলিভারি জোন</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Delivery Zone</label>
                         <div className="grid grid-cols-2 gap-2">
                             {[
-                                { id: 'inside-dhaka', label: `ঢাকার ভিতরে · ৳${bn(charges?.insideDhaka || 70)}` },
-                                { id: 'outside-dhaka', label: `ঢাকার বাইরে · ৳${bn(charges?.outsideDhaka || 130)}` },
+{ id: 'inside-dhaka', label: `Inside Dhaka · Tk ${bn(charges?.insideDhaka || 70)}` },
+                { id: 'outside-dhaka', label: `Outside Dhaka · Tk ${bn(charges?.outsideDhaka || 130)}` },
                             ].map((z) => (
                                 <button
                                     key={z.id}
@@ -660,7 +660,7 @@ const MainData = () => {
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">পেমেন্ট</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Payment</label>
                         <div className="grid grid-cols-2 gap-2 mb-2">
                             {['bKash', 'Nagad'].map((m) => (
                                 <button
@@ -679,13 +679,13 @@ const MainData = () => {
                         </div>
                         <input
                             type="text"
-                            placeholder="TrxID (যেমন BK7X9Q2M)"
+                            placeholder="TrxID (e.g. BK7X9Q2M)"
                             value={form.trxid}
                             onChange={setField('trxid')}
                             className={fieldCls}
                         />
                         <p className="text-[11px] text-gray-400 mt-1">
-                            অগ্রিম ডেলিভারি চার্জ যাচাইয়ের জন্য কাস্টমারের TrxID দিন।
+                            Enter the customer's TrxID to verify the advance delivery charge.
                         </p>
                     </div>
 
@@ -694,7 +694,7 @@ const MainData = () => {
                         disabled={savingManual}
                         className="w-full bg-black text-white rounded-xl py-3 text-sm font-semibold active:bg-gray-800 disabled:opacity-60"
                     >
-                        {savingManual ? 'তৈরি হচ্ছে…' : 'অর্ডার তৈরি করুন'}
+                        {savingManual ? 'Creating…' : 'Create Order'}
                     </button>
                 </form>
             </BottomSheet>

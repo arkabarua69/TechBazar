@@ -1,23 +1,24 @@
 // Small helpers for the mobile admin app UX (merchant-app style cards, badges, alerts).
 
-// 12345 → '১২৩৪৫'
-export const bn = (value) => String(value).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
+// Passthrough kept for backwards compatibility (previously converted digits
+// to Bengali numerals — the site is English-only now).
+export const bn = (value) => String(value);
 
 // Stable human order id: TB-1082 style (last 4 chars of Mongo ObjectId)
 export const shortOrderId = (id) => `TB-${String(id || '').slice(-4).toUpperCase()}`;
 
-// '৩ মিনিট আগে' / '৫ ঘণ্টা আগে' / '২ দিন আগে'
+// 'just now' / '5 min ago' / '2 hr ago' / '3 days ago'
 export const timeAgoBn = (date) => {
     const then = new Date(date).getTime();
     if (Number.isNaN(then)) return '';
     const secs = Math.max(0, Math.floor((Date.now() - then) / 1000));
-    if (secs < 60) return 'এইমাত্র';
+    if (secs < 60) return 'Just now';
     const mins = Math.floor(secs / 60);
-    if (mins < 60) return `${bn(mins)} মিনিট আগে`;
+    if (mins < 60) return `${mins} min ago`;
     const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${bn(hours)} ঘণ্টা আগে`;
+    if (hours < 24) return `${hours} hr ago`;
     const days = Math.floor(hours / 24);
-    if (days < 7) return `${bn(days)} দিন আগে`;
+    if (days < 7) return `${days} days ago`;
     return new Date(date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 };
 

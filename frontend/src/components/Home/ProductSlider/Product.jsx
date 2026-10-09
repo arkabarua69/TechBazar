@@ -49,8 +49,8 @@ const Product = (props) => {
 
                 {/* <!-- price container --> */}
                 <div className="flex items-center gap-1.5 text-md font-medium">
-                    <span>৳{price.toLocaleString()}</span>
-                    <span className="text-gray-500 line-through text-xs">৳{cuttedPrice.toLocaleString()}</span>
+                    <span>Tk {price.toLocaleString()}</span>
+                    <span className="text-gray-500 line-through text-xs">Tk {cuttedPrice.toLocaleString()}</span>
                     <span className="text-xs text-primary-green">{getDiscount(price, cuttedPrice)}%&nbsp;off</span>
                 </div>
                 {/* <!-- price container --> */}

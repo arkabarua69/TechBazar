@@ -56,7 +56,7 @@ const UpdateOrder = () => {
                         <div className="flex flex-col gap-4">
                             <Link to="/admin/orders" className="ml-1 flex items-center gap-1 text-sm font-semibold text-gray-600 hover:text-black"><ArrowBackIosIcon sx={{ fontSize: "18px" }} />Go Back</Link>
 
-                            <div className="flex flex-col sm:flex-row bg-white rounded-2xl border border-gray-200 shadow-sm min-w-full">
+                                <div className="flex flex-col sm:flex-row w-full bg-white rounded-2xl border border-gray-200 shadow-sm min-w-full">
                                 <div className="sm:w-1/2 border-r">
                                     <div className="flex flex-col gap-3 my-8 mx-10">
                                         <h3 className="font-medium text-lg">Delivery Address</h3>
@@ -108,7 +108,7 @@ const UpdateOrder = () => {
                                 const { _id, image, name, price, quantity } = item;
 
                                 return (
-                                    <div className="flex flex-col sm:flex-row min-w-full shadow-lg rounded-lg bg-white px-2 py-5" key={_id}>
+                                    <div className="flex flex-col sm:flex-row w-full shadow-lg rounded-lg bg-white px-2 py-5" key={_id}>
 
                                         <div className="flex flex-col sm:flex-row sm:w-1/2 gap-1">
                                             <div className="w-full sm:w-32 h-24">
@@ -117,8 +117,8 @@ const UpdateOrder = () => {
                                             <div className="flex flex-col gap-1 overflow-hidden">
                                                 <p className="text-sm">{name.length > 45 ? `${name.substring(0, 45)}...` : name}</p>
                                                 <p className="text-xs text-gray-600 mt-2">Quantity: {quantity}</p>
-                                                <p className="text-xs text-gray-600">Price: ৳{price.toLocaleString()}</p>
-                                                <span className="font-medium">Total: ৳{(quantity * price).toLocaleString()}</span>
+                                                <p className="text-xs text-gray-600">Price: Tk {price.toLocaleString()}</p>
+                                                <span className="font-medium">Total: Tk {(quantity * price).toLocaleString()}</span>
                                             </div>
                                         </div>
 

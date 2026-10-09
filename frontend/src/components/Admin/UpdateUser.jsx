@@ -78,7 +78,7 @@ const UpdateUser = () => {
 
             {loading ? <Loading /> : (
                 <>
-                    <div className="flex flex-col bg-white rounded-2xl border border-gray-200 shadow-sm mx-auto w-lg max-w-xl">
+                    <div className="flex flex-col bg-white rounded-2xl border border-gray-200 shadow-sm mx-auto w-full max-w-xl">
                         <h2 className="text-center text-xl font-extrabold mt-6 text-gray-900">Update Profile</h2>
 
                         <form

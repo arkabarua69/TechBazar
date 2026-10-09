@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import TextField from '@mui/material/TextField'
 import { useSnackbar } from 'notistack';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -90,36 +89,18 @@ const UpdatePassword = () => {
                                     {/* <!-- input container column --> */}
                                     <div className="flex flex-col w-full justify-between sm:flex-col gap-3 items-center">
 
-                                        <TextField
-                                            fullWidth
-                                            label="Current Password"
-                                            type="password"
-                                            name="oldPassword"
-                                            value={oldPassword}
-                                            onChange={(e) => setOldPassword(e.target.value)}
-                                            required
-                                            autoComplete="current-password"
-                                        />
-                                        <TextField
-                                            fullWidth
-                                            label="New Password"
-                                            type="password"
-                                            name="newPassword"
-                                            value={newPassword}
-                                            onChange={(e) => setNewPassword(e.target.value)}
-                                            required
-                                            autoComplete="new-password"
-                                        />
-                                        <TextField
-                                            fullWidth
-                                            label="Confirm New Password"
-                                            type="password"
-                                            name="confirmPassword"
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
-                                            required
-                                            autoComplete="new-password"
-                                        />
+                                        <div className="flex flex-col gap-1.5 w-full">
+                                            <label htmlFor="oldPassword" className="text-xs font-semibold uppercase tracking-wider text-slate-500">Current Password</label>
+                                            <input id="oldPassword" name="oldPassword" type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} required autoComplete="current-password" className="input-field w-full" />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5 w-full">
+                                            <label htmlFor="newPassword" className="text-xs font-semibold uppercase tracking-wider text-slate-500">New Password</label>
+                                            <input id="newPassword" name="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required autoComplete="new-password" className="input-field w-full" />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5 w-full">
+                                            <label htmlFor="confirmPassword" className="text-xs font-semibold uppercase tracking-wider text-slate-500">Confirm New Password</label>
+                                            <input id="confirmPassword" name="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required autoComplete="new-password" className="input-field w-full" />
+                                        </div>
 
                                     </div>
                                     {/* <!-- input container column --> */}

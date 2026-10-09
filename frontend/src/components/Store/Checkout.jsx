@@ -36,13 +36,13 @@ const Checkout = () => {
         if (!num) return;
         const done = () => {
             setCopied(label);
-            enqueueSnackbar(`${label} নম্বর কপি হয়েছে`, { variant: 'success' });
+            enqueueSnackbar(`${label} number copied`, { variant: 'success' });
             setTimeout(() => setCopied(''), 1500);
         };
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(num).then(done).catch(() => { window.prompt('নম্বর কপি করুন', num); });
+            navigator.clipboard.writeText(num).then(done).catch(() => { window.prompt('Copy number', num); });
         } else {
-            window.prompt('নম্বর কপি করুন', num);
+            window.prompt('Copy number', num);
         }
     };
 
@@ -112,15 +112,15 @@ const Checkout = () => {
                             </div>
                             <div className="flex justify-between px-4 py-3">
                                 <span className="text-slate-500">Items</span>
-                                <span className="font-medium text-slate-800">৳{placedOrder.summary?.itemsTotal?.toLocaleString()}</span>
+                                <span className="font-medium text-slate-800">Tk {placedOrder.summary?.itemsTotal?.toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between px-4 py-3">
                                 <span className="text-slate-500">Delivery charge (paid in advance)</span>
-                                <span className="font-medium text-slate-800">৳{placedOrder.summary?.deliveryCharge}</span>
+                                <span className="font-medium text-slate-800">Tk {placedOrder.summary?.deliveryCharge}</span>
                             </div>
                             <div className="flex justify-between px-4 py-3 text-lg">
                                 <span className="font-medium text-slate-700">Total</span>
-                                <span className="font-extrabold text-slate-900">৳{placedOrder.summary?.grandTotal?.toLocaleString()}</span>
+                                <span className="font-extrabold text-slate-900">Tk {placedOrder.summary?.grandTotal?.toLocaleString()}</span>
                             </div>
                         </div>
 
@@ -206,14 +206,14 @@ const Checkout = () => {
                             <div className="mt-5">
                                 <label className="text-xs font-medium text-slate-500">Delivery zone *</label>
                                 <div className="grid sm:grid-cols-2 gap-3 mt-2">
-                                    {[['inside-dhaka', 'ঢাকার ভেতরে', config.deliveryCharges.insideDhaka], ['outside-dhaka', 'ঢাকার বাইরে', config.deliveryCharges.outsideDhaka]].map(([value, label, charge]) => (
+                                    {[['inside-dhaka', 'Inside Dhaka', config.deliveryCharges.insideDhaka], ['outside-dhaka', 'Outside Dhaka', config.deliveryCharges.outsideDhaka]].map(([value, label, charge]) => (
                                         <label key={value}
                                             className={`flex items-center justify-between border rounded-lg px-4 py-3 cursor-pointer text-sm ${zone === value ? 'border-primary-accent bg-primary-accent/5 text-slate-900' : 'border-line text-slate-600'}`}>
                                             <span className="flex items-center gap-2">
                                                 <input type="radio" name="zone" value={value} checked={zone === value} onChange={() => setZone(value)} className="accent-blue-500" />
                                                 {label}
                                             </span>
-                                            <span className="font-semibold">৳{charge}</span>
+                                            <span className="font-semibold">Tk {charge}</span>
                                         </label>
                                     ))}
                                 </div>
@@ -234,7 +234,7 @@ const Checkout = () => {
                                             {m} Send Money
                                         </span>
                                         <span className="font-semibold text-xs">
-                                            ৳{deliveryCharge}
+                                            Tk {deliveryCharge}
                                         </span>
                                     </label>
                                 ))}
@@ -242,7 +242,7 @@ const Checkout = () => {
 
                             <div className="mt-4 rounded-lg bg-cloud border border-line p-4 text-sm text-slate-600">
                                 <p>
-                                    Send <span className="font-semibold text-slate-900">৳{deliveryCharge}</span> (delivery charge) to{' '}
+                                    Send <span className="font-semibold text-slate-900">Tk {deliveryCharge}</span> (delivery charge) to{' '}
                                     <span className="font-semibold text-slate-900">
                                         {method === 'bKash' ? (config.payment.bKashNumber || '—') : (config.payment.nagadNumber || '—')}
                                     </span>{' '}
@@ -256,7 +256,7 @@ const Checkout = () => {
                                     )}
                                     className="btn-copy mt-3"
                                 >
-                                    {copied === method ? '✓ কপি হয়েছে' : `${method} নম্বর কপি করুন`}
+                                    {copied === method ? '✓ Copied' : `Copy ${method} number`}
                                 </button>
                             </div>
 
@@ -282,7 +282,7 @@ const Checkout = () => {
                                             <p className="text-sm text-slate-700 line-clamp-1">{item.name}</p>
                                             <p className="text-xs text-slate-500">Qty {item.quantity}</p>
                                         </div>
-                                        <span className="text-sm font-medium text-slate-800">৳{(item.price * item.quantity).toLocaleString()}</span>
+                                        <span className="text-sm font-medium text-slate-800">Tk {(item.price * item.quantity).toLocaleString()}</span>
                                     </div>
                                 ))}
                             </div>
@@ -292,20 +292,20 @@ const Checkout = () => {
                             <div className="flex flex-col gap-2 text-sm">
                                 <div className="flex justify-between text-slate-600">
                                     <span>Item total (COD)</span>
-                                    <span>৳{itemsTotal.toLocaleString()}</span>
+                                    <span>Tk {itemsTotal.toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between text-slate-600">
                                     <span>Delivery charge (advance)</span>
-                                    <span>৳{deliveryCharge}</span>
+                                    <span>Tk {deliveryCharge}</span>
                                 </div>
                                 <div className="border-t border-dashed border-line my-1"></div>
                                 <div className="flex justify-between items-center">
                                     <span className="font-medium text-slate-800">Pay now</span>
-                                    <span className="text-lg font-extrabold text-slate-900">৳{deliveryCharge}</span>
+                                    <span className="text-lg font-extrabold text-slate-900">Tk {deliveryCharge}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-slate-600">
                                     <span>On delivery</span>
-                                    <span className="font-medium">৳{itemsTotal.toLocaleString()}</span>
+                                    <span className="font-medium">Tk {itemsTotal.toLocaleString()}</span>
                                 </div>
                             </div>
 

@@ -8,7 +8,11 @@ body {
     color: #0f172a;
     font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    /* prevent any page-level horizontal scroll on mobile — every scroll
+       region is intentional & contained in its own overflow-auto wrapper */
+    overflow-x: hidden;
 }
+html { overflow-x: hidden; }
 
 /* the announcement strip now shows on every device (mobile ticker / desktop
    row) — push page content down by its height; App.js refines this with a
@@ -32,6 +36,13 @@ body {
     body {
         padding-bottom: 4.5rem;
     }
+}
+
+/* admin owns its own chrome — cancel the store header's body offset so the
+   fixed AdminAppBar / AdminBottomNav + inner pt-16/pb-24 are the only gutters */
+.admin-page {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
 }
 
 @layer components {
@@ -86,6 +97,15 @@ body {
 .animate-marquee {
     animation: marquee 16s linear infinite;
 }
+/* hide scrollbar while keeping the content scrollable
+   (mobile chip rows, horizontal carousels etc.) */
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE + Edge */
+    scrollbar-width: none;     /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+    display: none;             /* Chrome, Safari, Opera */
+}
 /* ── /Cloud White design system ────────────────────────────── */
 
 
@@ -96,11 +116,3 @@ body {
   border-bottom: 11px solid #fff;
 }
 /* hover navbar dropdown arrow */
-
-/* login signup sidebar bg image */
-.loginSidebar {
-    background-image: url("https://static-assets-web.flixcart.com/www/linchpin/fk-cp-zion/img/login_img_c4a81e.png");
-    background-position: center 85%;
-    background-repeat: no-repeat;
-}
-/* login signup sidebar bg image */

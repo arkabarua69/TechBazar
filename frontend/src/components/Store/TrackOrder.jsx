@@ -9,17 +9,17 @@ import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
 const FULFILMENT_STEPS = [
-    { key: 'PLACED', label: 'অর্ডার গ্রহণ' },
-    { key: 'CONFIRMED', label: 'কনফার্ম' },
-    { key: 'SHIPPED', label: 'কুরিয়ারে ছেড়েছে' },
-    { key: 'DELIVERED', label: 'ডেলিভার্ড' },
+    { key: 'PLACED', label: 'Order Received' },
+    { key: 'CONFIRMED', label: 'Confirmed' },
+    { key: 'SHIPPED', label: 'Shipped' },
+    { key: 'DELIVERED', label: 'Delivered' },
 ];
 
 const STATUS_LABELS = {
-    PENDING_APPROVAL: 'অনুমোদনের অপেক্ষায়',
-    FORWARDED: 'কনফার্ম হয়েছে',
-    FORWARD_FAILED: 'সমস্যা হয়েছে — সাপোর্টে যোগাযোগ করুন',
-    CANCELLED: 'বাতিল',
+    PENDING_APPROVAL: 'Pending Approval',
+    FORWARDED: 'Confirmed',
+    FORWARD_FAILED: 'Issue — Contact Support',
+    CANCELLED: 'Cancelled',
 };
 
 const Timeline = ({ current, cancelled }) => {
@@ -74,7 +74,7 @@ const TrackOrder = () => {
             setOrders(data.orders || []);
         } catch (err) {
             const msg = (err.response && err.response.data && err.response.data.message)
-                || 'কিছু একটা সমস্যা হয়েছে — আবার চেষ্টা করুন।';
+                || 'Something went wrong — please try again.';
             setNotFound(msg);
             if (err.response && err.response.status !== 404) enqueueSnackbar(msg, { variant: 'error' });
         } finally {
@@ -90,10 +90,10 @@ const TrackOrder = () => {
                 <section className="surface p-4 sm:p-6">
                     <div className="flex items-center gap-2 mb-1">
                         <LocalShippingIcon sx={{ color: '#3b82f6' }} />
-                        <h1 className="font-display font-bold text-lg sm:text-xl text-slate-900">অর্ডার ট্র্যাক করুন</h1>
+                        <h1 className="font-display font-bold text-lg sm:text-xl text-slate-900">Track Order</h1>
                     </div>
                     <p className="text-xs text-slate-500 mb-4">
-                        লগইন ছাড়াই মোবাইল নম্বর বা অর্ডার আইডি দিয়ে আপনার অর্ডারের অবস্থা দেখুন।
+                        Track your order by mobile number or order ID — no login required.
                     </p>
 
                     <form onSubmit={search} className="flex flex-col gap-3">
@@ -102,8 +102,8 @@ const TrackOrder = () => {
                             value={mode}
                             onChange={(e) => { setMode(e.target.value); setOrders(null); setNotFound(''); }}
                         >
-                            <FormControlLabel value="phone" control={<Radio size="small" />} label="মোবাইল নম্বর" className="mr-4" />
-                            <FormControlLabel value="groupId" control={<Radio size="small" />} label="অর্ডার আইডি" />
+                            <FormControlLabel value="phone" control={<Radio size="small" />} label="Mobile Number" className="mr-4" />
+                            <FormControlLabel value="groupId" control={<Radio size="small" />} label="Order ID" />
                         </RadioGroup>
 
                         <div className="flex gap-2">
@@ -111,12 +111,12 @@ const TrackOrder = () => {
                                 value={value}
                                 onChange={(e) => setValue(e.target.value)}
                                 inputMode={mode === 'phone' ? 'tel' : 'text'}
-                                placeholder={mode === 'phone' ? 'যেমন: 01712345678' : 'যেমন: grp-xxxx-xxxx'}
+                                placeholder={mode === 'phone' ? 'e.g. 01712345678' : 'e.g. grp-xxxx-xxxx'}
                                 className="flex-1 input-field"
                             />
                             <button type="submit" disabled={loading} className="btn-accent px-4 py-2.5 text-sm font-semibold rounded-lg flex items-center gap-1.5 disabled:opacity-60">
                                 <SearchIcon sx={{ fontSize: '18px' }} />
-                                {loading ? 'খোঁজা হচ্ছে…' : 'খুঁজুন'}
+                                {loading ? 'Searching…' : 'Search'}
                             </button>
                         </div>
                     </form>
@@ -135,7 +135,7 @@ const TrackOrder = () => {
                         <section key={group.groupId} className="surface p-4 sm:p-5">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                                 <div>
-                                    <p className="text-xxs uppercase tracking-widest text-slate-400 font-bold">অর্ডার আইডি</p>
+                                    <p className="text-xxs uppercase tracking-widest text-slate-400 font-bold">Order ID</p>
                                     <p className="font-display font-semibold text-sm text-slate-900 break-all">{group.groupId}</p>
                                 </div>
                                 <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
@@ -144,15 +144,15 @@ const TrackOrder = () => {
                                             : 'bg-blue-50 text-primary-accent border border-blue-100'
                                 }`}>
                                     {cancelled ? STATUS_LABELS.CANCELLED
-                                        : group.fulfilment === 'DELIVERED' ? 'ডেলিভার্ড হয়েছে'
-                                            : group.fulfilment === 'SHIPPED' ? 'কুরিয়ারে পাঠানো হয়েছে'
-                                                : group.fulfilment === 'CONFIRMED' ? 'কনফার্ম হয়েছে'
+                                        : group.fulfilment === 'DELIVERED' ? 'Delivered'
+                                            : group.fulfilment === 'SHIPPED' ? 'Shipped'
+                                                : group.fulfilment === 'CONFIRMED' ? 'Confirmed'
                                                     : STATUS_LABELS[group.status] || STATUS_LABELS.PENDING_APPROVAL}
                                 </span>
                             </div>
 
                             <p className="text-[11px] text-slate-400 mt-1">
-                                অর্ডারের সময়: {new Date(group.placedAt).toLocaleString('bn-BD', { dateStyle: 'medium', timeStyle: 'short' }) || new Date(group.placedAt).toLocaleString()}
+                                Order time: {new Date(group.placedAt).toLocaleString('en-BD', { dateStyle: 'medium', timeStyle: 'short' }) || new Date(group.placedAt).toLocaleString()}
                             </p>
 
                             <Timeline current={group.fulfilment} cancelled={cancelled} />
@@ -166,9 +166,9 @@ const TrackOrder = () => {
                                         )}
                                         <div className="flex-1 min-w-0">
                                             <p className="text-xs sm:text-sm text-slate-800 font-medium line-clamp-1">{item.name}</p>
-                                            <p className="text-[11px] text-slate-400">পরিমাণ: {item.quantity}</p>
+                                            <p className="text-[11px] text-slate-400">Qty: {item.quantity}</p>
                                         </div>
-                                        <span className="font-extrabold text-sm text-slate-900">৳{item.sellingPrice?.toLocaleString()}</span>
+                                        <span className="font-extrabold text-sm text-slate-900">Tk {item.sellingPrice?.toLocaleString()}</span>
                                     </div>
                                 ))}
                             </div>
@@ -176,16 +176,16 @@ const TrackOrder = () => {
                             {/* summary */}
                             <div className="mt-3 bg-cloud border border-line rounded-xl p-3 flex flex-col gap-1.5 text-xs">
                                 <div className="flex justify-between text-slate-500">
-                                    <span>পণ্যের মোট</span><span>৳{group.summary.itemsTotal.toLocaleString()}</span>
+                                    <span>Items Total</span><span>Tk {group.summary.itemsTotal.toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between text-slate-500">
-                                    <span>ডেলিভারি চার্জ</span><span>৳{group.summary.deliveryCharge}</span>
+                                    <span>Delivery Charge</span><span>Tk {group.summary.deliveryCharge}</span>
                                 </div>
                                 <div className="flex justify-between font-bold text-slate-900 text-sm border-t border-line pt-1.5 mt-0.5">
-                                    <span>সর্বমোট</span><span>৳{group.summary.grandTotal.toLocaleString()}</span>
+                                    <span>Total</span><span>Tk {group.summary.grandTotal.toLocaleString()}</span>
                                 </div>
                                 <p className="text-[10px] text-slate-400 pt-1">
-                                    পেমেন্ট: {group.payment.method} {group.payment.verified ? '✓ ভেরিফাইড' : '(ভেরিফিকেশন চলছে)'} — পণ্যের দাম ক্যাশ অন ডেলিভারি
+                                    Payment: {group.payment.method} {group.payment.verified ? '✓ Verified' : '(verifying)'} — Cash on Delivery
                                 </p>
                             </div>
                         </section>

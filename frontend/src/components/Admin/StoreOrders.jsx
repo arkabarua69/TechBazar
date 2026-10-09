@@ -217,7 +217,7 @@ const StoreOrders = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [orders]);
 
-    const zoneLabel = (o) => (o.delivery?.zone === 'inside-dhaka' ? 'ঢাকার ভিতরে' : 'ঢাকার বাইরে');
+    const zoneLabel = (o) => (o.delivery?.zone === 'inside-dhaka' ? 'Inside Dhaka' : 'Outside Dhaka');
     const codDue = (o) => (o.pricing?.sellingPrice || 0) * (o.pricing?.quantity || 0);
 
     return (
@@ -245,7 +245,7 @@ const StoreOrders = () => {
                     type="text"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="নাম, ফোন নম্বর বা TrxID দিয়ে খুঁজুন…"
+                    placeholder="Search by name, phone or TrxID…"
                     className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-2xl bg-white focus:border-black focus:outline-none"
                 />
             </div>
@@ -286,7 +286,7 @@ const StoreOrders = () => {
                                 <span className="font-bold text-gray-900 text-sm">#{shortOrderId(order._id)}</span>
                                 <span className="text-[11px] text-gray-400">• {timeAgoBn(order.createdAt)}</span>
                                 <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-full bg-black text-white whitespace-nowrap">
-                                    ৳{bn(order.delivery?.charge)} {zoneLabel(order)}
+                                    Tk {bn(order.delivery?.charge)} {zoneLabel(order)}
                                 </span>
                             </div>
 
@@ -326,13 +326,13 @@ const StoreOrders = () => {
                                         </button>
                                     </div>
                                     <div className="flex items-center justify-between mt-1.5 text-[11px] gap-2">
-                                        <span className="text-gray-600">অগ্রিম (ডেলিভারি): <b>৳{bn(order.delivery?.charge)}</b></span>
+                                        <span className="text-gray-600">Advance (delivery): <b>Tk {bn(order.delivery?.charge)}</b></span>
                                         <span className={order.payment?.verified ? 'text-green-600 font-semibold' : 'text-amber-600 font-semibold'}>
-                                            {order.payment?.verified ? '✓ Verified' : '⚠ TrxID যাচাই বাকি'}
+                                            {order.payment?.verified ? '✓ Verified' : '⚠ TrxID pending verification'}
                                         </span>
                                     </div>
                                     <p className="text-[11px] text-gray-600 mt-0.5">
-                                        ক্যাশ অন ডেলিভারি: <b className="text-gray-900">৳{bn(codDue(order).toLocaleString())}</b>
+                                        Cash on delivery: <b className="text-gray-900">Tk {bn(codDue(order).toLocaleString())}</b>
                                     </p>
                                 </div>
 
@@ -357,7 +357,7 @@ const StoreOrders = () => {
                                     📞 Call
                                 </a>
                                 <a
-                                    href={waLink(order.customer?.phone, `TechBazar: আপনার অর্ডার #${shortOrderId(order._id)} নিয়ে যোগাযোগ করছি।`)}
+                                    href={waLink(order.customer?.phone, `TechBazar: inquiry about your order #${shortOrderId(order._id)}`)}
                                     target="_blank"
                                     rel="noreferrer"
                                     onClick={(e) => e.stopPropagation()}
@@ -447,10 +447,10 @@ const StoreOrders = () => {
                                     </button>
                                 </td>
                                 <td className="px-4 py-3">
-                                    <p className="font-medium">৳{order.pricing?.sellingPrice?.toLocaleString()} × {order.pricing?.quantity}</p>
-                                    <p className="text-xs text-gray-500">Delivery ৳{order.delivery?.charge} ({order.delivery?.zone === 'inside-dhaka' ? 'in Dhaka' : 'outside'})</p>
+                                    <p className="font-medium">Tk {order.pricing?.sellingPrice?.toLocaleString()} × {order.pricing?.quantity}</p>
+                                    <p className="text-xs text-gray-500">Delivery Tk {order.delivery?.charge} ({order.delivery?.zone === 'inside-dhaka' ? 'in Dhaka' : 'outside'})</p>
                                     <p className="text-xs font-semibold text-yellow-600 mt-0.5">
-                                        COD collect: ৳{((order.pricing?.sellingPrice || 0) * (order.pricing?.quantity || 0)).toLocaleString()}
+                                        COD collect: Tk {((order.pricing?.sellingPrice || 0) * (order.pricing?.quantity || 0)).toLocaleString()}
                                     </p>
                                 </td>
                                 <td className="px-4 py-3">
@@ -511,7 +511,7 @@ const StoreOrders = () => {
                             <div className="min-w-0">
                                 <p className="font-medium text-gray-900">{sheetOrder.product?.name}</p>
                                 <p className="text-sm text-gray-500">
-                                    ৳{sheetOrder.pricing?.sellingPrice?.toLocaleString()} × {bn(sheetOrder.pricing?.quantity)}
+                                    Tk {sheetOrder.pricing?.sellingPrice?.toLocaleString()} × {bn(sheetOrder.pricing?.quantity)}
                                 </p>
                             </div>
                         </div>
@@ -535,10 +535,10 @@ const StoreOrders = () => {
                                 >⧉ Copy</button>
                             </div>
                             <p className="text-xs text-gray-600">
-                                অগ্রিম (ডেলিভারি): <b>৳{bn(sheetOrder.delivery?.charge)}</b> · {zoneLabel(sheetOrder)}
+                                Advance (delivery): <b>Tk {bn(sheetOrder.delivery?.charge)}</b> · {zoneLabel(sheetOrder)}
                             </p>
                             <p className="text-xs text-gray-600">
-                                ক্যাশ অন ডেলিভারি: <b>৳{bn(codDue(sheetOrder).toLocaleString())}</b>
+                                Cash on delivery: <b>Tk {bn(codDue(sheetOrder).toLocaleString())}</b>
                             </p>
                             <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
                                 sheetOrder.payment?.verified ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-800'
@@ -565,7 +565,7 @@ const StoreOrders = () => {
                                 Update status ▸
                             </button>
                             <a
-                                href={waLink(sheetOrder.customer?.phone, `TechBazar: আপনার অর্ডার #${shortOrderId(sheetOrder._id)} নিয়ে যোগাযোগ করছি।`)}
+                                href={waLink(sheetOrder.customer?.phone, `TechBazar: inquiry about your order #${shortOrderId(sheetOrder._id)}`)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="bg-green-50 text-green-700 border border-green-200 rounded-xl py-2.5 text-sm font-semibold text-center active:bg-green-100"
@@ -625,7 +625,7 @@ const StoreOrders = () => {
                                     : 'border-amber-200 bg-amber-50 text-amber-700'
                             }`}
                         >
-                            {sheetOrder.payment?.verified ? '✓ TrxID verified — tap to undo' : '⚠ Verify TrxID (অগ্রিম যাচাই)'}
+                            {sheetOrder.payment?.verified ? '✓ TrxID verified — tap to undo' : '⚠ Verify TrxID (advance payment)'}
                         </button>
 
                         <div className="grid grid-cols-2 gap-2">

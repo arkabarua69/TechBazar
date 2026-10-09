@@ -73,7 +73,7 @@ exports.createProduct = asyncErrorHandler(async (req, res, next) => {
     if (typeof req.body.images === "string") {
         images.push(req.body.images);
     } else {
-        images = req.body.images;
+        images = req.body.images || [];
     }
 
     const imagesLink = [];
@@ -89,13 +89,17 @@ exports.createProduct = asyncErrorHandler(async (req, res, next) => {
         });
     }
 
-    const result = await cloudinary.v2.uploader.upload(req.body.logo, {
-        folder: "brands",
-    });
-    const brandLogo = {
-        public_id: result.public_id,
-        url: result.secure_url,
-    };
+    // brand logo is optional — skip the upload when not provided
+    let brandLogo = { public_id: "", url: "" };
+    if (req.body.logo) {
+        const result = await cloudinary.v2.uploader.upload(req.body.logo, {
+            folder: "brands",
+        });
+        brandLogo = {
+            public_id: result.public_id,
+            url: result.secure_url,
+        };
+    }
 
     req.body.brand = {
         name: req.body.brandname,
@@ -105,7 +109,7 @@ exports.createProduct = asyncErrorHandler(async (req, res, next) => {
     req.body.user = req.user.id;
 
     let specs = [];
-    req.body.specifications.forEach((s) => {
+    (req.body.specifications || []).forEach((s) => {
         specs.push(JSON.parse(s))
     });
     req.body.specifications = specs;

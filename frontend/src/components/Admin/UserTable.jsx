@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { clearErrors, deleteUser, getAllUsers } from '../../actions/userAction';
 import { DELETE_USER_RESET } from '../../constants/userConstants';
 import Actions from './Actions';
@@ -12,6 +13,8 @@ const UserTable = () => {
 
     const dispatch = useDispatch();
     const { enqueueSnackbar } = useSnackbar();
+
+    const isMobile = useMediaQuery('(max-width:639px)');
 
     const { users, error } = useSelector((state) => state.users);
     const { loading, isDeleted, error: deleteError } = useSelector((state) => state.profile);
@@ -127,13 +130,14 @@ const UserTable = () => {
             {loading && <BackdropLoader />}
 
             <h1 className="text-lg sm:text-xl font-extrabold text-gray-900">Users</h1>
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm w-full overflow-hidden" style={{ height: 470 }}>
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm w-full overflow-x-auto" style={{ height: 'min(470px, 60vh)' }}>
 
                 <DataGrid
                     rows={rows}
                     columns={columns}
                     pageSize={10}
                     disableSelectIconOnClick
+                    columnVisibilityModel={isMobile ? { gender: false, registeredOn: false } : {}}
                     sx={{
                         boxShadow: 0,
                         border: 0,

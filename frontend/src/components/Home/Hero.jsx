@@ -57,15 +57,15 @@ const Hero = ({ hero = {} }) => {
                             to="/products"
                             className="border border-white/50 text-white font-semibold rounded-lg px-6 py-3 hover:bg-white/10 transition duration-200"
                         >
-                            সব পণ্য দেখুন
+                            View All
                         </Link>
                     </div>
                     <div className="flex items-center gap-4 sm:gap-6 pt-5 text-white/80 text-xs">
-                        <span className="font-semibold">💵 COD</span>
+                        <span className="font-semibold">COD</span>
                         <span className="w-1 h-1 rounded-full bg-white/50" />
-                        <span className="font-semibold">🛡️ Replacement</span>
+                        <span className="font-semibold">Replacement</span>
                         <span className="w-1 h-1 rounded-full bg-white/50" />
-                        <span className="font-semibold">🚚 Nationwide</span>
+                        <span className="font-semibold">Nationwide</span>
                     </div>
                 </div>
             </div>

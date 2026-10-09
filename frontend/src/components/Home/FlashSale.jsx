@@ -18,7 +18,7 @@ const getRemaining = (endsAt = '23:59') => {
     return { hours, minutes, seconds };
 };
 
-// "দিনের সেরা ডিল" — one flash-sale banner with a live countdown and
+// "Deal of the Day" — one flash-sale banner with a live countdown and
 // limited-stock gadgets (app-style, works on desktop + mobile)
 const FlashSale = ({ flashSale = {}, products = [] }) => {
     const [left, setLeft] = useState(() => getRemaining(flashSale.endsAt));
@@ -36,9 +36,9 @@ const FlashSale = ({ flashSale = {}, products = [] }) => {
         .slice(0, 4);
 
     const timeBoxes = [
-        { value: left.hours, label: 'ঘণ্টা' },
-        { value: left.minutes, label: 'মিনিট' },
-        { value: left.seconds, label: 'সেকেন্ড' },
+        { value: left.hours, label: 'hrs' },
+        { value: left.minutes, label: 'min' },
+        { value: left.seconds, label: 'sec' },
     ];
 
     return (
@@ -56,17 +56,17 @@ const FlashSale = ({ flashSale = {}, products = [] }) => {
                                 🔥 Flash Sale
                             </span>
                             <h2 className="font-display font-extrabold text-lg sm:text-2xl leading-tight mt-1.5 text-slate-900">
-                                {flashSale.title || 'দিনের সেরা ডিল'}
+                                {flashSale.title || 'Deal of the Day'}
                             </h2>
                             <p className="text-slate-600 text-xs sm:text-sm">
-                                {flashSale.subtitle || 'সীমিত স্টক — দ্রুত অর্ডার করুন'}
+                                {flashSale.subtitle || 'Limited stock — order fast'}
                             </p>
                         </div>
 
                         {/* countdown */}
                         <div className="flex items-center gap-2 shrink-0">
                             <span className="text-[11px] text-slate-500 hidden sm:block max-w-20 leading-tight text-right">
-                                শেষ হতে বাকি
+                                Ends in
                             </span>
                             {timeBoxes.map((box) => (
                                 <div key={box.label} className="bg-white border border-line rounded-lg px-2.5 py-1.5 text-center w-14 shadow-sm">
@@ -106,14 +106,14 @@ const FlashSale = ({ flashSale = {}, products = [] }) => {
                                         </p>
                                         <div className="flex items-baseline justify-between gap-1">
                                             <span className="font-extrabold text-sm sm:text-base text-slate-900">
-                                                ৳{(product.price || 0).toLocaleString()}
+                                                Tk {(product.price || 0).toLocaleString()}
                                             </span>
                                             <span className="text-[10px] font-bold text-red-500 shrink-0">
-                                                স্টক {product.stock}
+                                                Stock: {product.stock}
                                             </span>
                                         </div>
                                         <span className="text-[10px] font-bold uppercase tracking-wide text-white bg-yellow-500 px-1.5 py-0.5 rounded-full w-fit">
-                                            ক্যাশ অন ডেলিভারি
+                                            Cash on Delivery
                                         </span>
                                     </div>
                                 </Link>

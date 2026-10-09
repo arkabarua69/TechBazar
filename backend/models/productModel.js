@@ -1,76 +1,68 @@
 const mongoose = require('mongoose');
 
+// All storefront/product form fields are optional — a product can be
+// created blank and filled in later (admin → Update Product).
+// Only `user` (set server-side from the authenticated admin) and the
+// reviews sub-document remain required.
 const productSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: [true, "Please enter product name"],
         trim: true
     },
     description: {
-        type: String,
-        required: [true, "Please enter product description"]
+        type: String
     },
     highlights: [
         {
-            type: String,
-            required: true
+            type: String
         }
     ],
     specifications: [
         {
             title: {
-                type: String,
-                required: true
+                type: String
             },
             description: {
-                type: String,
-                required: true
+                type: String
             }
         }
     ],
     price: {
         type: Number,
-        required: [true, "Please enter product price"]
+        default: 0
     },
     cuttedPrice: {
         type: Number,
-        required: [true, "Please enter cutted price"]
+        default: 0
     },
     images: [
         {
             public_id: {
-                type: String,
-                required: true
+                type: String
             },
             url: {
-                type: String,
-                required: true
+                type: String
             }
         }
     ],
     brand: {
         name: {
-            type: String,
-            required: true
+            type: String
         },
         logo: {
             public_id: {
                 type: String,
-                required: true,
             },
             url: {
                 type: String,
-                required: true,
             }
         }
     },
     category: {
-        type: String,
-        required: [true, "Please enter product category"]
+        type: String
     },
     stock: {
         type: Number,
-        required: [true, "Please enter product stock"],
         maxlength: [4, "Stock cannot exceed limit"],
         default: 1
     },

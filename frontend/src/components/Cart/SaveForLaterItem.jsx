@@ -43,8 +43,8 @@ const SaveForLaterItem = ({ product, name, seller, price, cuttedPrice, image, st
 
                     {/* <!-- price desc --> */}
                     <div className="flex items-baseline gap-2 text-xl font-medium">
-                        <span>৳{(price * quantity).toLocaleString()}</span>
-                        <span className="text-sm text-slate-400 line-through font-normal">৳{(cuttedPrice * quantity).toLocaleString()}</span>
+                        <span>Tk {(price * quantity).toLocaleString()}</span>
+                        <span className="text-sm text-slate-400 line-through font-normal">Tk {(cuttedPrice * quantity).toLocaleString()}</span>
                         <span className="text-sm text-primary-green">{getDiscount(price, cuttedPrice)}%&nbsp;off</span>
                     </div>
                     {/* <!-- price desc --> */}

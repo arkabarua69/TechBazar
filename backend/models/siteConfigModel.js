@@ -6,44 +6,44 @@ const mongoose = require('mongoose');
 const DEFAULT_CONFIG = {
     announcement: {
         desktop: [
-            '🚚 সারা দেশে ক্যাশ অন ডেলিভারি',
-            '🛡️ ৭ দিনের রিপ্লেসমেন্ট গ্যারান্টি',
-            '📞 হটলাইন: 017XXXXXXXX',
+            '🚚 Cash on delivery nationwide',
+            '🛡️ 7-day replacement guarantee',
+            '📞 Hotline: 017XXXXXXXX',
         ],
-        mobile: 'সারা দেশে ক্যাশ অন ডেলিভারি | ডেলিভারি চার্জ অগ্রিম প্রযোজ্য',
+        mobile: 'Cash on delivery nationwide | Delivery charge payable in advance',
     },
     hero: {
-        badge: 'নতুন গ্যাজেট সিজন',
-        title: 'সেরা ট্রেন্ডিং গ্যাজেট',
-        subtitle: 'স্মার্টওয়াচ, ইয়ারবাডস ও লেটেস্ট টেক — সাশ্রয়ী দামে, সারা দেশে ডেলিভারি।',
+        badge: 'New Gadget Season',
+        title: 'Best Trending Gadgets',
+        subtitle: 'Smartwatches, earbuds & the latest tech — affordable prices, delivered nationwide.',
         image: 'https://picsum.photos/seed/hero-gadget/900/600',
         buttonLabel: 'Shop Now',
         buttonLink: '/products',
         sideTop: {
             title: 'New Arrivals',
-            subtitle: 'এসেছে নতুন পণ্যগুলো',
+            subtitle: 'Fresh drops just landed',
             image: 'https://picsum.photos/seed/newarrival/400/300',
             link: '/products',
         },
         sideBottom: {
             title: "Today's Flash Deals",
-            subtitle: 'আজকের সীমিত অফার',
+            subtitle: "Today's limited offers",
             image: 'https://picsum.photos/seed/flashdeal/400/300',
             link: '/products',
         },
     },
     trustBadges: [
-        { icon: '💵', title: 'ক্যাশ অন ডেলিভারি', description: 'পণ্য হাতে পেয়ে টাকা পরিশোধ করুন' },
-        { icon: '⚡', title: 'ফাস্ট ডেলিভারি', description: 'ঢাকায় ২৪ ঘণ্টা, ঢাকার বাইরে ৪৮-৭২ ঘণ্টা' },
-        { icon: '✅', title: 'জেনুইন প্রডাক্ট', description: '১০০% অরিজিনাল, কোয়ালিটি নিশ্চিত' },
-        { icon: '🎧', title: '২৪/৭ সাপোর্ট', description: 'যেকোনো সমস্যায় আমাদের হটলাইন' },
+        { icon: '💵', title: 'Cash on Delivery', description: 'Pay once the product is in your hands' },
+        { icon: '⚡', title: 'Fast Delivery', description: '24 hours in Dhaka, 48–72 hours outside Dhaka' },
+        { icon: '✅', title: 'Genuine Products', description: '100% original, quality assured' },
+        { icon: '🎧', title: '24/7 Support', description: 'Call our hotline for any issue' },
     ],
     flashSale: {
         enabled: true,
-        title: 'দিনের সেরা ডিল',
-        subtitle: 'সীমিত স্টক — দ্রুত অর্ডার করুন',
+        title: 'Deal of the Day',
+        subtitle: 'Limited stock — order fast',
         endsAt: '23:59',
-        note: 'অফার শেষ হওয়ার আগেই অর্ডার করুন',
+        note: 'Order before the offer ends',
     },
     // editable from Admin → Homepage (payment & delivery control)
     payment: {
@@ -69,15 +69,141 @@ const DEFAULT_CONFIG = {
         'Home',
     ],
     howToOrder: [
-        { icon: '🛒', title: 'পণ্য পছন্দ করুন', description: "‘অর্ডার করুন’ বাটনে ক্লিক করুন।" },
-        { icon: '📲', title: 'ডেলিভারি চার্জ পেমেন্ট', description: 'ঢাকার ভেতরে ৳৭০, বাইরে ৳১৩০ — বিকাশ বা নগদে দিন।' },
-        { icon: '📦', title: 'পণ্য বুঝে নিন', description: 'কুরিয়ার থেকে পণ্য হাতে পেয়ে বাকি টাকা পরিশোধ করুন।' },
+        { icon: '🛒', title: 'Choose Your Product', description: "Click the 'Order Now' button." },
+        { icon: '📲', title: 'Pay the Delivery Charge', description: 'Tk 70 inside Dhaka, Tk 130 outside — send via bKash or Nagad.' },
+        { icon: '📦', title: 'Receive Your Product', description: 'Pay the remaining amount to the courier on delivery.' },
     ],
     reviews: [
-        { name: 'রাকিব হাসান', district: 'ঢাকা', rating: 5, comment: 'অর্ডার করা পণ্য ঠিক সময়ে পেয়েছি, কোয়ালিটিও ভালো। ক্যাশ অন ডেলিভারি হওয়ায় বিশ্বাসযোগ্য লেগেছে।' },
-        { name: 'সাবিহা আক্তার', district: 'চট্টগ্রাম', rating: 5, comment: 'ডেলিভারি চার্জ অগ্রিমে দিয়েছিলাম, পণ্য পেয়েছি দুই দিনের মধ্যেই। সাপোর্ট টিম খুব সহযোগী।' },
-        { name: 'তানভীর আহমেদ', district: 'সিলেট', rating: 4, comment: 'দাম অন্য জায়গার চেয়ে কম, পণ্যও অরিজিনাল। আবারও অর্ডার করবো ইনশাআল্লাহ।' },
+        { name: 'Rakib Hasan', district: 'Dhaka', rating: 5, comment: 'Received my order right on time and the quality is great. Cash on delivery made it feel trustworthy.' },
+        { name: 'Sabrina Akter', district: 'Chittagong', rating: 5, comment: 'I paid the delivery charge in advance and got the product within two days. The support team is very helpful.' },
+        { name: 'Tanvir Ahmed', district: 'Sylhet', rating: 4, comment: 'The price is lower than other places and the product is original. Will order again, God willing.' },
     ],
+    // brand identity — header logo/wordmark, page titles, favicon
+    branding: {
+        name: 'TechBazar',
+        tagline: 'The best tech gadgets at affordable prices',
+        logoUrl: '', // empty = text wordmark
+    },
+    // SEO defaults (MetaData builds "<title> | TechBazar" from titleTemplate)
+    seo: {
+        titleTemplate: '%s | TechBazar',
+        description: 'TechBazar — smartwatches, earbuds & the latest tech gadgets. Affordable prices with cash on delivery nationwide.',
+    },
+    // mobile bottom tab bar (Admin → Homepage)
+    navigation: {
+      tabs: [
+        { key: 'home', label: 'Home', href: '/', icon: 'Home' },
+        { key: 'shop', label: 'Shop', href: '/products', icon: 'Storefront' },
+        { key: 'cart', label: 'Cart', href: '/cart', icon: 'ShoppingCart' },
+        { key: 'orders', label: 'Orders', href: '/orders', icon: 'Inventory2' },
+      ],
+    },
+    // static pages & shared copy (policy, footer, account FAQs, chat)
+    content: {
+        policyTitle: 'Privacy & Return Policy',
+        policy: [
+            {
+                title: 'Privacy Policy',
+                body: [
+                    'Your name, mobile number and address are used only to complete your order.',
+                    'Your personal information is never sold or shared with any third party.',
+                    'Payment TrxIDs are stored only to verify the delivery charge.',
+                ],
+            },
+            {
+                title: 'Returns & Replacement',
+                body: [
+                    'Any issue within 7 days of receiving the product will be replaced.',
+                    'Products that are used or damaged cannot be returned.',
+                    'Send your order ID and photos of the issue via hotline or WhatsApp — resolved within 24 hours.',
+                ],
+            },
+            {
+                title: 'Delivery & Payment',
+                body: [
+                    'The full product price is cash on delivery (COD) — pay when the product is in your hands.',
+                    'Delivery charge in advance: Tk 70 inside Dhaka, Tk 130 outside — send via bKash or Nagad and share the TrxID.',
+                    'Delivery completes within 24–48 hours in Dhaka, 48–72 hours outside Dhaka.',
+                ],
+            },
+            {
+                title: 'Warranty',
+                body: [
+                    'All gadgets come with genuine official warranty (6–12 months depending on the product).',
+                    'Keep the warranty card or invoice — it is needed for service.',
+                ],
+            },
+        ],
+        faqs: [
+            { q: 'What happens when I update my email address (or mobile number)?', a: "Your login email id (or mobile number) changes, likewise. You'll receive all your account related communication on your updated email address (or mobile number)." },
+            { q: 'When will my TechBazar account be updated with the new email address (or mobile number)?', a: 'It happens as soon as you confirm the verification code sent to your email (or mobile) and save the changes.' },
+            { q: 'What happens to my existing TechBazar account when I update my email address (or mobile number)?', a: "Updating your email address (or mobile number) doesn't invalidate your account. Your account remains fully functional. You'll continue seeing your Order history, saved information and personal details." },
+            { q: 'Does my Seller account get affected when I update my email address?', a: "TechBazar has a 'single sign-on' policy. Any changes will reflect in your Seller account also." },
+        ],
+        footer: {
+            columns: [
+                {
+                    title: 'about',
+                    links: [
+                        { name: 'Contact Us', redirect: '/track', internal: true },
+                        { name: 'About Us', redirect: '/policy', internal: true },
+                        { name: 'Careers', redirect: '/policy', internal: true },
+                        { name: 'TechBazar Stories', redirect: '/policy', internal: true },
+                        { name: 'Press', redirect: '/policy', internal: true },
+                        { name: 'TechBazar Wholesale', redirect: '/policy', internal: true },
+                        { name: 'Corporate Information', redirect: '/policy', internal: true },
+                    ],
+                },
+                {
+                    title: 'help',
+                    links: [
+                        { name: 'Payments', redirect: '/policy', internal: true },
+                        { name: 'Shipping', redirect: '/policy', internal: true },
+                        { name: 'Cancellation & Returns', redirect: '/policy', internal: true },
+                        { name: 'FAQ', redirect: '/policy', internal: true },
+                    ],
+                },
+                {
+                    title: 'policy',
+                    links: [
+                        { name: 'Return Policy', redirect: '/policy', internal: true },
+                        { name: 'Terms Of Use', redirect: '/policy', internal: true },
+                        { name: 'Security', redirect: '/policy', internal: true },
+                        { name: 'Privacy', redirect: '/policy', internal: true },
+                        { name: 'Sitemap', redirect: '/policy', internal: true },
+                        { name: 'EPR Compliance', redirect: '/policy', internal: true },
+                    ],
+                },
+                {
+                    title: 'social',
+                    links: [
+                        { name: 'Facebook', redirect: 'https://www.facebook.com', internal: false },
+                        { name: 'Twitter', redirect: 'https://twitter.com', internal: false },
+                        { name: 'YouTube', redirect: 'https://www.youtube.com', internal: false },
+                    ],
+                },
+            ],
+            company: {
+                name: 'TechBazar Internet Private Limited',
+                mailUs: 'Buildings Alyssa, Begonia &\nClove Embassy Tech Village,\nOuter Ring Road, Devarabeesanahalli Village,\nBengaluru, 560103,\nKarnataka, India',
+                registered: 'Buildings Alyssa, Begonia &\nClove Embassy Tech Village,\nOuter Ring Road, Devarabeesanahalli Village,\nBengaluru, 560103,\nKarnataka, India',
+                cin: 'U51109KA2012PTC066107',
+                telephone: '18002029898',
+            },
+            shortcuts: [
+                { label: 'Sell On TechBazar', href: '/policy', icon: 'Work' },
+                { label: 'Advertise', href: '/policy', icon: 'Stars' },
+                { label: 'Gift Cards', href: '/policy', icon: 'CardGiftcard' },
+                { label: 'Help Center', href: '/track', icon: 'Help' },
+            ],
+            copyright: 'TechBazar.com',
+            since: 2007,
+        },
+    },
+    // live-chat widget copy
+    chat: {
+        welcomeMessage: 'Hello! I would like to know about a product or an order.',
+    },
 };
 
 const siteConfigSchema = new mongoose.Schema({
@@ -152,6 +278,66 @@ const siteConfigSchema = new mongoose.Schema({
     categories: {
         type: [String],
         default: DEFAULT_CONFIG.categories,
+    },
+    branding: {
+        name: { type: String, default: DEFAULT_CONFIG.branding.name },
+        tagline: { type: String, default: DEFAULT_CONFIG.branding.tagline },
+        logoUrl: { type: String, default: DEFAULT_CONFIG.branding.logoUrl },
+    },
+    seo: {
+        titleTemplate: { type: String, default: DEFAULT_CONFIG.seo.titleTemplate },
+        description: { type: String, default: DEFAULT_CONFIG.seo.description },
+    },
+    navigation: {
+        tabs: {
+            type: [{
+                key: String,
+                label: String,
+                href: String,
+                icon: String,
+            }],
+            default: DEFAULT_CONFIG.navigation.tabs,
+        },
+    },
+    content: {
+        policyTitle: { type: String, default: DEFAULT_CONFIG.content.policyTitle },
+        policy: {
+            type: [{ title: String, body: [String] }],
+            default: DEFAULT_CONFIG.content.policy,
+        },
+        faqs: {
+            type: [{ q: String, a: String }],
+            default: DEFAULT_CONFIG.content.faqs,
+        },
+        footer: {
+            columns: {
+                type: [{
+                    title: String,
+                    links: [{
+                        name: String,
+                        redirect: String,
+                        internal: Boolean,
+                    }],
+                }],
+                default: DEFAULT_CONFIG.content.footer.columns,
+            },
+            company: {
+                name: { type: String, default: DEFAULT_CONFIG.content.footer.company.name },
+                mailUs: { type: String, default: DEFAULT_CONFIG.content.footer.company.mailUs },
+                registered: { type: String, default: DEFAULT_CONFIG.content.footer.company.registered },
+                cin: { type: String, default: DEFAULT_CONFIG.content.footer.company.cin },
+                telephone: { type: String, default: DEFAULT_CONFIG.content.footer.company.telephone },
+            },
+            shortcuts: {
+                type: [{ label: String, href: String, icon: String }],
+                default: DEFAULT_CONFIG.content.footer.shortcuts,
+            },
+            copyright: { type: String, default: DEFAULT_CONFIG.content.footer.copyright },
+            since: { type: Number, default: DEFAULT_CONFIG.content.footer.since },
+        },
+    },
+    chat: {
+        welcomeMessage: { type: String, default: DEFAULT_CONFIG.chat.welcomeMessage },
     },
     updatedAt: { type: Date, default: Date.now },
 });

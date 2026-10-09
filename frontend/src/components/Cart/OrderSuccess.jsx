@@ -28,7 +28,7 @@ const OrderSuccess = ({ success }) => {
 
     return (
         <>
-            <MetaData title={`Transaction ${success ? "Successfull" : "Failed"}`} />
+            <MetaData title={`Payment ${success ? "Success" : "Failed"} | TechBazar`} />
 
             <main className="w-full sm:w-11/12 mx-auto flex flex-col gap-4 px-3 sm:px-4 pb-10 mt-3 sm:mt-6">
 
@@ -38,7 +38,7 @@ const OrderSuccess = ({ success }) => {
                         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-green/10 text-primary-green text-2xl font-bold">✓</span>
                     )}
                     <img draggable="false" className="w-1/2 h-60 object-contain" src={success ? successfull : failed} alt="Transaction Status" />
-                    <h1 className="font-display font-extrabold text-xl sm:text-2xl text-slate-900">Transaction {success ? "Successfull" : "Failed"}</h1>
+                    <h1 className="font-display font-extrabold text-xl sm:text-2xl text-slate-900">Transaction {success ? "Successful" : "Failed"}</h1>
                     <p className="mt-2 text-sm text-slate-600">Redirecting to {success ? "orders" : "cart"} in {time} sec</p>
                     <Link to={success ? "/orders" : "/cart"} className="btn-accent mt-2 py-2.5 px-6 text-sm font-bold uppercase rounded-lg">go to {success ? "orders" : "cart"}</Link>
                 </div>

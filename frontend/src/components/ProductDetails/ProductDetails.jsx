@@ -108,37 +108,37 @@ const ProductDetails = () => {
         if (outOfStock) return;
         try {
             await dispatch(addItemsToCart(productId, qty));
-            enqueueSnackbar(`${qty}টি পণ্য কার্টে যোগ হয়েছে`, { variant: "success" });
+            enqueueSnackbar(`${qty} item(s) added to cart`, { variant: "success" });
         } catch {
-            enqueueSnackbar("পণ্য কার্টে যোগ করা যায়নি", { variant: "error" });
+            enqueueSnackbar("Could not add to cart", { variant: "error" });
         }
     };
 
     const goToCart = () => navigate('/cart');
 
-    // "এখনই অর্ডার করুন" — straight to checkout with the chosen quantity
+    // "Order Now" — straight to checkout with the chosen quantity
     const buyNow = async () => {
         if (outOfStock) return;
         try {
             await dispatch(addItemsToCart(productId, qty));
             navigate('/checkout');
         } catch {
-            enqueueSnackbar("পণ্য কার্টে যোগ করা যায়নি", { variant: "error" });
+            enqueueSnackbar("Could not add to cart", { variant: "error" });
         }
     };
 
     const whatsappOrder = () => {
         if (!whatsapp) {
-            enqueueSnackbar("WhatsApp নম্বর কনফিগার করা নেই", { variant: "info" });
+            enqueueSnackbar("WhatsApp number not configured", { variant: "info" });
             return;
         }
         const lines = [
-            `আসসালামু আলাইকুম, আমি এই পণ্যটি অর্ডার করতে চাই:`,
+            `Assalamu alaikum, I would like to order this product:`,
             product?.name,
-            `দাম: ৳${product?.price?.toLocaleString()}`,
+            `Price: Tk ${product?.price?.toLocaleString()}`,
         ];
-        if (activeColor) lines.push(`কালার: ${activeColor}`);
-        if (qty > 1) lines.push(`পরিমাণ: ${qty}টি`);
+if (activeColor) lines.push(`Color: ${activeColor}`);
+    if (qty > 1) lines.push(`Quantity: ${qty}`);
         lines.push(window.location.href);
         window.open(`https://wa.me/${whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(lines.join("\n"))}`, '_blank');
     };
@@ -199,9 +199,11 @@ const ProductDetails = () => {
 
     return (
         <>
-            {loading ? <Loader /> : (
+            {loading ? <Loader /> : !product ? (
+                <div className="text-center py-12 text-slate-500">Product not found</div>
+            ) : (
                 <>
-                    <MetaData title={product.name} />
+                    <MetaData title={`${product.name} | TechBazar`} />
                     <MinCategory />
                     <main className="mt-4 sm:mt-0">
 
@@ -231,7 +233,7 @@ const ProductDetails = () => {
                                             )}
                                             {!outOfStock && (
                                                 <span className="text-[10px] font-bold uppercase tracking-wide text-white bg-yellow-500 px-2 py-1 rounded-full shadow-sm">
-                                                    ক্যাশ অন ডেলিভারি
+                                                    Cash on Delivery
                                                 </span>
                                             )}
                                         </div>
@@ -285,9 +287,9 @@ const ProductDetails = () => {
 
                                     {/* price */}
                                     <div className="flex flex-wrap items-baseline gap-2">
-                                        <span className="font-extrabold text-3xl text-slate-900">৳{product.price?.toLocaleString()}</span>
+                                        <span className="font-extrabold text-3xl text-slate-900">Tk {product.price?.toLocaleString()}</span>
                                         {product.cuttedPrice > product.price && (
-                                            <span className="text-base text-slate-400 line-through">৳{product.cuttedPrice?.toLocaleString()}</span>
+                                            <span className="text-base text-slate-400 line-through">Tk {product.cuttedPrice?.toLocaleString()}</span>
                                         )}
                                         {Number(discount) > 0 && (
                                             <span className="text-base font-semibold text-primary-green">{discount}%&nbsp;off</span>
@@ -297,15 +299,15 @@ const ProductDetails = () => {
                                     {/* stock badge */}
                                     {outOfStock ? (
                                         <span className="inline-flex w-fit items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-red-50 text-red-600 border border-red-200">
-                                            <CancelIcon sx={{ fontSize: "14px" }} /> স্টক শেষ
+                                            <CancelIcon sx={{ fontSize: "14px" }} /> Out of Stock
                                         </span>
                                     ) : product.stock <= 10 ? (
                                         <span className="inline-flex w-fit items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-yellow-50 text-yellow-600 border border-yellow-200">
-                                            <ScheduleIcon sx={{ fontSize: "14px" }} /> মাত্র {product.stock}টি বাকি!
+                                            <ScheduleIcon sx={{ fontSize: "14px" }} /> Only {product.stock} left!
                                         </span>
                                     ) : (
                                         <span className="inline-flex w-fit items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-green-50 text-green-600 border border-green-200">
-                                            <CheckCircleIcon sx={{ fontSize: "14px" }} /> স্টকে আছে
+                                            <CheckCircleIcon sx={{ fontSize: "14px" }} /> In Stock
                                         </span>
                                     )}
 
@@ -314,26 +316,26 @@ const ProductDetails = () => {
                                         <div className="flex items-start gap-2.5">
                                             <LocalShippingIcon sx={{ fontSize: "18px", color: "#3b82f6", mt: "0.5px" }} />
                                             <p className="text-slate-600">
-                                                ডেলিভারি চার্জ (অগ্রিম): <b className="text-slate-900">ঢাকার ভেতরে ৳{delivery.insideDhaka}</b>,{' '}
-                                                <b className="text-slate-900">বাইরে ৳{delivery.outsideDhaka}</b> — বিকাশ/নগদে Send Money
+                                                Delivery charge (paid in advance): <b className="text-slate-900">Inside Dhaka Tk {delivery.insideDhaka}</b>,{' '}
+                                                <b className="text-slate-900">Outside Tk {delivery.outsideDhaka}</b> — Send Money via bKash/Nagad
                                             </p>
                                         </div>
                                         <div className="flex items-start gap-2.5">
                                             <PaymentsIcon sx={{ fontSize: "18px", color: "#3b82f6", mt: "0.5px" }} />
                                             <p className="text-slate-600">
-                                                <b className="text-slate-900">ক্যাশ অন ডেলিভারি</b> — পণ্যের পুরো দাম পণ্য হাতে পেয়ে পরিশোধ করবেন
+                                                <b className="text-slate-900">Cash on Delivery</b> — Pay the full amount when the product is in your hands
                                             </p>
                                         </div>
                                         <div className="flex items-start gap-2.5">
                                             <CachedIcon sx={{ fontSize: "18px", color: "#3b82f6", mt: "0.5px" }} />
                                             <p className="text-slate-600">
-                                                <b className="text-slate-900">৭ দিনের রিপ্লেসমেন্ট</b> — কোনো ত্রুটি থাকলে সহজে পরিবর্তনের সুযোগ
+                                                <b className="text-slate-900">7-day Replacement</b> — Easy replacement for any defects
                                             </p>
                                         </div>
                                         <div className="flex items-start gap-2.5">
                                             <ScheduleIcon sx={{ fontSize: "18px", color: "#3b82f6", mt: "0.5px" }} />
                                             <p className="text-slate-600">
-                                                <b className="text-slate-900">ডেলিভারি সময়:</b> ঢাকায় ২৪-৪৮ ঘণ্টা, সারা দেশে ২-৩ কার্যদিবস
+                                                <b className="text-slate-900">Delivery time:</b> 24–48 hours in Dhaka, 2–3 business days nationwide
                                             </p>
                                         </div>
                                     </div>
@@ -342,7 +344,7 @@ const ProductDetails = () => {
                                     {colors.length > 0 && (
                                         <div className="flex flex-col gap-1.5">
                                             <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                                কালার{activeColor ? `: ${activeColor}` : ""}
+                                                Color{activeColor ? `: ${activeColor}` : ""}
                                             </span>
                                             <div className="flex flex-wrap gap-1.5">
                                                 {colors.map((c) => (
@@ -365,7 +367,7 @@ const ProductDetails = () => {
                                     {/* quantity */}
                                     {!outOfStock && (
                                         <div className="flex items-center gap-3">
-                                            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">পরিমাণ</span>
+                                            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Quantity</span>
                                             <div className="flex items-center border border-line rounded-lg overflow-hidden">
                                                 <button
                                                     onClick={() => setQty((q) => clampQty(q - 1))}
@@ -384,7 +386,7 @@ const ProductDetails = () => {
                                                 </button>
                                             </div>
                                             {product.stock <= 20 && (
-                                                <span className="text-xs text-slate-400">সর্বোচ্চ {product.stock}টি</span>
+                                                <span className="text-xs text-slate-400">Max {product.stock}</span>
                                             )}
                                         </div>
                                     )}
@@ -401,7 +403,7 @@ const ProductDetails = () => {
                                             }`}
                                         >
                                             <BoltIcon sx={{ fontSize: '18px' }} />
-                                            {outOfStock ? 'স্টক নেই' : 'এখনই অর্ডার করুন'}
+                                            {outOfStock ? 'Out of Stock' : 'Order Now'}
                                         </button>
 
                                         <button
@@ -414,7 +416,7 @@ const ProductDetails = () => {
                                             }`}
                                         >
                                             <ShoppingCartIcon sx={{ fontSize: '18px' }} />
-                                            {itemInCart ? 'কার্টে দেখুন' : 'কার্টে যোগ করুন'}
+                                            {itemInCart ? 'View Cart' : 'Add to Cart'}
                                         </button>
                                     </div>
 
@@ -424,7 +426,7 @@ const ProductDetails = () => {
                                         className="w-full flex items-center justify-center gap-2 text-sm font-bold py-3 rounded-xl border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 transition duration-200"
                                     >
                                         <ChatIcon sx={{ fontSize: '18px' }} />
-                                        WhatsApp-এ অর্ডার
+                                        WhatsApp Order
                                     </button>
 
                                     {/* highlights */}
@@ -474,7 +476,7 @@ const ProductDetails = () => {
                                                 ))}
                                             </div>
                                         ) : (
-                                            <p className="text-sm text-slate-400">স্পেসিফিকেশন যোগ করা হয়নি।</p>
+                                            <p className="text-sm text-slate-400">No specifications added.</p>
                                         )
                                     )}
 
@@ -546,10 +548,10 @@ const ProductDetails = () => {
                                 <section>
                                     <div className="flex items-end justify-between gap-3 mb-3">
                                         <div>
-                                            <h2 className="font-display font-extrabold text-lg sm:text-xl text-slate-900">সম্পর্কিত গ্যাজেট</h2>
-                                            <p className="text-sm text-slate-500 mt-0.5">এই ক্যাটাগরির অন্যান্য জনপ্রিয় পণ্য</p>
+                                            <h2 className="font-display font-extrabold text-lg sm:text-xl text-slate-900">Related Gadgets</h2>
+                                            <p className="text-sm text-slate-500 mt-0.5">Other popular products in this category</p>
                                         </div>
-                                        <Link to="/products" className="text-sm font-semibold text-primary-accent hover:underline shrink-0">সব দেখুন</Link>
+                                        <Link to="/products" className="text-sm font-semibold text-primary-accent hover:underline shrink-0">View all</Link>
                                     </div>
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                                         {related.map((p) => (

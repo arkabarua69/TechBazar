@@ -47,8 +47,8 @@ const Product = ({ _id, name, images, ratings, numOfReviews, price, cuttedPrice 
 
                 {/* <!-- price container --> */}
                 <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-slate-900 font-bold">৳{price.toLocaleString()}</span>
-                    <span className="text-xs text-slate-400 line-through">৳{cuttedPrice.toLocaleString()}</span>
+                    <span className="text-slate-900 font-bold">Tk {price.toLocaleString()}</span>
+                    <span className="text-xs text-slate-400 line-through">Tk {cuttedPrice.toLocaleString()}</span>
                     <span className="text-primary-green font-semibold text-sm">{getDiscount(price, cuttedPrice)}%&nbsp;off</span>
                 </div>
                 {/* <!-- price container --> */}

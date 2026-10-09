@@ -130,7 +130,7 @@ const Payment = () => {
 
     return (
         <>
-            <MetaData title="TechBazar: Secure Payment | Paytm" />
+            <MetaData title="Secure Payment | TechBazar" />
 
             <main className="w-full sm:w-11/12 mx-auto flex flex-col gap-4 px-3 sm:px-4 pb-10 mt-3 sm:mt-6">
 
@@ -165,7 +165,7 @@ const Payment = () => {
                                         </FormControl>
                                     </div>
 
-                                    <input type="submit" value={`Pay ৳${totalPrice.toLocaleString()}`} disabled={payDisable ? true : false} className={`${payDisable ? "bg-slate-200 text-slate-500 cursor-not-allowed" : "btn-accent cursor-pointer"} w-1/2 sm:w-1/4 my-2 py-3 text-sm font-bold rounded-lg uppercase outline-none`} />
+                                    <input type="submit" value={`Pay Tk ${totalPrice.toLocaleString()}`} disabled={payDisable ? true : false} className={`${payDisable ? "bg-slate-200 text-slate-500 cursor-not-allowed" : "btn-accent cursor-pointer"} w-1/2 sm:w-1/4 my-2 py-3 text-sm font-bold rounded-lg uppercase outline-none`} />
 
                                 </form>
 

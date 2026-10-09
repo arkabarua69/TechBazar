@@ -1,9 +1,30 @@
 import { Helmet } from "react-helmet";
+import { useSiteConfig } from '../../context/SiteConfigContext';
 
-const MetaData = ({ title }) => {
+// Page title + meta description.
+// The final title is built from the admin-editable seo.titleTemplate
+// ("%s | TechBazar") — the passed title is stripped of any trailing
+// " | TechBazar" suffix first so pages don't double the brand name.
+const MetaData = ({ title, description }) => {
+    const { config } = useSiteConfig();
+    const seo = config.seo || {};
+    const brand = config.branding?.name || 'TechBazar';
+
+    let clean = title || '';
+    const suffix = ` | ${brand}`;
+    if (clean.endsWith(suffix)) clean = clean.slice(0, -suffix.length);
+
+    const template = seo.titleTemplate || '%s | TechBazar';
+    const fullTitle = template.includes('%s')
+        ? template.replace('%s', clean)
+        : clean;
+
+    const metaDescription = description || seo.description;
+
     return (
         <Helmet>
-            <title>{title}</title>
+            <title>{fullTitle}</title>
+            {metaDescription ? <meta name="description" content={metaDescription} /> : null}
         </Helmet>
     );
 };

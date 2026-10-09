@@ -56,7 +56,7 @@ const CartItem = ({ product, name, seller, price, cuttedPrice, image, stock, qua
                         </div>
 
                         <div className="flex flex-col sm:gap-2">
-                            <p className="text-sm text-slate-600">Delivery by {getDeliveryDate()} | <span className="text-primary-green">Free</span> <span className="line-through">৳{quantity * 40}</span></p>
+                            <p className="text-sm text-slate-600">Delivery by {getDeliveryDate()} | <span className="text-primary-green">Free</span> <span className="line-through">Tk {quantity * 40}</span></p>
                             <span className="text-xs text-slate-400">7 Days Replacement Policy</span>
                         </div>
 
@@ -65,8 +65,8 @@ const CartItem = ({ product, name, seller, price, cuttedPrice, image, stock, qua
 
                     {/* <!-- price desc --> */}
                     <div className="flex items-baseline gap-2 text-xl font-medium">
-                        <span>৳{(price * quantity).toLocaleString()}</span>
-                        <span className="text-sm text-slate-400 line-through font-normal">৳{(cuttedPrice * quantity).toLocaleString()}</span>
+                        <span>Tk {(price * quantity).toLocaleString()}</span>
+                        <span className="text-sm text-slate-400 line-through font-normal">Tk {(cuttedPrice * quantity).toLocaleString()}</span>
                         <span className="text-sm text-primary-green">{getDiscount(price, cuttedPrice)}%&nbsp;off</span>
                     </div>
                     {/* <!-- price desc --> */}

@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
 import AnnouncementBar from '../../Home/AnnouncementBar';
+import { useSiteConfig } from '../../../context/SiteConfigContext';
 
 // Modern desktop navbar (Cloud White): logo · centered pill search ·
 // Track / Cart / Account — clean icon+label links, no nested "More" menu.
@@ -20,7 +21,16 @@ const Header = () => {
 
   const [togglePrimaryDropDown, setTogglePrimaryDropDown] = useState(false);
 
-  // /admin has its own app bar (mobile) + sidebar (desktop) — hide the store
+  // brand name + optional logo image (Admin → Homepage → Branding)
+  const { config } = useSiteConfig();
+  const brandName = config.branding?.name || 'TechBazar';
+  const logoUrl = config.branding?.logoUrl;
+  // keep the two-tone wordmark for the default brand name
+  const wordmark = brandName === 'TechBazar'
+    ? (<span className="font-display font-extrabold text-xl text-slate-900 tracking-tight whitespace-nowrap">Tech<span className="text-primary-accent">Bazar</span></span>)
+    : (<span className="font-display font-extrabold text-xl text-slate-900 tracking-tight whitespace-nowrap">{brandName}</span>);
+
+  // admin has its own sidebar layout on mobile — hide the store
   // announcement strip there so the admin chrome owns the top edge.
   const { pathname } = useLocation();
   const isAdmin = pathname.startsWith('/admin');
@@ -33,14 +43,17 @@ const Header = () => {
           (only the navbar row below is desktop-only) */}
       {!isAdmin && <AnnouncementBar />}
 
-      {/* navbar row (desktop only — mobile uses the bottom bar) */}
+      {/* navbar row (desktop only — mobile uses the bottom bar; hidden on /admin) */}
+      {!isAdmin && (
       <div className="hidden md:flex w-full sm:w-11/12 px-4 py-2.5 m-auto items-center gap-4 relative">
 
-        {/* logo */}
-        <Link className="shrink-0" to="/">
-          <span className="font-display font-extrabold text-xl text-slate-900 tracking-tight whitespace-nowrap">
-            Tech<span className="text-primary-accent">Bazar</span>
-          </span>
+        {/* logo — uploaded image or text wordmark (Admin → Homepage) */}
+        <Link className="shrink-0 flex items-center" to="/">
+          {logoUrl ? (
+            <img src={logoUrl} alt={brandName} className="h-7 w-auto max-w-[140px] object-contain" draggable="false" />
+          ) : (
+            wordmark
+          )}
         </Link>
 
         {/* search — centered pill */}
@@ -81,6 +94,7 @@ const Header = () => {
         {/* right navs */}
 
       </div>
+      )}
       {/* navbar row */}
     </header>
   )

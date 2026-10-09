@@ -30,8 +30,12 @@ const Sidebar = ({ activeTab }) => {
             {/* <!-- profile card --> */}
             <div className="surface rounded-xl flex items-center gap-4 p-4">
                 {/* <!-- user icon --> */}
-                <div className="w-12 h-12 rounded-full">
-                    <img draggable="false" className="h-full w-full object-cover rounded-full" src={user.avatar?.url} alt="Avatar" />
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-primary-accent to-indigo-600 text-white font-display font-bold text-sm flex items-center justify-center shrink-0">
+                    {user.avatar?.url ? (
+                        <img draggable="false" className="h-full w-full object-cover" src={user.avatar.url} alt="Avatar" />
+                    ) : (
+                        user.name.split(" ").map(part => part[0]).slice(0, 2).join("").toUpperCase()
+                    )}
                 </div>
                 {/* <!-- user icon --> */}
                 <div className="flex flex-col gap-1">
@@ -61,8 +65,8 @@ const Sidebar = ({ activeTab }) => {
                 </div>
                 <div className="flex flex-col pb-3 border-b border-line text-sm">
                     <Link to="/account" className={`${activeTab === "profile" ? "bg-blue-50 text-primary-accent font-medium border-l-4 border-primary-accent" : "text-slate-700 hover:bg-blue-50 hover:text-primary-accent"} p-3 pl-14`}>Profile Information</Link>
-                    <Link className="p-3 pl-14 text-slate-700 hover:bg-blue-50 hover:text-primary-accent" to="/">Manage Addresses</Link>
-                    <Link className="p-3 pl-14 text-slate-700 hover:bg-blue-50 hover:text-primary-accent" to="/">PAN Card Information</Link>
+                    <div className="p-3 pl-14 pr-6 text-slate-400 cursor-not-allowed flex items-center justify-between">Manage Addresses <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-100 rounded px-1.5 py-0.5">Soon</span></div>
+                    <div className="p-3 pl-14 pr-6 text-slate-400 cursor-not-allowed flex items-center justify-between">PAN Card Information <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-100 rounded px-1.5 py-0.5">Soon</span></div>
                 </div>
                 {/* <!-- account settings tab --> */}
 
@@ -72,19 +76,19 @@ const Sidebar = ({ activeTab }) => {
                     <p className="flex w-full justify-between font-display font-bold text-xs uppercase tracking-wider text-slate-500">PAYMENTS</p>
                 </div>
                 <div className="flex flex-col pb-3 border-b border-line text-sm">
-                    <Link className="p-3 pl-14 text-slate-700 hover:bg-blue-50 hover:text-primary-accent flex justify-between pr-6" to="/">Gift Cards <span className="font-medium text-primary-green">৳0</span></Link>
-                    <Link className="p-3 pl-14 text-slate-700 hover:bg-blue-50 hover:text-primary-accent" to="/">Saved UPI</Link>
-                    <Link className="p-3 pl-14 text-slate-700 hover:bg-blue-50 hover:text-primary-accent" to="/">Saved Cards</Link>
+                    <div className="p-3 pl-14 pr-6 text-slate-400 cursor-not-allowed flex items-center justify-between">Gift Cards <span className="font-medium text-primary-green">Tk 0</span></div>
+                    <div className="p-3 pl-14 pr-6 text-slate-400 cursor-not-allowed">Saved UPI</div>
+                    <div className="p-3 pl-14 pr-6 text-slate-400 cursor-not-allowed">Saved Cards</div>
                 </div>
                 {/* <!-- payments tab --> */}
 
                 {/* <!-- my chats tab --> */}
-                <div className="flex items-center gap-5 px-4 py-4 border-b border-line">
-                    <span className="text-primary-accent"><ChatIcon /></span>
-                    <Link className="flex w-full justify-between text-sm font-medium text-slate-700 hover:text-primary-accent" to="/">
+                <div className="flex items-center gap-5 px-4 py-4 border-b border-line text-slate-400 cursor-not-allowed">
+                    <span className="text-primary-accent/50"><ChatIcon /></span>
+                    <div className="flex w-full justify-between text-sm font-medium">
                         MY CHATS
-                        <span><ChevronRightIcon /></span>
-                    </Link>
+                        <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-100 rounded px-1.5 py-0.5">Soon</span>
+                    </div>
                 </div>
                 {/* <!-- my chats tab --> */}
 
@@ -94,9 +98,9 @@ const Sidebar = ({ activeTab }) => {
                     <p className="flex w-full justify-between font-display font-bold text-xs uppercase tracking-wider text-slate-500">MY STUFF</p>
                 </div>
                 <div className="flex flex-col pb-3 border-b border-line text-sm">
-                    <Link className="p-3 pl-14 text-slate-700 hover:bg-blue-50 hover:text-primary-accent" to="/">My Coupons</Link>
-                    <Link className="p-3 pl-14 text-slate-700 hover:bg-blue-50 hover:text-primary-accent" to="/">My Reviews & Ratings</Link>
-                    <Link className="p-3 pl-14 text-slate-700 hover:bg-blue-50 hover:text-primary-accent" to="/">All Notifications</Link>
+                    <div className="p-3 pl-14 pr-6 text-slate-400 cursor-not-allowed">My Coupons</div>
+                    <div className="p-3 pl-14 pr-6 text-slate-400 cursor-not-allowed">My Reviews & Ratings</div>
+                    <div className="p-3 pl-14 pr-6 text-slate-400 cursor-not-allowed">All Notifications</div>
                     <Link to="/wishlist" className={`${activeTab === "wishlist" ? "bg-blue-50 text-primary-accent font-medium border-l-4 border-primary-accent" : "text-slate-700 hover:bg-blue-50 hover:text-primary-accent"} p-3 pl-14`}>My Wishlist</Link>
                 </div>
                 {/* <!-- my stuff tab --> */}
@@ -120,7 +124,7 @@ const Sidebar = ({ activeTab }) => {
                 <div className="flex gap-2.5 text-xs text-slate-500">
                     <Link className="hover:text-primary-accent" to="/password/update">Change Password</Link>
                     <Link className="hover:text-primary-accent" to="/orders">Track Order</Link>
-                    <Link className="hover:text-primary-accent" to="/">Help Center</Link>
+                    <span className="text-slate-300 cursor-not-allowed">Help Center</span>
                 </div>
             </div>
             {/* <!-- frequenty visited tab --> */}

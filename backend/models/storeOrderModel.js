@@ -47,7 +47,7 @@ const storeOrderSchema = new mongoose.Schema({
     // customer-facing fulfilment status (tracked by the guest + admin updates)
     fulfilment: {
         type: String,
-        enum: ['PLACED', 'CONFIRMED', 'SHIPPED', 'DELIVERED'],
+        enum: ['PLACED', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED'],
         default: 'PLACED',
     },
     bkOrderId: String,

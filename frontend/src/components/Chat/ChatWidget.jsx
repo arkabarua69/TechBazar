@@ -8,6 +8,7 @@ import SendIcon from '@mui/icons-material/Send';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { DEFAULT_SITE_CONFIG } from '../../utils/siteConfig';
+import { useSiteConfig } from '../../context/SiteConfigContext';
 
 // ── Built-in web live chat widget ─────────────────────────────────────
 // Floating messenger shown on every storefront page. Hybrid by design:
@@ -56,24 +57,18 @@ const ChatWidget = () => {
     const [text, setText] = useState('');
     const [starting, setStarting] = useState(false);
     const [sending, setSending] = useState(false);
-    const [support, setSupport] = useState(DEFAULT_SITE_CONFIG.support);
+
+    // support contacts + welcome copy from the CMS (Admin → Homepage)
+    const { config } = useSiteConfig();
+    const support = config.support || DEFAULT_SITE_CONFIG.support;
 
     const visitorIdRef = useRef(null);
     const bodyRef = useRef(null);
     if (visitorIdRef.current === null) visitorIdRef.current = getVisitorId();
 
     const isLoggedIn = Boolean(user && user._id);
-    const welcomeText = 'সালাম! আমি একটি পণ্য বা অর্ডার সম্পর্কে জানতে চাই।';
+    const welcomeText = config.chat?.welcomeMessage || DEFAULT_SITE_CONFIG.chat.welcomeMessage;
     const waHref = support?.whatsapp ? waLink(support.whatsapp, welcomeText) : '';
-
-    // support / WhatsApp number from the CMS (Admin → Homepage)
-    useEffect(() => {
-        let alive = true;
-        axios.get('/api/v1/siteconfig', { headers: { Accept: 'application/json' } })
-            .then(({ data }) => { if (alive && data.config?.support) setSupport(data.config.support); })
-            .catch(() => { /* keep fallback */ });
-        return () => { alive = false; };
-    }, []);
 
     // prefill the start form for logged-in users
     useEffect(() => {
@@ -197,10 +192,10 @@ const ChatWidget = () => {
                             <SupportAgentIcon sx={{ fontSize: '20px' }} />
                         </span>
                         <div className="flex flex-col leading-tight">
-                            <span className="font-semibold text-sm">লাইভ সাপোর্ট</span>
+                            <span className="font-semibold text-sm">Live Support</span>
                             <span className="text-xs text-blue-100 flex items-center gap-1">
                                 <span className="w-2 h-2 rounded-full bg-green-400 inline-block" />
-                                আমরা এখন অনলাইনে আছি
+                                We are online now
                             </span>
                         </div>
                         <button onClick={toggle} aria-label="Minimize chat" className="ml-auto p-1 hover:bg-white/10 rounded-full">
@@ -211,7 +206,7 @@ const ChatWidget = () => {
                     {/* hybrid dual option: in-app chat + WhatsApp */}
                     <div className="flex gap-2 px-3 py-2 bg-cloud border-b border-line">
                         <span className="flex-1 flex items-center justify-center gap-1 text-xs font-semibold text-primary-blue bg-blue-50 border border-blue-100 rounded-lg py-1.5">
-                            <SupportAgentIcon sx={{ fontSize: '15px' }} /> ইন-অ্যাপ চ্যাট
+                            <SupportAgentIcon sx={{ fontSize: '15px' }} /> In-app Chat
                         </span>
                         {waHref && (
                             <a
@@ -229,20 +224,20 @@ const ChatWidget = () => {
                     {showForm ? (
                         <form onSubmit={startChat} className="flex-1 flex flex-col justify-center gap-3 p-4 bg-cloud">
                             <div className="text-center mb-1">
-                                <h3 className="font-semibold text-slate-800">কথা শুরু করুন</h3>
-                                <p className="text-xs text-slate-500">নাম দিন — আমাদের সাপোর্ট টিম দ্রুত উত্তর দেবে।</p>
+<h3 className="font-semibold text-slate-800">Start a Conversation</h3>
+<p className="text-xs text-slate-500">Tell us your name — our support team replies fast.</p>
                             </div>
                             <input
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                placeholder="আপনার নাম *"
+                                placeholder="Your name *"
                                 maxLength={80}
                                 className="border border-line rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary-blue"
                             />
                             <input
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
-                                placeholder="মোবাইল নম্বর (ঐচ্ছিক)"
+                                placeholder="Mobile number (optional)"
                                 maxLength={20}
                                 className="border border-line rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary-blue"
                             />
@@ -251,11 +246,11 @@ const ChatWidget = () => {
                                 disabled={starting || !(name || '').trim()}
                                 className="bg-primary-blue text-white font-medium rounded-lg py-2.5 text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {starting ? 'শুরু হচ্ছে...' : 'চ্যাট শুরু করুন'}
+                                {starting ? 'Starting...' : 'Start Chat'}
                             </button>
                             {waHref && (
                                 <a href={waHref} target="_blank" rel="noreferrer" className="text-center text-xs text-green-700 font-medium hover:underline">
-                                    অথবা WhatsApp-এ দ্রুত মেসেজ দিন →
+                                    Or message us on WhatsApp →
                                 </a>
                             )}
                         </form>
@@ -263,7 +258,7 @@ const ChatWidget = () => {
                         <>
                             <div ref={bodyRef} className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-2 bg-cloud">
                                 <div className="self-center text-xxs text-slate-400 bg-white border border-line rounded-full px-3 py-1">
-                                    সাপোর্টে স্বাগতম ✦ প্রশ্ন লিখে পাঠান
+                                    Welcome to Support ✦ Type your question
                                 </div>
                                 {messages.map((msg) => (
                                     <div
@@ -286,7 +281,7 @@ const ChatWidget = () => {
                                 <input
                                     value={text}
                                     onChange={(e) => setText(e.target.value)}
-                                    placeholder="মেসেজ লিখুন..."
+                                    placeholder="Type a message..."
                                     maxLength={2000}
                                     className="flex-1 border border-line rounded-full px-4 py-2 text-sm focus:outline-none focus:border-primary-blue"
                                 />

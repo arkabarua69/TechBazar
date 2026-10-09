@@ -43,33 +43,51 @@ const Home = () => {
 
   return (
     <>
-      <MetaData title="Online Shopping Site for Mobiles, Electronics, Furniture, Grocery, Lifestyle, Books & More. Best Offers!" />
+      <MetaData title="TechBazar — Online Shopping for Mobiles, Electronics, Fashion, Appliances, Furniture & More. Best Offers!" />
 
       <Categories />
 
-      <main className="w-full sm:w-11/12 mx-auto flex flex-col gap-8 px-3 sm:px-4 pb-14 mt-3 sm:mt-6">
-        {/* 2. magazine hero: 70/30 desktop, stacked mobile */}
-        <Hero hero={config.hero} />
+      {/* ── centered-column layout ──────────────────────────
+          full-bleed background bands span the viewport while all
+          content lives in a max-w-4xl column — generous,
+          intentional empty space on the left and right sides. */}
 
-        {/* 3. trust badges: 4-across desktop, 2x2 mobile */}
+      {/* hero band — background bleeds edge-to-edge, content centered */}
+      <section className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-100 border-b border-line">
+        <div className="mx-auto max-w-4xl px-5 sm:px-6 py-6 sm:py-10">
+          <Hero hero={config.hero} />
+        </div>
+      </section>
+
+      {/* main centered content column */}
+      <main className="mx-auto max-w-4xl px-5 sm:px-6 flex flex-col gap-10 pb-16 mt-6 sm:mt-8">
+
+        {/* trust badges: 4-across desktop, 2x2 mobile */}
         <TrustBadges badges={config.trustBadges} />
 
-        {/* 4. flash sale + countdown */}
+        {/* flash sale + countdown */}
         <FlashSale flashSale={config.flashSale} products={productList} />
 
-        {/* 4b. featured picks — admin-selected (★) products come first */}
+        {/* featured picks — admin-selected (★) products come first */}
         <FeaturedProducts products={productList} loading={loading} />
 
-        {/* 5. product grid: 4 cols desktop / 2 cols mobile */}
+        {/* product grid: 4 cols desktop / 2 cols mobile */}
         <ProductGrid products={productList} loading={loading} />
 
         {/* category + featured collections */}
         <CategoryShowcase />
 
-        {/* 6. how to order — 3 steps */}
-        <HowToOrder steps={config.howToOrder} />
+      </main>
 
-        {/* 7. customer reviews / social proof */}
+      {/* how-to-order band — second full-bleed section for rhythm */}
+      <section className="bg-blue-50/50 border-y border-line">
+        <div className="mx-auto max-w-4xl px-5 sm:px-6 py-8 sm:py-12">
+          <HowToOrder steps={config.howToOrder} />
+        </div>
+      </section>
+
+      {/* reviews — back to the centered white column */}
+      <main className="mx-auto max-w-4xl px-5 sm:px-6 flex flex-col gap-10 pb-16 mt-6 sm:mt-8">
         <Reviews reviews={config.reviews} />
       </main>
     </>

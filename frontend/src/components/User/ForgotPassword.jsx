@@ -38,7 +38,7 @@ const ForgotPassword = () => {
 
     return (
         <>
-            <MetaData title="Forgot Password" />
+            <MetaData title="Forgot Password | TechBazar" />
 
             {loading && <BackdropLoader />}
             <main className="w-full mt-4 sm:pt-6 sm:mt-0">

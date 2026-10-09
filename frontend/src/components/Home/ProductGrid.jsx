@@ -3,7 +3,7 @@ import ProductCard from './ProductCard';
 import SkeletonGrid from './SkeletonGrid';
 
 // Main product grid — 4 columns on desktop, 2 columns on mobile (12-16 products)
-const ProductGrid = ({ products = [], loading, title = 'জনপ্রিয় পণ্যসমূহ', tagline = 'Business Koro থেকে রিয়েল পণ্য — ছবি, দাম ও COD ব্যাজ সহ' }) => {
+const ProductGrid = ({ products = [], loading, title = 'Popular Products', tagline = 'Real products from Business Koro — images, prices & COD badge' }) => {
     const list = (products || [])
         .filter((p) => p && p.images && p.images[0])
         .slice(0, 16);
@@ -14,7 +14,7 @@ const ProductGrid = ({ products = [], loading, title = 'জনপ্রিয়
                 title={title}
                 tagline={tagline}
                 href="/products"
-                linkLabel="সব পণ্য দেখুন"
+                linkLabel="View All"
             />
             {loading && list.length === 0 ? (
                 <SkeletonGrid />

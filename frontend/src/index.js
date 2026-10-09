@@ -7,6 +7,7 @@ import { Provider } from 'react-redux';
 import store from './store';
 import { SnackbarProvider } from 'notistack';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { LanguageProvider } from './i18n/LanguageContext';
 
 // Match MUI components (forms, DataGrid, buttons) to the site's `primary-blue`
 const theme = createTheme({
@@ -18,19 +19,21 @@ const theme = createTheme({
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
-      <SnackbarProvider
-        maxSnack={2}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'center',
-        }}
-      >
-        <Router>
-          <ThemeProvider theme={theme}>
-            <App />
-          </ThemeProvider>
-        </Router>
-      </SnackbarProvider>
+         <SnackbarProvider
+           maxSnack={2}
+           anchorOrigin={{
+             vertical: 'bottom',
+             horizontal: 'center',
+           }}
+         >
+           <LanguageProvider>
+             <Router>
+               <ThemeProvider theme={theme}>
+                 <App />
+               </ThemeProvider>
+             </Router>
+           </LanguageProvider>
+         </SnackbarProvider>
     </Provider>
   </React.StrictMode>,
   document.getElementById('root')

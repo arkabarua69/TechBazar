@@ -1,12 +1,12 @@
-// "কীভাবে অর্ডার করবেন?" — 3 simple steps for Bangladeshi customers
+// "How to Order?" — 3 simple steps for Bangladeshi customers
 const HowToOrder = ({ steps = [] }) => {
     if (!steps.length) return null;
 
     return (
         <section className="surface p-5 sm:p-7">
             <div className="text-center mb-6">
-                <h2 className="section-title">কীভাবে অর্ডার করবেন?</h2>
-                <p className="section-tagline mt-1">মাত্র ৩টি সহজ ধাপে অর্ডার সম্পন্ন করুন</p>
+                <h2 className="section-title">How to Order?</h2>
+                <p className="section-tagline mt-1">Complete your order in just 3 simple steps</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

@@ -46,6 +46,7 @@ import TrackOrder from './components/Store/TrackOrder';
 import Policy from './components/Policy';
 import Wishlist from './components/Wishlist/Wishlist';
 import NotFound from './components/NotFound';
+import { SiteConfigProvider } from './context/SiteConfigContext';
 
 function App() {
 
@@ -107,7 +108,7 @@ function App() {
   });
   
   return (
-    <>
+    <SiteConfigProvider>
       <Header />
       <BottomBar />
       {/* dedicated admin bottom bar (mobile only) — returns null off /admin */}
@@ -314,7 +315,7 @@ function App() {
       <Footer />
       {/* floating live chat messenger — hidden on /admin pages internally */}
       <ChatWidget />
-    </>
+    </SiteConfigProvider>
   );
 }
 

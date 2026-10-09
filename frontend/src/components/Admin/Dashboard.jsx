@@ -28,9 +28,16 @@ const Dashboard = ({ activeTab, children }) => {
         setToggleSidebar(false);
     }, [location.pathname]);
 
+    // admin owns the top/bottom edges — strip the store header's global body
+    // padding so the fixed AdminAppBar / AdminBottomNav spacing isn't doubled
+    useEffect(() => {
+        document.body.classList.add('admin-page');
+        return () => document.body.classList.remove('admin-page');
+    }, []);
+
     return (
         <>
-            <main className={`flex min-h-screen ${onMobile ? 'mt-0' : 'mt-4'} sm:mt-0 sm:min-w-full`}>
+            <main className={`flex min-h-screen overflow-x-hidden ${onMobile ? 'mt-0' : 'mt-4'} sm:mt-0 sm:min-w-full`}>
 
                 {!onMobile && <Sidebar activeTab={activeTab} />}
                 {onMobile && toggleSidebar && (
@@ -43,9 +50,9 @@ const Dashboard = ({ activeTab, children }) => {
                     </>
                 )}
 
-                <div className="w-full sm:flex-1 sm:ml-72 min-h-screen bg-[#F4F4F5]">
+                <div className="w-full sm:flex-1 sm:ml-72 min-h-screen bg-[#F4F4F5] overflow-x-hidden">
                     {onMobile && <AdminAppBar onMenu={() => setToggleSidebar(true)} />}
-                    <div className={`flex flex-col gap-4 sm:gap-6 sm:m-8 p-3 pb-24 sm:pb-8 overflow-hidden ${onMobile ? 'pt-16' : ''}`}>
+                    <div className={`flex flex-col gap-4 sm:gap-6 sm:m-8 p-3 pb-24 sm:pb-8 overflow-hidden overflow-x-hidden ${onMobile ? 'pt-16' : ''}`}>
                         {children}
                     </div>
                 </div>

@@ -13,7 +13,7 @@ export const offerProducts = [
     {
         image: "https://rukminim1.flixcart.com/image/150/150/jqgy3rk0/computer-table/j/2/v/particle-board-dkl-comp-tb-09-delite-kom-brown-original-imafcheqbgers37z.jpeg",
         name: "Office Study Tables",
-        offer: "From ৳3,290",
+        offer: "From Tk 3,290",
         tag: "Made In India Brands",
     },
     {
@@ -127,7 +127,7 @@ export const offerProducts = [
     {
         image: "https://rukminim1.flixcart.com/image/150/150/jlgwmfk0/coffee-table/c/h/9/rosewood-sheesham-inlct23-induscraft-honey-brown-original-imaf8kc3gprrchxd.jpeg",
         name: "Coffee Tables",
-        offer: "From ৳1,900",
+        offer: "From Tk 1,900",
         tag: "Relax & Work",
     },
     {

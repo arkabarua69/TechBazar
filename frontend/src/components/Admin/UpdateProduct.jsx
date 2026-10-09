@@ -224,12 +224,13 @@ const UpdateProduct = () => {
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                     />
-                    <div className="flex justify-between">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch">
                         <TextField
                             label="Price"
                             type="number"
                             variant="outlined"
                             size="small"
+                            fullWidth
                             InputProps={{
                                 inputProps: {
                                     min: 0
@@ -244,6 +245,7 @@ const UpdateProduct = () => {
                             type="number"
                             variant="outlined"
                             size="small"
+                            fullWidth
                             InputProps={{
                                 inputProps: {
                                     min: 0
@@ -254,7 +256,7 @@ const UpdateProduct = () => {
                             onChange={(e) => setCuttedPrice(e.target.value)}
                         />
                     </div>
-                    <div className="flex justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch">
                         <TextField
                             label="Category"
                             select
@@ -276,6 +278,7 @@ const UpdateProduct = () => {
                             type="number"
                             variant="outlined"
                             size="small"
+                            fullWidth
                             InputProps={{
                                 inputProps: {
                                     min: 0
@@ -290,6 +293,7 @@ const UpdateProduct = () => {
                             type="number"
                             variant="outlined"
                             size="small"
+                            fullWidth
                             InputProps={{
                                 inputProps: {
                                     min: 0
@@ -302,9 +306,9 @@ const UpdateProduct = () => {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                        <div className="flex justify-between items-center border rounded">
-                            <input value={highlightInput} onChange={(e) => setHighlightInput(e.target.value)} type="text" placeholder="Highlight" className="px-2 flex-1 outline-none border-none" />
-                            <span onClick={() => addHighlight()} className="py-2 px-6 bg-black text-white rounded-r hover:shadow-lg cursor-pointer">Add</span>
+                        <div className="flex flex-col sm:flex-row items-stretch gap-1">
+                            <input value={highlightInput} onChange={(e) => setHighlightInput(e.target.value)} type="text" placeholder="Highlight" className="px-2 flex-1 outline-none border border-gray-200 rounded-lg sm:rounded-r-none sm:rounded-l-lg" />
+                            <span onClick={() => addHighlight()} className="py-2 px-6 bg-black text-white rounded sm:rounded-l-none sm:rounded-r-lg hover:shadow-lg cursor-pointer text-center">Add</span>
                         </div>
 
                         <div className="flex flex-col gap-1.5">
@@ -343,12 +347,13 @@ const UpdateProduct = () => {
                     </div>
 
                     <h2 className="font-semibold text-gray-900">Brand Details</h2>
-                    <div className="flex justify-between gap-4 items-start">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:gap-4 items-stretch sm:items-center">
                         <TextField
                             label="Brand"
                             type="text"
                             variant="outlined"
                             size="small"
+                            fullWidth
                             required
                             value={brand}
                             onChange={(e) => setBrand(e.target.value)}
@@ -358,7 +363,7 @@ const UpdateProduct = () => {
                                 <img draggable="false" src={logoPreview} alt="Brand Logo" className="w-full h-full object-contain" />
                             }
                         </div>
-                        <label className="rounded font-medium bg-gray-400 text-center cursor-pointer text-white py-2 px-2.5 shadow hover:shadow-lg">
+                        <label className="rounded bg-gray-400 text-center cursor-pointer text-white py-2 px-2.5 shadow hover:shadow-lg w-full sm:w-auto">
                             <input
                                 type="file"
                                 name="logo"
@@ -375,10 +380,10 @@ const UpdateProduct = () => {
                 <div className="flex flex-col gap-2 m-2 sm:w-1/2">
                     <h2 className="font-semibold text-gray-900">Specifications</h2>
 
-                    <div className="flex justify-evenly gap-2 items-center">
-                        <TextField value={specsInput.title} onChange={handleSpecsChange} name="title" label="Name" placeholder="Model No" variant="outlined" size="small" />
-                        <TextField value={specsInput.description} onChange={handleSpecsChange} name="description" label="Description" placeholder="WJDK42DF5" variant="outlined" size="small" />
-                        <span onClick={() => addSpecs()} className="py-2 px-6 bg-black text-white rounded hover:shadow-lg cursor-pointer">Add</span>
+                    <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                        <TextField value={specsInput.title} onChange={handleSpecsChange} name="title" label="Name" placeholder="Model No" variant="outlined" size="small" fullWidth />
+                        <TextField value={specsInput.description} onChange={handleSpecsChange} name="description" label="Description" placeholder="WJDK42DF5" variant="outlined" size="small" fullWidth />
+                        <span onClick={() => addSpecs()} className="py-2 px-6 bg-black text-white rounded hover:shadow-lg cursor-pointer shrink-0">Add</span>
                     </div>
 
                     <div className="flex flex-col gap-1.5">
@@ -394,7 +399,7 @@ const UpdateProduct = () => {
                     </div>
 
                     <h2 className="font-semibold text-gray-900">Product Images</h2>
-                    <div className="grid grid-cols-4 gap-2 h-32 border border-gray-200 rounded-xl overflow-y-auto p-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 h-32 border border-gray-200 rounded-xl overflow-y-auto p-2">
                         {oldImages && oldImages.map((image, i) => (
                             <img draggable="false" src={image.url} alt="Product" key={i} className="w-full h-24 object-contain bg-gray-50 rounded-lg border" />
                         ))}

@@ -10,12 +10,12 @@ import { clearErrors, getProducts } from '../../actions/productAction';
 import Loader from '../Layouts/Loader';
 import MinCategory from '../Layouts/MinCategory';
 import ProductCard from '../Home/ProductCard';
-import { categories } from '../../utils/constants';
+import { useCategories } from '../../utils/useCategories';
 import MetaData from '../Layouts/MetaData';
 
-// Shop page — mobile app style (search bar, scrollable chips, filter panel,
-// 2-col card grid) and modern desktop like the home page (same container,
-// Cloud White cards, filter sidebar, 4-col grid).
+// Shop page — same centered-column layout as the home page:
+//  full-bleed header band (search, sort, category chips) +
+//  max-w-4xl content column (filter sidebar + product grid).
 const Products = () => {
 
     const dispatch = useDispatch();
@@ -23,6 +23,7 @@ const Products = () => {
     const { enqueueSnackbar } = useSnackbar();
     const params = useParams();
     const location = useLocation();
+    const categories = useCategories();
 
     const [price, setPrice] = useState([0, 200000]);
     const [category, setCategory] = useState(location.search ? location.search.split("=")[1] : "");
@@ -89,13 +90,13 @@ const Products = () => {
     const filtersCard = (
         <div className="bg-white border border-line rounded-xl shadow-sm">
             <div className="flex items-center justify-between px-4 py-3 border-b border-line">
-                <p className="font-display font-bold text-sm text-slate-900">ফিল্টার</p>
-                <button onClick={clearFilters} className="text-xs font-semibold text-primary-accent hover:underline">সব মুছুন</button>
+<p className="font-display font-bold text-sm text-slate-900">Filters</p>
+            <button onClick={clearFilters} className="text-xs font-semibold text-primary-accent hover:underline">Clear all</button>
             </div>
             <div className="px-4 py-3.5 flex flex-col gap-5">
                 {/* price range */}
                 <div className="flex flex-col gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">দাম</span>
+                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Price</span>
                     <Slider
                         value={price}
                         onChange={priceHandler}
@@ -105,15 +106,15 @@ const Products = () => {
                         sx={{ color: '#3b82f6' }}
                     />
                     <div className="flex items-center justify-between gap-2 text-xs">
-                        <span className="border border-line rounded-lg px-2 py-1 bg-cloud text-slate-700 font-medium">৳{price[0].toLocaleString()}</span>
-                        <span className="text-slate-400">থেকে</span>
-                        <span className="border border-line rounded-lg px-2 py-1 bg-cloud text-slate-700 font-medium">৳{price[1].toLocaleString()}</span>
+                        <span className="border border-line rounded-lg px-2 py-1 bg-cloud text-slate-700 font-medium">Tk {price[0].toLocaleString()}</span>
+                        <span className="text-slate-400">to</span>
+                        <span className="border border-line rounded-lg px-2 py-1 bg-cloud text-slate-700 font-medium">Tk {price[1].toLocaleString()}</span>
                     </div>
                 </div>
 
                 {/* ratings */}
                 <div className="flex flex-col gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">রেটিং</span>
+                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Rating</span>
                     <div className="flex flex-wrap gap-1.5">
                         {[4, 3, 2, 1].map((r) => (
                             <button
@@ -136,7 +137,7 @@ const Products = () => {
     // ── category chips (horizontal scroll on mobile, wrap on desktop) ──
     const chipBase = "shrink-0 text-xs sm:text-sm font-semibold rounded-full px-4 py-2 border transition duration-200";
     const chips = [
-        { label: 'সব পণ্য', value: '' },
+        { label: 'All Products', value: '' },
         ...categories.map((c) => ({ label: c, value: c })),
     ];
 
@@ -145,84 +146,94 @@ const Products = () => {
             <MetaData title={keyword ? `${keyword} | TechBazar` : 'Shop | TechBazar'} />
 
             <MinCategory />
-            <main className="w-full sm:w-11/12 m-auto flex flex-col gap-4 px-3 sm:px-4 pb-16 mt-3 sm:mt-6">
 
-                {/* page header — same rhythm as the home page */}
-                <div className="flex items-end justify-between gap-3 flex-wrap">
-                    <div>
-                        <h1 className="font-display font-extrabold text-xl sm:text-2xl text-slate-900 leading-tight">
-                            {keyword ? `“${keyword}” এর ফলাফল` : 'সব পণ্য'}
-                        </h1>
-                        <p className="text-sm text-slate-500 mt-0.5">{count}টি পণ্য পাওয়া গেছে</p>
-                    </div>
+            {/* ── shop header band — full-bleed, content centered ── */}
+            <section className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-100 border-b border-line">
+                <div className="mx-auto max-w-4xl px-5 sm:px-6 py-6 sm:py-8 flex flex-col gap-4">
 
-                    <div className="flex items-center gap-2">
-                        {/* sort — app-style compact select */}
-                        <select
-                            value={sort}
-                            onChange={(e) => setSort(e.target.value)}
-                            className="border border-line rounded-lg px-3 py-2 text-sm bg-white text-slate-700 font-medium focus:outline-none focus:border-primary-accent cursor-pointer"
-                            aria-label="Sort products">
-                            <option value="default">সাজানো: ডিফল্ট</option>
-                            <option value="price-asc">দাম: কম → বেশি</option>
-                            <option value="price-desc">দাম: বেশি → কম</option>
-                            <option value="rating">রেটিং অনুযায়ী</option>
-                        </select>
+                    {/* page header — same rhythm as the home page */}
+                    <div className="flex items-end justify-between gap-3 flex-wrap">
+                        <div>
+                            <h1 className="font-display font-extrabold text-xl sm:text-3xl text-slate-900 leading-tight">
+{keyword ? `Results for “${keyword}”` : 'All Products'}
+        </h1>
+        <p className="text-sm text-slate-500 mt-1">{count} products found</p>
+                        </div>
 
-                        {/* filters toggle — mobile & tablet */}
-                        <button
-                            onClick={() => setFiltersOpen((v) => !v)}
-                            className={`lg:hidden flex items-center gap-1.5 text-sm font-semibold rounded-lg px-3 py-2 border transition duration-200 ${
-                                filtersOpen
-                                    ? 'bg-primary-accent text-white border-primary-accent'
-                                    : 'bg-white text-slate-700 border-line hover:border-primary-accent hover:text-primary-accent'
-                            }`}>
-                            <TuneIcon sx={{ fontSize: '18px' }} /> ফিল্টার
-                        </button>
-                    </div>
-                </div>
+                        <div className="flex items-center gap-2">
+                            {/* sort — app-style compact select */}
+                            <select
+                                value={sort}
+                                onChange={(e) => setSort(e.target.value)}
+                                className="border border-line rounded-lg px-3 py-2 text-sm bg-white text-slate-700 font-medium focus:outline-none focus:border-primary-accent cursor-pointer"
+                                aria-label="Sort products">
+<option value="default">Sort: Default</option>
+                        <option value="price-asc">Price: Low to High</option>
+                        <option value="price-desc">Price: High to Low</option>
+                        <option value="rating">By Rating</option>
+                            </select>
 
-                {/* search bar — mobile app style */}
-                <form onSubmit={searchSubmit} className="relative w-full sm:max-w-md">
-                    <SearchIcon sx={{ fontSize: '20px', color: '#64748b' }} className="absolute left-3 top-[50%] -translate-y-1/2 pointer-events-none" />
-                    <input
-                        value={searchInput}
-                        onChange={(e) => setSearchInput(e.target.value)}
-                        placeholder="পণ্য খুঁজুন… (যেমন: স্মার্টওয়াচ)"
-                        className="w-full border border-line rounded-xl bg-white pl-10 pr-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-primary-accent"
-                    />
-                </form>
-
-                {/* category chips — horizontal scroll on mobile, wheel-friendly */}
-                <div className="relative -mx-3 px-3 sm:mx-0 sm:px-0">
-                    <div
-                        ref={chipsRowRef}
-                        onWheel={onChipsWheel}
-                        className="flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible"
-                    >
-                        {chips.map((chip) => (
+                            {/* filters toggle — mobile & tablet */}
                             <button
-                                key={chip.value}
-                                onClick={() => setCategory(chip.value)}
-                                className={`${chipBase} ${
-                                    category === chip.value
+                                onClick={() => setFiltersOpen((v) => !v)}
+                                className={`lg:hidden flex items-center gap-1.5 text-sm font-semibold rounded-lg px-3 py-2 border transition duration-200 ${
+                                    filtersOpen
                                         ? 'bg-primary-accent text-white border-primary-accent'
-                                        : 'bg-white text-slate-600 border-line hover:border-primary-accent hover:text-primary-accent'
+                                        : 'bg-white text-slate-700 border-line hover:border-primary-accent hover:text-primary-accent'
                                 }`}>
-                                {chip.label}
+                                <TuneIcon sx={{ fontSize: '18px' }} /> Filters
                             </button>
-                        ))}
+                        </div>
                     </div>
-                    {/* fade hint — more chips beyond the right edge */}
-                    <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-cloud via-cloud/70 to-transparent sm:hidden" />
+
+                    {/* search bar — app style */}
+                    <form onSubmit={searchSubmit} className="relative w-full sm:max-w-md">
+                        <SearchIcon sx={{ fontSize: '20px', color: '#64748b' }} className="absolute left-3 top-[50%] -translate-y-1/2 pointer-events-none" />
+                        <input
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                            placeholder="Search products… (e.g. smartwatch)"
+                            className="w-full border border-line rounded-xl bg-white pl-10 pr-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-primary-accent"
+                        />
+                    </form>
+
+                    {/* category chips — horizontal scroll on mobile, wheel-friendly */}
+                    <div className="relative -mx-5 px-5 sm:mx-0 sm:px-0">
+                        <div
+                            ref={chipsRowRef}
+                            onWheel={onChipsWheel}
+                            className="no-scrollbar flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible"
+                        >
+                            {chips.map((chip) => (
+                                <button
+                                    key={chip.value}
+                                    onClick={() => setCategory(chip.value)}
+                                    className={`${chipBase} ${
+                                        category === chip.value
+                                            ? 'bg-primary-accent text-white border-primary-accent'
+                                            : 'bg-white text-slate-600 border-line hover:border-primary-accent hover:text-primary-accent'
+                                    }`}>
+                                    {chip.label}
+                                </button>
+                            ))}
+                        </div>
+                        {/* fade hint — more chips beyond the right edge */}
+                        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-blue-50 via-blue-50/70 to-transparent sm:hidden" />
+                    </div>
+
                 </div>
+            </section>
+            {/* ── /shop header band ── */}
+
+            {/* main centered content column */}
+            <main className="mx-auto max-w-4xl px-5 sm:px-6 flex flex-col gap-6 pb-16 mt-6 sm:mt-8">
 
                 {/* mobile / tablet filter panel */}
                 {filtersOpen && <div className="lg:hidden">{filtersCard}</div>}
 
                 <div className="flex gap-5 items-start">
-                    {/* desktop filter sidebar — like the home page columns */}
-                    <aside className="hidden lg:block w-64 shrink-0 sticky top-24">
+                    {/* desktop filter sidebar */}
+                    <aside className="hidden lg:block w-56 shrink-0 sticky top-24">
                         {filtersCard}
                     </aside>
 
@@ -231,12 +242,12 @@ const Products = () => {
                         {!loading && products?.length === 0 && (
                             <div className="flex flex-col items-center justify-center gap-2 bg-white border border-line rounded-xl p-10 text-center">
                                 <span className="text-5xl">🔍</span>
-                                <h2 className="font-display font-bold text-lg text-slate-900">কোনো ফল পাওয়া যায়নি</h2>
-                                <p className="text-sm text-slate-500">অন্য কিছু লিখে খুঁজুন, অথবা ফিল্টার পরিবর্তন করে দেখুন।</p>
+<h2 className="font-display font-bold text-lg text-slate-900">No products found</h2>
+                            <p className="text-sm text-slate-500">Try a different search, or change the filters.</p>
                                 <button
                                     onClick={clearFilters}
                                     className="mt-2 text-sm font-semibold text-primary-accent border border-line hover:border-primary-accent rounded-lg px-4 py-2 transition duration-200">
-                                    ফিল্টার মুছুন
+                                    Clear filters
                                 </button>
                             </div>
                         )}

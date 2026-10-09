@@ -6,7 +6,21 @@ import StorefrontIcon from '@mui/icons-material/Storefront';
 import MenuIcon from '@mui/icons-material/Menu';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import PersonIcon from '@mui/icons-material/Person';
 import MenuDrawer from './MenuDrawer';
+import { useSiteConfig } from '../../context/SiteConfigContext';
+import { DEFAULT_SITE_CONFIG } from '../../utils/siteConfig';
+
+// icon registry for the admin-editable bottom tabs
+const TAB_ICONS = {
+    Home: HomeIcon,
+    Storefront: StorefrontIcon,
+    ShoppingCart: ShoppingCartIcon,
+    Inventory2: Inventory2Icon,
+    Favorite: FavoriteIcon,
+    Person: PersonIcon,
+};
 
 // App-style fixed bottom bar (mobile only):
 // 🏠 Home · 🔍 Shop · ☰ Menu (centre, opens sidebar drawer) · 🛒 Cart · 📦 Orders
@@ -16,26 +30,31 @@ const BottomBar = () => {
     const { cartItems } = useSelector((state) => state.cart);
     const [menuOpen, setMenuOpen] = useState(false);
 
+    // tabs are admin-editable (Admin → Homepage → Branding & Content)
+    const { config } = useSiteConfig();
+    const tabs = (config.navigation?.tabs || DEFAULT_SITE_CONFIG.navigation.tabs)
+        .filter((t) => t && t.label && t.href);
+
     // admin has its own sidebar layout on mobile
     if (path.startsWith('/admin')) return null;
 
-    const items = [
-        { label: 'Home', href: '/', icon: HomeIcon, active: path === '/' },
-        { label: 'Shop', href: '/products', icon: StorefrontIcon, active: path.startsWith('/products') || path.startsWith('/product/') },
-        null, // centre = ☰ Menu button
-        { label: 'Cart', href: '/cart', icon: ShoppingCartIcon, active: path.startsWith('/cart'), badge: cartItems.length },
-        { label: 'Orders', href: '/orders', icon: Inventory2Icon, active: path.startsWith('/orders') || path.startsWith('/order/') || path.startsWith('/track') },
-    ];
+    const isCart = (t) => t.key === 'cart' || t.href === '/cart';
+    const isActive = (t) => (t.href === '/' ? path === '/' : path.startsWith(t.href));
+
+    // ≤4 tabs: centre ☰ menu keeps the app-style 5-slot bar
+    const withMenu = tabs.length <= 4
+        ? [...tabs.slice(0, 2), 'MENU', ...tabs.slice(2)]
+        : ['MENU', ...tabs];
 
     return (
         <>
             <MenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
 
             <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-line shadow-[0_-4px_16px_rgba(15,23,42,0.06)] pb-[env(safe-area-inset-bottom)]">
-                <ul className="grid grid-cols-5">
-                    {items.map((item, i) => {
+                <ul className="grid" style={{ gridTemplateColumns: `repeat(${withMenu.length}, minmax(0, 1fr))` }}>
+                    {withMenu.map((item, i) => {
                         // ── centre ☰ Menu — highlighted circle ──
-                        if (!item) {
+                        if (item === 'MENU') {
                             return (
                                 <li key="menu" className="relative">
                                     <button
@@ -52,9 +71,12 @@ const BottomBar = () => {
                             );
                         }
 
-                        const { label, href, icon: Icon, active, badge } = item;
+                        const { label, href, icon } = item;
+                        const Icon = TAB_ICONS[icon] || HomeIcon;
+                        const active = isActive(item);
+                        const badge = isCart(item) ? cartItems.length : 0;
                         return (
-                            <li key={label}>
+                            <li key={`${href}-${i}`}>
                                 <Link
                                     to={href}
                                     className={`relative flex flex-col items-center justify-center gap-0.5 py-2.5 transition duration-200 ${

@@ -10,7 +10,7 @@ import { addItemsToCart } from '../../actions/cartAction';
 
 // High-converting product card for BD gadget shoppers:
 // image + corner badges (COD / discount / out of stock) → 2-line title +
-// spec chips → Sora price + delivery-charge note → "অর্ডার করুন" + cart button
+// spec chips → Sora price + delivery-charge note → "Order Now" + cart button
 const ProductCard = ({ product }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -35,7 +35,7 @@ const ProductCard = ({ product }) => {
             await dispatch(addItemsToCart(_id));
             navigate('/checkout');
         } catch {
-            enqueueSnackbar('পণ্যটি কার্টে যোগ করা যায়নি', { variant: 'error' });
+            enqueueSnackbar('Could not add to cart', { variant: 'error' });
         }
     };
 
@@ -44,10 +44,10 @@ const ProductCard = ({ product }) => {
         try {
             await dispatch(addItemsToCart(_id));
             setAdded(true);
-            enqueueSnackbar('কার্টে যোগ হয়েছে', { variant: 'success' });
+            enqueueSnackbar('Added to cart', { variant: 'success' });
             setTimeout(() => setAdded(false), 1500);
         } catch {
-            enqueueSnackbar('পণ্যটি কার্টে যোগ করা যায়নি', { variant: 'error' });
+            enqueueSnackbar('Could not add to cart', { variant: 'error' });
         }
     };
 
@@ -63,30 +63,6 @@ const ProductCard = ({ product }) => {
                         alt={name}
                         className="h-full w-full object-cover group-hover:scale-105 transition duration-300"
                     />
-                )}
-
-                {/* corner badges */}
-                <div className="absolute top-2.5 left-2.5 flex flex-col items-start gap-1.5">
-                    {outOfStock ? (
-                        <span className="text-[10px] font-bold uppercase tracking-wide text-white bg-red-500 px-2 py-1 rounded shadow">
-                            Out of Stock
-                        </span>
-                    ) : hotDeal ? (
-                        <span className="text-[10px] font-bold uppercase tracking-wide text-white bg-red-500 px-2 py-1 rounded shadow">
-                            🔥 Hot Deal
-                        </span>
-                    ) : null}
-                    {discount > 0 && !outOfStock && (
-                        <span className="text-[10px] font-bold uppercase tracking-wide text-white bg-green-500 px-2 py-1 rounded shadow">
-                            {discount}% off
-                        </span>
-                    )}
-                </div>
-
-                {!outOfStock && (
-                    <span className="absolute bottom-2.5 left-2.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wide text-white bg-yellow-500 px-2 py-0.5 rounded-full shadow-sm">
-                        ক্যাশ অন ডেলিভারি
-                    </span>
                 )}
             </Link>
 
@@ -123,13 +99,13 @@ const ProductCard = ({ product }) => {
 
                 {/* price (Sora, bold) */}
                 <div className="flex items-baseline gap-2 pt-0.5">
-                    <span className="font-extrabold text-base sm:text-lg text-slate-900">৳{(price || 0).toLocaleString()}</span>
-                    <span className="text-xs text-slate-400 line-through">৳{(cuttedPrice || 0).toLocaleString()}</span>
+                    <span className="font-extrabold text-base sm:text-lg text-slate-900">Tk {(price || 0).toLocaleString()}</span>
+                    <span className="text-xs text-slate-400 line-through">Tk {(cuttedPrice || 0).toLocaleString()}</span>
                 </div>
 
                 {/* delivery charge note — no surprises at checkout */}
                 <p className="text-[10px] text-slate-400 leading-tight">
-                    ডেলিভারি চার্জ অগ্রিম (৳৭০ / ৳১৩০)
+                    Delivery charge payable in advance (Tk 70 / Tk 130)
                 </p>
             </div>
 
@@ -144,14 +120,14 @@ const ProductCard = ({ product }) => {
                             : 'btn-accent'
                     }`}
                 >
-                    {outOfStock ? 'স্টক নেই' : 'অর্ডার করুন'}
+                    {outOfStock ? 'Out of Stock' : 'Order Now'}
                 </button>
 
                 <button
                     onClick={addToCart}
                     disabled={outOfStock}
                     aria-label="Add to cart"
-                    title="কার্টে যোগ করুন"
+                    title="Add to cart"
                     className={`w-9 sm:w-10 flex items-center justify-center rounded-lg border transition duration-200 ${
                         outOfStock
                             ? 'border-line text-slate-300 cursor-not-allowed'

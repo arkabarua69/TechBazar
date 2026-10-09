@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { clearErrors, deleteOrder, getAllOrders } from '../../actions/orderAction';
 import { DELETE_ORDER_RESET } from '../../constants/orderConstants';
 import Actions from './Actions';
@@ -13,6 +14,8 @@ const OrderTable = () => {
 
     const dispatch = useDispatch();
     const { enqueueSnackbar } = useSnackbar();
+
+    const isMobile = useMediaQuery('(max-width:639px)');
 
     const { orders, error } = useSelector((state) => state.allOrders);
     const { loading, isDeleted, error: deleteError } = useSelector((state) => state.order);
@@ -80,7 +83,7 @@ const OrderTable = () => {
             flex: 0.2,
             renderCell: (params) => {
                 return (
-                    <span>৳{params.row.amount.toLocaleString()}</span>
+                    <span>Tk {params.row.amount.toLocaleString()}</span>
                 );
             },
         },
@@ -125,13 +128,14 @@ const OrderTable = () => {
             {loading && <BackdropLoader />}
 
             <h1 className="text-lg sm:text-xl font-extrabold text-gray-900">Orders</h1>
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm w-full overflow-hidden" style={{ height: 470 }}>
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm w-full overflow-x-auto" style={{ height: 'min(470px, 60vh)' }}>
 
                 <DataGrid
                     rows={rows}
                     columns={columns}
                     pageSize={10}
                     disableSelectIconOnClick
+                    columnVisibilityModel={isMobile ? { itemsQty: false, orderOn: false } : {}}
                     sx={{
                         boxShadow: 0,
                         border: 0,

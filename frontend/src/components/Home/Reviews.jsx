@@ -10,8 +10,8 @@ const Reviews = ({ reviews = [] }) => {
     return (
         <section>
             <SectionHeader
-                title="সন্তুষ্ট কাস্টমারদের মতামত"
-                tagline="বিভিন্ন জেলা থেকে আসল ক্রেতাদের রিভিউ"
+title="What our customers say"
+        tagline="Reviews from real buyers across the country"
             />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -36,7 +36,7 @@ const Reviews = ({ reviews = [] }) => {
                                 <span className="text-xs text-slate-500">{review.district}</span>
                             </span>
                             <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-green-700 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">
-                                যাচাইকৃত ক্রেতা
+                                Verified Buyer
                             </span>
                         </figcaption>
                     </figure>

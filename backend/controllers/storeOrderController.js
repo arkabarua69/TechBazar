@@ -185,38 +185,48 @@ const createStoreOrder = async (req, res) => {
 
 // GET /api/v1/store/orders/:groupId  (public - guest order status)
 const getStoreOrderGroup = async (req, res) => {
-    const orders = await StoreOrder.find({ groupId: req.params.groupId }).sort('createdAt');
-    if (!orders.length) return res.status(404).json({ success: false, message: 'Order not found.' });
+    try {
+        const orders = await StoreOrder.find({ groupId: req.params.groupId }).sort('createdAt');
+        if (!orders.length) return res.status(404).json({ success: false, message: 'Order not found.' });
 
-    const charges = await getActiveDeliveryCharges();
-    const deliveryCharge = orders[0].delivery.charge;
-    const itemsTotal = orders.reduce((sum, o) => sum + o.pricing.total, 0);
+        const charges = await getActiveDeliveryCharges();
+        const deliveryCharge = orders[0].delivery.charge;
+        const itemsTotal = orders.reduce((sum, o) => sum + o.pricing.total, 0);
 
-    return res.status(200).json({
-        success: true,
-        groupId: req.params.groupId,
-        status: orders.every((o) => o.status === 'FORWARDED') ? 'FORWARDED'
-            : orders.some((o) => o.status === 'FORWARD_FAILED') ? 'FORWARD_FAILED'
-                : 'PENDING_APPROVAL',
-        items: orders.map((o) => ({
-            orderId: o._id,
-            name: o.product.name,
-            image: o.product.image,
-            quantity: o.pricing.quantity,
-            sellingPrice: o.pricing.sellingPrice,
-            status: o.status,
-            bkOrderId: o.bkOrderId,
-            bkError: o.bkError,
-        })),
-        summary: { itemsTotal, deliveryCharge, grandTotal: itemsTotal + deliveryCharge, currency: 'BDT' },
-        deliveryCharges: charges,
-    });
+        return res.status(200).json({
+            success: true,
+            groupId: req.params.groupId,
+            status: orders.every((o) => o.status === 'FORWARDED') ? 'FORWARDED'
+                : orders.some((o) => o.status === 'FORWARD_FAILED') ? 'FORWARD_FAILED'
+                    : 'PENDING_APPROVAL',
+            items: orders.map((o) => ({
+                orderId: o._id,
+                name: o.product.name,
+                image: o.product.image,
+                quantity: o.pricing.quantity,
+                sellingPrice: o.pricing.sellingPrice,
+                status: o.status,
+                bkOrderId: o.bkOrderId,
+                bkError: o.bkError,
+            })),
+            summary: { itemsTotal, deliveryCharge, grandTotal: itemsTotal + deliveryCharge, currency: 'BDT' },
+            deliveryCharges: charges,
+        });
+    } catch (err) {
+        console.log(`Store order group error: ${err.message}`);
+        return res.status(500).json({ success: false, message: err.message });
+    }
 };
 
 // GET /api/v1/admin/store/orders  (admin)
 const getStoreOrders = async (req, res) => {
-    const orders = await StoreOrder.find().sort('-createdAt').limit(200);
-    return res.status(200).json({ success: true, orders });
+    try {
+        const orders = await StoreOrder.find().sort('-createdAt').limit(200);
+        return res.status(200).json({ success: true, orders });
+    } catch (err) {
+        console.log(`Store orders list error: ${err.message}`);
+        return res.status(500).json({ success: false, message: err.message });
+    }
 };
 
 // PUT /api/v1/admin/store/orders/:id/approve  (admin)
@@ -283,21 +293,26 @@ const approveStoreOrder = async (req, res) => {
 
 // PUT /api/v1/admin/store/orders/:id/cancel  (admin)
 const cancelStoreOrder = async (req, res) => {
-    const order = await StoreOrder.findById(req.params.id);
-    if (!order) return res.status(404).json({ success: false, message: 'Order not found.' });
+    try {
+        const order = await StoreOrder.findById(req.params.id);
+        if (!order) return res.status(404).json({ success: false, message: 'Order not found.' });
 
-    if (order.status === 'CANCELLED') {
-        return res.status(400).json({ success: false, message: 'Order is already cancelled.' });
+        if (order.status === 'CANCELLED') {
+            return res.status(400).json({ success: false, message: 'Order is already cancelled.' });
+        }
+        if (order.fulfilment === 'DELIVERED') {
+            return res.status(400).json({ success: false, message: 'A delivered order cannot be cancelled.' });
+        }
+
+        order.status = 'CANCELLED';
+        order.fulfilment = 'CANCELLED';
+        await order.save();
+
+        return res.status(200).json({ success: true, order });
+    } catch (err) {
+        console.log(`Cancel store order error: ${err.message}`);
+        return res.status(500).json({ success: false, message: err.message });
     }
-    if (order.fulfilment === 'DELIVERED') {
-        return res.status(400).json({ success: false, message: 'A delivered order cannot be cancelled.' });
-    }
-
-    order.status = 'CANCELLED';
-    order.fulfilment = 'CANCELLED';
-    await order.save();
-
-    return res.status(200).json({ success: true, order });
 };
 
 // POST /api/v1/admin/store/sync  (admin) - pull the Business Koro catalogue now
@@ -328,7 +343,7 @@ const trackStoreOrder = async (req, res) => {
         if (!orders.length) {
             return res.status(404).json({
                 success: false,
-                message: 'এই তথ্যে কোনো অর্ডার পাওয়া যায়নি। নম্বর/অর্ডার আইডি আবার দেখুন।',
+                message: 'No order found with these details. Please check the number/order ID.',
             });
         }
 

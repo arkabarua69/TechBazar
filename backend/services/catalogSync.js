@@ -36,7 +36,7 @@ const toProductDoc = (bk, adminId) => {
         specifications: [
             { title: 'Source', description: 'Business Koro Storefront' },
             { title: 'Availability', description: bk.inStock ? 'In stock' : 'Out of stock' },
-            { title: 'Delivery', description: 'Inside Dhaka ৳70 · Outside Dhaka ৳130' },
+            { title: 'Delivery', description: 'Inside Dhaka Tk 70 · Outside Dhaka Tk 130' },
         ],
         price,
         cuttedPrice,

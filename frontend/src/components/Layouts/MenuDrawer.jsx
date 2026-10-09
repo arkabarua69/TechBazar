@@ -30,14 +30,19 @@ const MenuDrawer = ({ open, onClose }) => {
 
     const [query, setQuery] = useState('');
     const [support, setSupport] = useState({ hotline: '', whatsapp: '' });
+    const [categories, setCategories] = useState(CATEGORIES);
 
-    // support numbers come from Admin → Homepage settings
+    // support numbers + categories come from Admin → Homepage settings
     useEffect(() => {
         if (!open) return;
         axios.get('/api/v1/siteconfig', { headers: { Accept: 'application/json' } })
             .then(({ data }) => {
-                const s = (data && data.config && data.config.support) || {};
+                const cfg = data && data.config;
+                const s = (cfg && cfg.support) || {};
                 setSupport({ hotline: s.hotline || '', whatsapp: s.whatsapp || '' });
+                if (cfg && Array.isArray(cfg.categories) && cfg.categories.length) {
+                    setCategories(cfg.categories);
+                }
             })
             .catch(() => { /* keep defaults */ });
     }, [open]);
@@ -94,11 +99,11 @@ const MenuDrawer = ({ open, onClose }) => {
                         <input
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            placeholder="গ্যাজেট খুঁজুন…"
+                            placeholder="Search gadgets…"
                             className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
                         />
                     </div>
-                    <button type="submit" className="btn-accent px-3 py-2 text-xs font-semibold rounded-lg">খুঁজুন</button>
+                    <button type="submit" className="btn-accent px-3 py-2 text-xs font-semibold rounded-lg">Search</button>
                 </form>
 
                 {/* scrollable content */}
@@ -109,21 +114,21 @@ const MenuDrawer = ({ open, onClose }) => {
                             <>
                                 <Link to="/account" className={rowClass}>
                                     <PersonOutlineIcon sx={{ fontSize: '20px', color: '#3b82f6' }} />
-                                    {user && user.name ? user.name : 'আমার অ্যাকাউন্ট'}
+                                    {user && user.name ? user.name : 'My Account'}
                                 </Link>
                                 <Link to="/admin/dashboard" className={rowClass}>
                                     <AdminPanelSettingsIcon sx={{ fontSize: '20px', color: '#3b82f6' }} />
-                                    অ্যাডমিন ড্যাশবোর্ড
+                                    Admin Dashboard
                                 </Link>
                                 <button onClick={handleLogout} className={rowClass}>
                                     <LogoutIcon sx={{ fontSize: '20px', color: '#ef4444' }} />
-                                    লগআউট
+                                    Logout
                                 </button>
                             </>
                         ) : (
                             <Link to="/login" className={rowClass}>
                                 <PersonOutlineIcon sx={{ fontSize: '20px', color: '#3b82f6' }} />
-                                লগইন / রেজিস্টার
+                                Login / Register
                             </Link>
                         )}
                     </div>
@@ -132,24 +137,24 @@ const MenuDrawer = ({ open, onClose }) => {
                     <div className="border-b border-line py-2">
                         <Link to="/orders" className={rowClass}>
                             <TrackChangesIcon sx={{ fontSize: '20px', color: '#3b82f6' }} />
-                            অর্ডার ট্র্যাক ও হিস্ট্রি
+                            Order Tracking & History
                         </Link>
                         <Link to="/track" className={rowClass}>
                             <TrackChangesIcon sx={{ fontSize: '20px', color: '#10b981' }} />
-                            নম্বর দিয়ে অর্ডার খুঁজুন
+                            Find Order by Number
                         </Link>
                         <Link to="/cart" className={rowClass}>
                             <ShoppingCartIcon sx={{ fontSize: '20px', color: '#3b82f6' }} />
-                            কার্ট
+                            Cart
                         </Link>
                     </div>
 
                     {/* categories */}
                     <div className="border-b border-line py-2">
                         <p className="px-4 pt-1 pb-2 text-xxs font-bold uppercase tracking-widest text-slate-400">
-                            ক্যাটাগরি
+                            Categories
                         </p>
-                        {CATEGORIES.map((name) => (
+                        {categories.map((name) => (
                             <Link
                                 key={name}
                                 to={`/products?category=${encodeURIComponent(name)}`}
@@ -164,23 +169,23 @@ const MenuDrawer = ({ open, onClose }) => {
                     {/* support */}
                     <div className="border-b border-line py-2">
                         <p className="px-4 pt-1 pb-2 text-xxs font-bold uppercase tracking-widest text-slate-400">
-                            সাপোর্ট
+                            Support
                         </p>
                         {support.hotline && (
                             <a href={`tel:${support.hotline}`} className={rowClass}>
                                 <SupportAgentIcon sx={{ fontSize: '20px', color: '#10b981' }} />
-                                হেল্পলাইন: {support.hotline}
+                                Hotline: {support.hotline}
                             </a>
                         )}
                         {support.whatsapp && (
                             <a
-                                href={`https://wa.me/${support.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent('আমার অর্ডার সম্পর্কে জানতে চাই')}`}
+                                href={`https://wa.me/${support.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent('I would like to know about my order')}`}
                                 target="_blank"
                                 rel="noreferrer"
                                 className={rowClass}
                             >
                                 <ChatIcon sx={{ fontSize: '20px', color: '#10b981' }} />
-                                WhatsApp সাপোর্ট
+                                WhatsApp Support
                             </a>
                         )}
                     </div>
@@ -189,7 +194,7 @@ const MenuDrawer = ({ open, onClose }) => {
                     <div className="py-2">
                         <Link to="/policy" className={rowClass}>
                             <GavelIcon sx={{ fontSize: '20px', color: '#64748b' }} />
-                            প্রাইভেসি ও রিটার্ন পলিসি
+                            Privacy & Return Policy
                         </Link>
                     </div>
                 </div>

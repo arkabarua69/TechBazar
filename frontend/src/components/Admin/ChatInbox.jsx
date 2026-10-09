@@ -223,8 +223,8 @@ const ChatInbox = () => {
                         {!loading && conversations.length === 0 && (
                             <div className="flex flex-col items-center gap-2 text-slate-400 py-12 px-4 text-center">
                                 <ForumOutlinedIcon />
-                                <p className="text-sm">কোনো চ্যাট নেই</p>
-                                <p className="text-xs">সাইটের লাইভ চ্যাট উইজেট থেকে ভিজিটর মেসেজ পাঠালে এখানে দেখা যাবে।</p>
+                                <p className="text-sm">No chats yet</p>
+                                <p className="text-xs">Messages sent from the live chat widget on the site will appear here.</p>
                             </div>
                         )}
                         {conversations.map((c) => (
@@ -268,8 +268,8 @@ const ChatInbox = () => {
                     {!activeId ? (
                         <div className="flex-1 flex flex-col items-center justify-center gap-2 text-slate-400 p-6 text-center">
                             <ForumOutlinedIcon sx={{ fontSize: '40px' }} />
-                            <p className="text-sm font-medium text-slate-500">কোনো কনভারসেশন নির্বাচন করুন</p>
-                            <p className="text-xs">বাঁ পাশের তালিকা থেকে একটি চ্যাট খুলুন</p>
+<p className="text-sm font-medium text-slate-500">Select a conversation</p>
+                                <p className="text-xs">Open a chat from the list</p>
                         </div>
                     ) : (
                         <>
@@ -286,7 +286,7 @@ const ChatInbox = () => {
                                 <div className="min-w-0 flex-1">
                                     <p className="font-medium text-sm truncate">{active?.name}</p>
                                     <p className="text-xs text-slate-500 truncate">
-                                        {[active?.phone, active?.email].filter(Boolean).join(' · ') || 'গেস্ট ভিজিটর'}
+                                        {[active?.phone, active?.email].filter(Boolean).join(' · ') || 'Guest visitor'}
                                         {active?.createdAt && <> · joined {formatDate(active.createdAt)}</>}
                                     </p>
                                 </div>
@@ -296,7 +296,7 @@ const ChatInbox = () => {
                                             href={waLink(active.phone)}
                                             target="_blank"
                                             rel="noreferrer"
-                                            title="WhatsApp-এ মেসেজ দিন"
+                                            title="Message on WhatsApp"
                                             className="hidden sm:flex items-center gap-1 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 rounded px-2.5 py-1.5"
                                         >
                                             <WhatsAppIcon sx={{ fontSize: '15px' }} /> WhatsApp
@@ -333,7 +333,7 @@ const ChatInbox = () => {
                                     </div>
                                 ))}
                                 {messages.length === 0 && (
-                                    <p className="self-center text-xs text-slate-400">এখনো কোনো মেসেজ নেই</p>
+                                    <p className="self-center text-xs text-slate-400">No messages yet</p>
                                 )}
                             </div>
 
@@ -342,7 +342,7 @@ const ChatInbox = () => {
                                 <input
                                     value={text}
                                     onChange={(e) => setText(e.target.value)}
-                                    placeholder="রিপ্লাই লিখুন..."
+                                    placeholder="Type a reply..."
                                     maxLength={2000}
                                     className="flex-1 border border-line rounded-full px-4 py-2 text-sm focus:outline-none focus:border-black"
                                 />
