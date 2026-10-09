@@ -12,8 +12,6 @@ class SearchFeatures {
             }
         } : {};
 
-        // console.log(keyword);
-
         this.query = this.query.find({ ...keyword });
         return this;
     }
@@ -21,20 +19,50 @@ class SearchFeatures {
     filter() {
         const queryCopy = { ...this.queryString }
 
-        // fields to remove for category
+        // fields to remove before building the Mongoose filter
         const removeFields = ["keyword", "page", "limit"];
 
-        // console.log(queryCopy);
         removeFields.forEach(key => delete queryCopy[key]);
-        // console.log(queryCopy);
 
-        // price filter
-        let queryString = JSON.stringify(queryCopy);
-        queryString = queryString.replace(/\b(gt|gte|lt|lte)\b/g, key => `$${key}`);
+        // Parse bracket-notation query params (e.g. price[gte]=0) into nested
+        // MongoDB operators (e.g. { price: { $gte: 0 } }). The legacy
+        // JSON.stringify + regex approach produced invalid field names like
+        // "price[$gte]" which matched no documents, causing all products
+        // to be filtered out except those that happened to have such a field.
+        const parsedQuery = {};
 
-        // console.log(JSON.parse(queryString));
+        const castValue = (v) => {
+            if (v === 'true' || v === 'false') return v === 'true';
+            if (!isNaN(Number(v)) && v !== '') return Number(v);
+            return v;
+        };
 
-        this.query = this.query.find(JSON.parse(queryString));
+        for (const [key, value] of Object.entries(queryCopy)) {
+            const match = key.match(/^(\w+)\[(\w+)\]$/);
+            if (match) {
+                const [, field, operator] = match;
+                if (!parsedQuery[field]) parsedQuery[field] = {};
+                parsedQuery[field][`$${operator}`] = castValue(value);
+            } else {
+                parsedQuery[key] = castValue(value);
+            }
+        }
+
+        // When a shop filter is applied, always include products that have no
+        // shop assigned — they belong to no specific shop but should still
+        // appear on all shop pages alongside shop-specific products.
+        if (parsedQuery.shop) {
+            const shopFilter = parsedQuery.shop;
+            delete parsedQuery.shop;
+            parsedQuery.$or = [
+                { shop: shopFilter },
+                { shop: { $exists: false } },
+                { shop: null },
+                { shop: '' },
+            ];
+        }
+
+        this.query = this.query.find(parsedQuery);
         return this;
     }
 

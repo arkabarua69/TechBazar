@@ -13,9 +13,8 @@ import ProductCardDesktop from './ProductCardDesktop';
 import { useCategories } from '../../utils/useCategories';
 import MetaData from '../Layouts/MetaData';
 
-// Shop page — same centered-column layout as the home page:
-//  full-bleed header band (search, sort, category chips) +
-//  max-w-4xl content column (filter sidebar + product grid).
+// Shop page — desktop-optimized width with fixed filter sidebar + responsive
+// product grid.  Category / price / rating filters are applied server-side.
 const Products = () => {
 
     const dispatch = useDispatch();
@@ -26,7 +25,11 @@ const Products = () => {
     const categories = useCategories();
 
     const [price, setPrice] = useState([0, 200000]);
-    const [category, setCategory] = useState(location.search ? location.search.split("=")[1] : "");
+    // use URLSearchParams so multiple query params (?category=X&foo=Y) don't corrupt the value
+    const [category, setCategory] = useState(() => {
+        const params = new URLSearchParams(location.search);
+        return params.get('category') || '';
+    });
     const [ratings, setRatings] = useState(0);
     const [sort, setSort] = useState('default');
     const [searchInput, setSearchInput] = useState(params.keyword || '');
@@ -55,6 +58,7 @@ const Products = () => {
         setPrice([0, 200000]);
         setCategory("");
         setRatings(0);
+        setCurrentPage(1);
     }
 
     const searchSubmit = (e) => {
@@ -75,6 +79,12 @@ const Products = () => {
         dispatch(getProducts(keyword, category, price, ratings, currentPage));
     }, [dispatch, keyword, category, price, ratings, currentPage, error, enqueueSnackbar]);
 
+    // reset to first page whenever the active filter changes so users
+    // never see an empty page-3 after switching category or search term
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [keyword, category, price, ratings]);
+
     // client-side sorting of the current page
     const sortedProducts = useMemo(() => {
         const list = [...(products || [])];
@@ -94,6 +104,36 @@ const Products = () => {
             <button onClick={clearFilters} className="text-xs font-semibold text-primary-accent hover:underline">Clear all</button>
             </div>
             <div className="px-4 py-3.5 flex flex-col gap-5">
+                {/* category */}
+                <div className="flex flex-col gap-2">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Category</span>
+                    <div className="flex flex-col gap-1.5">
+                        <button
+                            onClick={() => setCategory('')}
+                            className={`text-xs sm:text-sm font-semibold rounded-lg px-3 py-2 text-left transition duration-200 ${
+                                category === ''
+                                    ? 'bg-primary-accent text-white'
+                                    : 'bg-cloud text-slate-700 hover:bg-primary-accent/5'
+                            }`}
+                        >
+                            All Products
+                        </button>
+                        {categories.map((cat) => (
+                            <button
+                                key={cat}
+                                onClick={() => setCategory(cat)}
+                                className={`text-xs sm:text-sm font-semibold rounded-lg px-3 py-2 text-left transition duration-200 ${
+                                    category === cat
+                                        ? 'bg-primary-accent text-white'
+                                        : 'bg-cloud text-slate-700 hover:bg-primary-accent/5'
+                                }`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
                 {/* price range */}
                 <div className="flex flex-col gap-2">
                     <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Price</span>

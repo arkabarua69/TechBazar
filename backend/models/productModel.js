@@ -125,6 +125,11 @@ const productSchema = new mongoose.Schema({
         type: String,
         default: "local",
     },
+    // optional shop association — products without a shop are displayed
+    // on all shop pages alongside shop-specific products
+    shop: {
+        type: String,
+    },
     // admin-selected: shown first in the homepage "Featured" section
     featured: {
         type: Boolean,
