@@ -83,13 +83,30 @@ export const SiteConfigProvider = ({ children }) => {
             .then(({ data }) => {
                 if (data && data.config) {
                     const merged = { ...DEFAULT_SITE_CONFIG, ...data.config };
+                    // Always merge with orange defaults so old blue DB records are overridden
+                    const theme = {
+                        ...DEFAULT_SITE_CONFIG.theme,
+                        ...(merged.theme || {}),
+                    };
+                    // If DB has old blue accent, override with orange default
+                    if (theme.colorAccent === '#3b82f6' || theme.colorAccent === '#2563eb') {
+                        theme.colorAccent      = DEFAULT_SITE_CONFIG.theme.colorAccent;
+                        theme.colorAccentHover = DEFAULT_SITE_CONFIG.theme.colorAccentHover;
+                    }
+                    merged.theme = theme;
                     setConfig(merged);
-                    applyTheme(merged.theme || DEFAULT_SITE_CONFIG.theme);
+                    applyTheme(theme);
                 }
             })
             .catch(() => {
                 applyTheme(DEFAULT_SITE_CONFIG.theme);
             });
+    }, []);
+
+    // Apply orange defaults IMMEDIATELY on first paint — before API returns.
+    // This prevents the blue flash on load.
+    useEffect(() => {
+        applyTheme(DEFAULT_SITE_CONFIG.theme);
     }, []);
 
     useEffect(() => {
