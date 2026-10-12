@@ -1,5 +1,5 @@
 const SiteConfig = require('../models/siteConfigModel');
-const { DEFAULT_CONFIG } = require('../models/siteConfigModel');
+const { DEFAULT_CONFIG, DEFAULT_THEME } = require('../models/siteConfigModel');
 
 const str = (v) => (typeof v === 'string' ? v.trim() : '');
 
@@ -41,12 +41,24 @@ const updateSiteConfig = async (req, res) => {
         if (Array.isArray(body.howToOrder)) update.howToOrder = body.howToOrder;
         if (Array.isArray(body.reviews)) update.reviews = body.reviews;
 
+        // theme — visual customisation tokens
+        if (body.theme && typeof body.theme === 'object') {
+            const t = body.theme;
+            const allowedKeys = Object.keys(DEFAULT_THEME);
+            const themeUpdate = {};
+            allowedKeys.forEach((k) => {
+                if (t[k] !== undefined) themeUpdate[k] = t[k];
+            });
+            if (Object.keys(themeUpdate).length) update.theme = { ...DEFAULT_THEME, ...themeUpdate };
+        }
+
         // branding / seo / navigation / content / chat
         if (body.branding) {
             update.branding = {
-                name: str(body.branding.name).slice(0, 60) || DEFAULT_CONFIG.branding.name,
-                tagline: str(body.branding.tagline).slice(0, 160),
-                logoUrl: str(body.branding.logoUrl).slice(0, 500),
+                name:       str(body.branding.name).slice(0, 60) || DEFAULT_CONFIG.branding.name,
+                tagline:    str(body.branding.tagline).slice(0, 160),
+                logoUrl:    str(body.branding.logoUrl).slice(0, 500),
+                faviconUrl: str(body.branding.faviconUrl).slice(0, 500),
             };
         }
         if (body.seo) {

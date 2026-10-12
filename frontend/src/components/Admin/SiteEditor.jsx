@@ -8,6 +8,8 @@ import { useTranslation } from '../../i18n/LanguageContext';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import SaveIcon from '@mui/icons-material/Save';
+import ThemeEditor from './ThemeEditor';
+import { useSiteConfig } from '../../context/SiteConfigContext';
 
 const clone = (obj) => JSON.parse(JSON.stringify(obj));
 
@@ -39,6 +41,7 @@ const SiteEditor = () => {
 
     const { enqueueSnackbar } = useSnackbar();
     const { t } = useTranslation();
+    const { reloadConfig } = useSiteConfig();
 
     // Sidebar navigation: each nav item opens a full-screen view.
     // `labelKey`/`titleKey` resolve through the i18n catalog so they switch
@@ -49,6 +52,7 @@ const SiteEditor = () => {
         { id: 'trustBadges', labelKey: 'trust_badges', icon: '✅', titleKey: 'trust_badges' },
         { id: 'settings', labelKey: 'settings', icon: '⚙️', titleKey: 'settings_editor' },
         { id: 'branding', labelKey: 'branding', icon: '🎨', titleKey: 'branding_editor' },
+        { id: 'theme', labelKey: 'theme', icon: '🖌️', titleKey: 'theme_editor' },
     ], []);
 
     const [config, setConfig] = useState(clone(DEFAULT_SITE_CONFIG));
@@ -184,6 +188,8 @@ const SiteEditor = () => {
                 headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
             });
             enqueueSnackbar(t('saved'), { variant: 'success' });
+            // Reload config so CSS tokens update everywhere immediately
+            reloadConfig();
         } catch (err) {
             enqueueSnackbar(err.response?.data?.message || t('save_failed'), { variant: 'error' });
         } finally {
@@ -196,6 +202,7 @@ const SiteEditor = () => {
             const { data } = await axios.put('/api/v1/admin/siteconfig/reset', {}, { headers: { Accept: 'application/json' } });
             setConfig(clone(data.config));
             enqueueSnackbar(t('reset_msg'), { variant: 'success' });
+            reloadConfig();
         } catch (err) {
             enqueueSnackbar(err.response?.data?.message || t('save_failed'), { variant: 'error' });
         }
@@ -534,6 +541,22 @@ const SiteEditor = () => {
                             <h3 className="font-semibold text-sm text-gray-900">{t('live_chat')}</h3>
                             <Field label={t('welcome_msg')} textarea value={ch.welcomeMessage} onChange={(v) => setSection('chat', 'welcomeMessage', v)} />
                         </div>
+                    </div>
+                );
+
+            case 'theme':
+                return (
+                    <div className="flex flex-col gap-4">
+                        <div>
+                            <h2 className="font-bold text-sm text-gray-900">🖌️ Theme &amp; Visual Customisation</h2>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                                All changes preview <strong>instantly</strong>. Click <strong>Save</strong> to apply site-wide permanently.
+                            </p>
+                        </div>
+                        <ThemeEditor
+                            theme={config.theme || {}}
+                            onChange={(theme) => setConfig((prev) => ({ ...prev, theme }))}
+                        />
                     </div>
                 );
 
