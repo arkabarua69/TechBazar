@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import Categories from '../Layouts/Categories';
 import Hero from './Hero';
 import TrustBadges from './TrustBadges';
 import FlashSale from './FlashSale';
@@ -14,84 +13,120 @@ import { clearErrors, getSliderProducts } from '../../actions/productAction';
 import { useSnackbar } from 'notistack';
 import MetaData from '../Layouts/MetaData';
 import { DEFAULT_SITE_CONFIG } from '../../utils/siteConfig';
+import { Link } from 'react-router-dom';
+import { useSiteConfig } from '../../context/SiteConfigContext';
+
+// Section header matching MegaMart style:
+// "Grab the best deal on <colored keyword>" + "View All >"
+const SectionHeader = ({ title, accent, viewAllLink = '/products' }) => (
+    <div className="flex items-center justify-between mb-4">
+        <h2 className="text-base sm:text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+            {title}{' '}
+            {accent && (
+                <span style={{ color: 'var(--color-accent)' }}>{accent}</span>
+            )}
+        </h2>
+        <Link
+            to={viewAllLink}
+            className="flex items-center gap-1 text-sm font-semibold transition-colors"
+            style={{ color: 'var(--color-accent)' }}
+        >
+            View All
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+            </svg>
+        </Link>
+    </div>
+);
 
 const Home = () => {
+    const dispatch = useDispatch();
+    const { enqueueSnackbar } = useSnackbar();
+    const { config: siteConfig } = useSiteConfig();
 
-  const dispatch = useDispatch();
-  const { enqueueSnackbar } = useSnackbar();
+    const { error, loading, products } = useSelector((state) => state.products);
 
-  const { error, loading, products } = useSelector((state) => state.products);
+    const [config, setConfig] = useState(DEFAULT_SITE_CONFIG);
 
-  // homepage content managed from Admin → Homepage
-  const [config, setConfig] = useState(DEFAULT_SITE_CONFIG);
+    useEffect(() => {
+        axios.get('/api/v1/siteconfig', { headers: { Accept: 'application/json' } })
+            .then((res) => res.data?.config && setConfig({ ...DEFAULT_SITE_CONFIG, ...res.data.config }))
+            .catch(() => {});
+    }, []);
 
-  useEffect(() => {
-    axios.get('/api/v1/siteconfig', { headers: { Accept: 'application/json' } })
-      .then((res) => res.data && res.data.config && setConfig({ ...DEFAULT_SITE_CONFIG, ...res.data.config }))
-      .catch(() => { /* keep defaults */ });
-  }, []);
+    useEffect(() => {
+        if (error) {
+            enqueueSnackbar(error, { variant: 'error' });
+            dispatch(clearErrors());
+        }
+        dispatch(getSliderProducts());
+    }, [dispatch, error, enqueueSnackbar]);
 
-  useEffect(() => {
-    if (error) {
-      enqueueSnackbar(error, { variant: "error" });
-      dispatch(clearErrors());
-    }
-    dispatch(getSliderProducts());
-  }, [dispatch, error, enqueueSnackbar]);
+    const productList = products || [];
+    const brandName = siteConfig.branding?.name || 'TechBazar';
 
-  const productList = products || [];
+    return (
+        <>
+            <MetaData title={`${brandName} — Online Shopping for Mobiles, Electronics, Fashion, Appliances & More`} />
 
-  return (
-    <>
-      <MetaData title="TechBazar — Online Shopping for Mobiles, Electronics, Fashion, Appliances, Furniture & More. Best Offers!" />
+            {/* ── Hero banner ── full container width */}
+            <section style={{ backgroundColor: 'var(--color-bg-alt, var(--color-bg))' }}>
+                <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-5">
+                    <Hero hero={config.hero} />
+                </div>
+            </section>
 
-      <Categories />
+            {/* ── Main content column ── */}
+            <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 pb-16">
 
-      {/* ── centered-column layout ──────────────────────────
-          full-bleed background bands span the viewport while all
-          content lives in a max-w-4xl column — generous,
-          intentional empty space on the left and right sides. */}
+                {/* Trust badges */}
+                <div className="py-4 sm:py-5">
+                    <TrustBadges badges={config.trustBadges} />
+                </div>
 
-      {/* hero band — background bleeds edge-to-edge, content centered */}
-      <section className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-100 border-b border-line">
-        <div className="mx-auto max-w-4xl px-5 sm:px-6 py-6 sm:py-10">
-          <Hero hero={config.hero} />
-        </div>
-      </section>
+                {/* Flash Sale / Deal of the Day */}
+                {config.flashSale?.enabled !== false && productList.length > 0 && (
+                    <section className="mb-6">
+                        <SectionHeader title="Grab the best deal on" accent="Smartphones" />
+                        <FlashSale flashSale={config.flashSale} products={productList} />
+                    </section>
+                )}
 
-      {/* main centered content column */}
-      <main className="mx-auto max-w-4xl px-5 sm:px-6 flex flex-col gap-10 pb-16 mt-6 sm:mt-8">
+                {/* Shop from Top Categories */}
+                <section className="mb-6">
+                    <SectionHeader title="Shop From" accent="Top Categories" viewAllLink="/products" />
+                    <CategoryShowcase />
+                </section>
 
-        {/* trust badges: 4-across desktop, 2x2 mobile */}
-        <TrustBadges badges={config.trustBadges} />
+                {/* Featured / Popular Products */}
+                <section className="mb-6">
+                    <SectionHeader title="Top" accent="Electronics Brands" viewAllLink="/products" />
+                    <FeaturedProducts products={productList} loading={loading} />
+                </section>
 
-        {/* flash sale + countdown */}
-        <FlashSale flashSale={config.flashSale} products={productList} />
+                {/* All products grid */}
+                <section className="mb-6">
+                    <SectionHeader title="Daily" accent="Essentials" viewAllLink="/products" />
+                    <ProductGrid products={productList} loading={loading} />
+                </section>
 
-        {/* featured picks — admin-selected (★) products come first */}
-        <FeaturedProducts products={productList} loading={loading} />
+                {/* How to Order */}
+                <section
+                    className="rounded-2xl p-5 sm:p-8 mb-6"
+                    style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+                >
+                    <SectionHeader title="How to" accent="Order" viewAllLink="/track" />
+                    <HowToOrder steps={config.howToOrder} />
+                </section>
 
-        {/* product grid: 4 cols desktop / 2 cols mobile */}
-        <ProductGrid products={productList} loading={loading} />
-
-        {/* category + featured collections */}
-        <CategoryShowcase />
-
-      </main>
-
-      {/* how-to-order band — second full-bleed section for rhythm */}
-      <section className="bg-blue-50/50 border-y border-line">
-        <div className="mx-auto max-w-4xl px-5 sm:px-6 py-8 sm:py-12">
-          <HowToOrder steps={config.howToOrder} />
-        </div>
-      </section>
-
-      {/* reviews — back to the centered white column */}
-      <main className="mx-auto max-w-4xl px-5 sm:px-6 flex flex-col gap-10 pb-16 mt-6 sm:mt-8">
-        <Reviews reviews={config.reviews} />
-      </main>
-    </>
-  );
+                {/* Customer Reviews */}
+                <section className="mb-6">
+                    <SectionHeader title="Customer" accent="Reviews" viewAllLink="/products" />
+                    <Reviews reviews={config.reviews} />
+                </section>
+            </main>
+        </>
+    );
 };
 
 export default Home;

@@ -104,32 +104,37 @@ const AdminAppBar = ({ onMenu }) => {
     const onOrdersPage = location.pathname.startsWith('/admin/store_orders');
 
     return (
-        <div className="fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200 px-3 py-2 flex items-center gap-2">
+        <div
+            className="fixed top-0 left-0 right-0 z-40 px-3 py-2 flex items-center gap-2"
+            style={{ backgroundColor: '#2D1B0E', borderBottom: '1px solid rgba(232,75,15,0.2)' }}
+        >
             <button
                 onClick={onMenu}
                 aria-label="Open menu"
-                className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center active:scale-95 transition"
+                className="w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition"
+                style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}
             >
                 <MenuIcon sx={{ fontSize: '20px' }} />
             </button>
 
             <div className="flex items-center gap-2 min-w-0 flex-1">
-                <div className="relative">
-                    <div className="w-9 h-9 rounded-full bg-[#0A0A0A] text-white flex items-center justify-center font-semibold text-sm">
-                        <PersonOutlineIcon sx={{ fontSize: '20px' }} />
-                    </div>
-                    <span className="absolute -right-0.5 -bottom-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white animate-pulse"></span>
+                <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm text-white"
+                    style={{ backgroundColor: 'rgba(232,75,15,0.3)' }}
+                >
+                    <PersonOutlineIcon sx={{ fontSize: '20px' }} />
                 </div>
                 <div className="leading-tight min-w-0">
-                    <p className="text-sm font-bold text-gray-900 truncate">Admin</p>
-                    <p className="text-[10px] text-green-600 font-medium">● live</p>
+                    <p className="text-sm font-bold text-white truncate">Admin</p>
+                    <p className="text-[10px] text-green-400 font-medium">● live</p>
                 </div>
             </div>
 
             <button
                 onClick={openSearch}
                 aria-label="Search orders"
-                className="w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-700 flex items-center justify-center active:scale-95 transition"
+                className="w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition"
+                style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: '#fff' }}
             >
                 <SearchIcon sx={{ fontSize: '20px' }} />
             </button>
@@ -138,11 +143,15 @@ const AdminAppBar = ({ onMenu }) => {
                 <button
                     onClick={openBell}
                     aria-label="Notifications"
-                    className="relative w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-700 flex items-center justify-center active:scale-95 transition"
+                    className="relative w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: '#fff' }}
                 >
                     <NotificationsNoneIcon sx={{ fontSize: '20px' }} />
                     {unseen > 0 && (
-                        <span className="absolute top-0.5 right-0.5 min-w-[17px] h-[17px] px-1 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center border border-white">
+                        <span
+                            className="absolute top-0.5 right-0.5 min-w-[17px] h-[17px] px-1 rounded-full text-white text-[10px] font-bold flex items-center justify-center border-2"
+                            style={{ backgroundColor: 'var(--color-accent)', borderColor: '#2D1B0E' }}
+                        >
                             {unseen > 9 ? '9+' : unseen}
                         </span>
                     )}

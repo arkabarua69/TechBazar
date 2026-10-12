@@ -4,8 +4,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Link } from 'react-router-dom';
 import { categories as fallbackCategories } from '../../utils/constants';
 
-// Top category strip — the list comes from the site CMS
-// (GET /api/v1/siteconfig), editable in Admin → Homepage.
+// Horizontal category pill strip under the main navbar (MegaMart layout).
+// List is admin-editable from Admin → Homepage → Categories.
 const MinCategory = () => {
     const [categories, setCategories] = useState(fallbackCategories);
 
@@ -13,23 +13,42 @@ const MinCategory = () => {
         let alive = true;
         axios.get('/api/v1/siteconfig', { headers: { Accept: 'application/json' } })
             .then(({ data }) => {
-                const list = data && data.config && data.config.categories;
-                if (alive && Array.isArray(list) && list.length) {
-                    setCategories(list);
-                }
+                const list = data?.config?.categories;
+                if (alive && Array.isArray(list) && list.length) setCategories(list);
             })
-            .catch(() => { /* keep fallback */ });
+            .catch(() => {});
         return () => { alive = false; };
     }, []);
 
     return (
-        <section className="hidden sm:block bg-white border-b border-line w-full px-2 sm:px-12 overflow-hidden">
-            <div className="flex items-center justify-between p-0.5">
-                {categories.map((el, i) => (
-                    <Link to={`/products?category=${encodeURIComponent(el)}`} key={i} className="text-sm p-2 text-slate-600 font-medium hover:text-primary-accent flex items-center gap-0.5 group">{el} <span className="text-slate-400 group-hover:text-primary-accent"><ExpandMoreIcon sx={{ fontSize: "16px" }} /></span></Link>
-                ))}
+        <div
+            className="hidden md:block w-full border-t"
+            style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-header)' }}
+        >
+            <div className="max-w-7xl mx-auto px-4 lg:px-6">
+                <div className="flex items-center gap-0 overflow-x-auto no-scrollbar">
+                    {categories.map((cat, i) => (
+                        <Link
+                            to={`/products?category=${encodeURIComponent(cat)}`}
+                            key={i}
+                            className="flex items-center gap-0.5 shrink-0 px-3 py-2.5 text-sm font-medium whitespace-nowrap transition-all duration-150 border-b-2 border-transparent"
+                            style={{ color: 'var(--color-text-secondary)' }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.color = 'var(--color-accent)';
+                                e.currentTarget.style.borderBottomColor = 'var(--color-accent)';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.color = 'var(--color-text-secondary)';
+                                e.currentTarget.style.borderBottomColor = 'transparent';
+                            }}
+                        >
+                            {cat}
+                            <ExpandMoreIcon sx={{ fontSize: '16px' }} />
+                        </Link>
+                    ))}
+                </div>
             </div>
-        </section>
+        </div>
     );
 };
 

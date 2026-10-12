@@ -4,15 +4,12 @@ import Sidebar from './Sidebar/Sidebar';
 import AdminAppBar from './AdminAppBar';
 
 const Dashboard = ({ activeTab, children }) => {
-
-    // Tailwind's `sm` breakpoint is 640px — the JS check must match it, otherwise
-    // in the 600–639px range the static sidebar renders with mobile CSS (fixed
-    // w-3/4 overlay) and covers the page with no way to close it.
-    const [onMobile, setOnMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 640);
+    const [onMobile, setOnMobile] = useState(() =>
+        typeof window !== 'undefined' && window.innerWidth < 640
+    );
     const [toggleSidebar, setToggleSidebar] = useState(false);
     const location = useLocation();
 
-    // keep in sync when the window is resized / rotated
     useEffect(() => {
         const mq = window.matchMedia('(min-width: 640px)');
         const onChange = (e) => {
@@ -23,41 +20,45 @@ const Dashboard = ({ activeTab, children }) => {
         return () => mq.removeEventListener('change', onChange);
     }, []);
 
-    // close the mobile drawer after navigating to another admin page
     useEffect(() => {
         setToggleSidebar(false);
     }, [location.pathname]);
 
-    // admin owns the top/bottom edges — strip the store header's global body
-    // padding so the fixed AdminAppBar / AdminBottomNav spacing isn't doubled
     useEffect(() => {
         document.body.classList.add('admin-page');
         return () => document.body.classList.remove('admin-page');
     }, []);
 
     return (
-        <>
-            <main className={`flex min-h-screen overflow-x-hidden ${onMobile ? 'mt-0' : 'mt-4'} sm:mt-0 sm:min-w-full`}>
+        <main className="flex min-h-screen overflow-x-hidden">
+            {/* Sidebar */}
+            {!onMobile && <Sidebar activeTab={activeTab} />}
+            {onMobile && toggleSidebar && (
+                <>
+                    <div
+                        className="fixed inset-0 bg-black/60 z-50 sm:hidden backdrop-blur-sm"
+                        onClick={() => setToggleSidebar(false)}
+                    />
+                    <Sidebar activeTab={activeTab} setToggleSidebar={setToggleSidebar} />
+                </>
+            )}
 
-                {!onMobile && <Sidebar activeTab={activeTab} />}
-                {onMobile && toggleSidebar && (
-                    <>
-                        <div
-                            className="fixed inset-0 bg-black/50 z-50 sm:hidden"
-                            onClick={() => setToggleSidebar(false)}
-                        ></div>
-                        <Sidebar activeTab={activeTab} setToggleSidebar={setToggleSidebar} />
-                    </>
+            {/* Main content */}
+            <div
+                className="w-full sm:flex-1 sm:ml-72 min-h-screen overflow-x-hidden"
+                style={{ backgroundColor: '#FDF5EF' }}
+            >
+                {onMobile && (
+                    <AdminAppBar onMenu={() => setToggleSidebar(true)} />
                 )}
 
-                <div className="w-full sm:flex-1 sm:ml-72 min-h-screen bg-[#F4F4F5] overflow-x-hidden">
-                    {onMobile && <AdminAppBar onMenu={() => setToggleSidebar(true)} />}
-                    <div className={`flex flex-col gap-4 sm:gap-6 sm:m-8 p-3 pb-24 sm:pb-8 overflow-hidden overflow-x-hidden ${onMobile ? 'pt-16' : ''}`}>
-                        {children}
-                    </div>
+                <div
+                    className={`flex flex-col gap-4 sm:gap-6 p-3 sm:p-6 lg:p-8 pb-24 sm:pb-8 overflow-hidden ${onMobile ? 'pt-16' : 'pt-6'}`}
+                >
+                    {children}
                 </div>
-            </main>
-        </>
+            </div>
+        </main>
     );
 };
 

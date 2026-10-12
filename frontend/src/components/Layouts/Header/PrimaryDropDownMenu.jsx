@@ -74,45 +74,68 @@ const PrimaryDropDownMenu = ({ setTogglePrimaryDropDown, user }) => {
     ]
 
     return (
-        <div className="absolute w-60 -left-24 ml-2 top-9 surface rounded-xl shadow-lg flex-col text-sm overflow-hidden">
-
-            {user.role === "admin" &&
-                <Link className="flex gap-3 items-center px-4 py-2.5 text-sm text-slate-700 hover:bg-blue-50 hover:text-primary-accent" to="/admin/dashboard">
-                    <span className="text-primary-accent"><DashboardIcon sx={{ fontSize: "18px" }} /></span>
+        <div
+            className="absolute w-60 -left-24 ml-2 top-9 rounded-2xl shadow-xl flex-col text-sm overflow-hidden"
+            style={{
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                boxShadow: '0 16px 40px rgba(232,75,15,0.15)',
+            }}
+        >
+            {user.role === 'admin' &&
+                <Link
+                    className="flex gap-3 items-center px-4 py-2.5 text-sm font-medium transition-colors"
+                    style={{ color: 'var(--color-text-primary)' }}
+                    onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--color-accent-light,#fff0eb)'; e.currentTarget.style.color = 'var(--color-accent)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = 'var(--color-text-primary)'; }}
+                    to="/admin/dashboard"
+                >
+                    <span style={{ color: 'var(--color-accent)' }}><DashboardIcon sx={{ fontSize: '18px' }} /></span>
                     Admin Dashboard
                 </Link>
             }
 
-            <Link className="flex gap-3 items-center px-4 py-2.5 text-sm text-slate-700 hover:bg-blue-50 hover:text-primary-accent" to="/account">
-                <span className="text-primary-accent"><AccountCircleIcon sx={{ fontSize: "18px" }} /></span>
+            <Link
+                className="flex gap-3 items-center px-4 py-2.5 text-sm font-medium transition-colors"
+                style={{ color: 'var(--color-text-primary)' }}
+                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--color-accent-light,#fff0eb)'; e.currentTarget.style.color = 'var(--color-accent)'; }}
+                onMouseLeave={e => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = 'var(--color-text-primary)'; }}
+                to="/account"
+            >
+                <span style={{ color: 'var(--color-accent)' }}><AccountCircleIcon sx={{ fontSize: '18px' }} /></span>
                 My Profile
             </Link>
 
             {navs.map((item, i) => {
                 const { title, icon, redirect } = item;
-
                 return (
-                    <>
-                        {title === "Wishlist" ? (
-                            <Link className="flex gap-3 items-center px-4 py-2.5 text-sm text-slate-700 hover:bg-blue-50 hover:text-primary-accent" to={redirect} key={i}>
-                                <span className="text-primary-accent">{icon}</span>
-                                {title}
-                                <span className="ml-auto mr-3 bg-cloud p-0.5 px-2 text-slate-500 font-semibold rounded-full">
-                                    {wishlistItems.length}
-                                </span>
-                            </Link>
-                        ) : (
-                            <Link className="flex gap-3 items-center px-4 py-2.5 text-sm text-slate-700 hover:bg-blue-50 hover:text-primary-accent" to={redirect} key={i}>
-                                <span className="text-primary-accent">{icon}</span>
-                                {title}
-                            </Link>
+                    <Link
+                        className="flex gap-3 items-center px-4 py-2.5 text-sm font-medium transition-colors"
+                        style={{ color: 'var(--color-text-primary)' }}
+                        onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--color-accent-light,#fff0eb)'; e.currentTarget.style.color = 'var(--color-accent)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = 'var(--color-text-primary)'; }}
+                        to={redirect}
+                        key={i}
+                    >
+                        <span style={{ color: 'var(--color-accent)' }}>{icon}</span>
+                        {title}
+                        {title === 'Wishlist' && (
+                            <span className="ml-auto mr-3 text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: 'var(--color-border)', color: 'var(--color-text-secondary)' }}>
+                                {wishlistItems.length}
+                            </span>
                         )}
-                    </>
-                )
+                    </Link>
+                );
             })}
 
-            <div className="flex gap-3 items-center px-4 py-2.5 text-sm text-slate-700 hover:bg-blue-50 hover:text-primary-accent cursor-pointer" onClick={handleLogout} >
-                <span className="text-primary-accent"><PowerSettingsNewIcon sx={{ fontSize: "18px" }} /></span>
+            <div
+                className="flex gap-3 items-center px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer"
+                style={{ color: 'var(--color-text-primary)' }}
+                onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#fff0eb'; e.currentTarget.style.color = 'var(--color-accent)'; }}
+                onMouseLeave={e => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = 'var(--color-text-primary)'; }}
+                onClick={handleLogout}
+            >
+                <span style={{ color: 'var(--color-accent)' }}><PowerSettingsNewIcon sx={{ fontSize: '18px' }} /></span>
                 Logout
             </div>
 

@@ -4,29 +4,25 @@ import { useSnackbar } from 'notistack';
 import StarIcon from '@mui/icons-material/Star';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import CheckIcon from '@mui/icons-material/Check';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import { useState } from 'react';
 import { getDiscount } from '../../utils/functions';
 import { addItemsToCart } from '../../actions/cartAction';
 
-// High-converting product card for BD gadget shoppers:
-// image + corner badges (COD / discount / out of stock) → 2-line title +
-// spec chips → Sora price + delivery-charge note → "Order Now" + cart button
+// MegaMart-style product card:
+//   image with corner OFF% badge · save amount · title · rating · price row
 const ProductCard = ({ product }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { enqueueSnackbar } = useSnackbar();
     const [added, setAdded] = useState(false);
 
-    const { _id, name, images, ratings, numOfReviews, price, cuttedPrice, brand, stock, highlights } = product || {};
+    const { _id, name, images, ratings, numOfReviews, price, cuttedPrice, brand, stock } = product || {};
 
     const discount = Number(getDiscount(price, cuttedPrice)) || 0;
-    const image = images && images[0] && images[0].url;
+    const saveAmount = cuttedPrice && price ? cuttedPrice - price : 0;
+    const image = images?.[0]?.url;
     const outOfStock = stock < 1;
-
-    // spec chips (skip the COD line — it has its own badge)
-    const specs = (Array.isArray(highlights) ? highlights : [])
-        .filter((h) => h && !/cash on delivery/i.test(h))
-        .slice(0, 2);
 
     const orderNow = async () => {
         if (outOfStock) return;
@@ -51,84 +47,119 @@ const ProductCard = ({ product }) => {
     };
 
     return (
-        <div className="group surface overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition duration-200 flex flex-col">
+        <div
+            className="group flex flex-col overflow-hidden transition-all duration-200"
+            style={{
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--card-radius)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            }}
+            onMouseEnter={e => e.currentTarget.style.boxShadow = '0 8px 24px rgba(232,75,15,0.12)'}
+            onMouseLeave={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)'}
+        >
+            {/* Image area */}
+            <Link to={`/product/${_id}`} className="relative block overflow-hidden" style={{ backgroundColor: '#fff', borderBottom: '1px solid var(--color-border)' }}>
+                <div className="h-40 sm:h-48 flex items-center justify-center p-3 sm:p-4">
+                    {image && (
+                        <img
+                            draggable="false"
+                            src={image}
+                            alt={name}
+                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                        />
+                    )}
+                </div>
 
-            {/* ── image ── */}
-            <Link to={`/product/${_id}`} className="relative h-40 sm:h-48 bg-white border-b border-line overflow-hidden flex items-center justify-center">
-                {image && (
-                    <img
-                        draggable="false"
-                        src={image}
-                        alt={name}
-                        className="w-full h-full object-contain p-2 sm:p-3 group-hover:scale-105 transition duration-300"
-                    />
-                )}
-                {/* discount badge */}
-                {discount > 0 && !outOfStock && (
-                    <span className="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wide text-white bg-red-500 px-1.5 py-0.5 rounded shadow">
-                        {discount}% off
-                    </span>
-                )}
-                {outOfStock && (
-                    <span className="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wide text-white bg-slate-500 px-1.5 py-0.5 rounded shadow">
-                        Out of Stock
-                    </span>
-                )}
+                {/* Top badges */}
+                <div className="absolute top-2 left-2 flex flex-col gap-1">
+                    {discount > 0 && !outOfStock && (
+                        <span
+                            className="text-[10px] font-bold text-white px-1.5 py-0.5 rounded"
+                            style={{ backgroundColor: 'var(--color-accent)' }}
+                        >
+                            {discount}%<br />OFF
+                        </span>
+                    )}
+                    {outOfStock && (
+                        <span className="text-[10px] font-bold text-white bg-gray-500 px-1.5 py-0.5 rounded">
+                            OUT
+                        </span>
+                    )}
+                </div>
+
+                {/* Wishlist icon */}
+                <button
+                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-white shadow-sm"
+                    onClick={(e) => { e.preventDefault(); }}
+                    aria-label="Add to wishlist"
+                >
+                    <FavoriteBorderIcon sx={{ fontSize: '14px', color: 'var(--color-accent)' }} />
+                </button>
             </Link>
 
-            {/* ── details ── */}
-            <div className="flex flex-col gap-1.5 p-3 sm:p-3.5 flex-1">
-                {brand && brand.name && (
-                    <span className="text-xxs font-bold uppercase tracking-wider text-slate-400">{brand.name}</span>
+            {/* Info area */}
+            <div className="flex flex-col gap-1 p-3 flex-1">
+                {brand?.name && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+                        {brand.name}
+                    </span>
                 )}
 
                 <Link to={`/product/${_id}`}>
-                    <h3 className="text-xs sm:text-sm font-medium text-slate-800 leading-snug line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] hover:text-primary-accent transition duration-200">
+                    <h3
+                        className="text-xs sm:text-sm font-medium leading-snug line-clamp-2 transition-colors"
+                        style={{ color: 'var(--color-text-primary)', minHeight: '2.4rem' }}
+                        onMouseEnter={e => e.currentTarget.style.color = 'var(--color-accent)'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'var(--color-text-primary)'}
+                    >
                         {name}
                     </h3>
                 </Link>
 
-                {/* spec chips */}
-                {specs.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                        {specs.map((spec, i) => (
-                            <span key={i} className="text-[9px] font-medium text-slate-500 bg-cloud border border-line px-1.5 py-0.5 rounded">
-                                {spec}
-                            </span>
-                        ))}
-                    </div>
-                )}
-
-                <div className="flex items-center gap-2 text-xs">
-                    <span className="flex items-center gap-0.5 bg-primary-green text-white px-1.5 py-0.5 rounded font-semibold">
+                {/* Rating */}
+                <div className="flex items-center gap-1.5 text-xs mt-0.5">
+                    <span
+                        className="flex items-center gap-0.5 text-white px-1.5 py-0.5 rounded font-semibold"
+                        style={{ backgroundColor: '#16a34a', fontSize: '10px' }}
+                    >
                         {(Number(ratings) || 0).toFixed(1)}
-                        <StarIcon sx={{ fontSize: '12px' }} />
+                        <StarIcon sx={{ fontSize: '10px' }} />
                     </span>
-                    <span className="text-slate-500">({(numOfReviews || 0).toLocaleString()})</span>
+                    <span style={{ color: 'var(--color-text-muted)' }}>({numOfReviews || 0})</span>
                 </div>
 
-                {/* price (Sora, bold) */}
-                <div className="flex items-baseline gap-2 pt-0.5">
-                    <span className="font-extrabold text-base sm:text-lg text-slate-900">Tk {(price || 0).toLocaleString()}</span>
-                    <span className="text-xs text-slate-400 line-through">Tk {(cuttedPrice || 0).toLocaleString()}</span>
+                {/* Price row */}
+                <div className="flex items-baseline gap-2 mt-1">
+                    <span className="font-bold text-base sm:text-lg" style={{ color: 'var(--color-text-primary)' }}>
+                        Tk {(price || 0).toLocaleString()}
+                    </span>
+                    {cuttedPrice > price && (
+                        <span className="text-xs line-through" style={{ color: 'var(--color-text-muted)' }}>
+                            Tk {cuttedPrice.toLocaleString()}
+                        </span>
+                    )}
                 </div>
 
-                {/* delivery charge note — no surprises at checkout */}
-                <p className="text-[10px] text-slate-400 leading-tight">
-                    Delivery charge payable in advance (Tk 70 / Tk 130)
-                </p>
+                {/* Save line — MegaMart style */}
+                {saveAmount > 0 && (
+                    <p className="text-xs font-semibold" style={{ color: 'var(--color-success, #16a34a)' }}>
+                        Save - Tk {saveAmount.toLocaleString()}
+                    </p>
+                )}
             </div>
 
-            {/* ── actions ── */}
-            <div className="flex items-stretch gap-2 px-3 sm:px-3.5 pb-3 sm:pb-3.5 mt-auto">
+            {/* Actions */}
+            <div className="flex items-stretch gap-2 px-3 pb-3 mt-auto">
                 <button
                     onClick={orderNow}
                     disabled={outOfStock}
-                    className={`flex-1 py-2 rounded-lg text-xs sm:text-sm font-semibold transition duration-200 ${
+                    className="flex-1 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200"
+                    style={
                         outOfStock
-                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                            : 'btn-accent'
-                    }`}
+                            ? { backgroundColor: 'var(--color-border)', color: 'var(--color-text-muted)', cursor: 'not-allowed' }
+                            : { backgroundColor: 'var(--color-accent)', color: '#fff' }
+                    }
                 >
                     {outOfStock ? 'Out of Stock' : 'Order Now'}
                 </button>
@@ -137,16 +168,18 @@ const ProductCard = ({ product }) => {
                     onClick={addToCart}
                     disabled={outOfStock}
                     aria-label="Add to cart"
-                    title="Add to cart"
-                    className={`w-9 sm:w-10 flex items-center justify-center rounded-lg border transition duration-200 ${
+                    className="w-9 sm:w-10 flex items-center justify-center rounded-lg border transition-all duration-200"
+                    style={
                         outOfStock
-                            ? 'border-line text-slate-300 cursor-not-allowed'
+                            ? { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)', cursor: 'not-allowed' }
                             : added
-                                ? 'border-green-200 bg-green-50 text-green-700'
-                                : 'border-line text-slate-600 hover:border-primary-accent hover:text-primary-accent'
-                    }`}
+                                ? { borderColor: '#16a34a', backgroundColor: '#f0fdf4', color: '#16a34a' }
+                                : { borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)' }
+                    }
+                    onMouseEnter={e => { if (!outOfStock && !added) e.currentTarget.style.borderColor = 'var(--color-accent)'; }}
+                    onMouseLeave={e => { if (!outOfStock && !added) e.currentTarget.style.borderColor = 'var(--color-border)'; }}
                 >
-                    {added ? <CheckIcon sx={{ fontSize: '18px' }} /> : <ShoppingCartIcon sx={{ fontSize: '18px' }} />}
+                    {added ? <CheckIcon sx={{ fontSize: '16px' }} /> : <ShoppingCartIcon sx={{ fontSize: '16px' }} />}
                 </button>
             </div>
         </div>

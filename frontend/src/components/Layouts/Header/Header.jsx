@@ -2,6 +2,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import TrackChangesIcon from '@mui/icons-material/TrackChanges';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import OffersIcon from '@mui/icons-material/LocalOffer';
 import Searchbar from './Searchbar';
 import PrimaryDropDownMenu from './PrimaryDropDownMenu';
 import { useState } from 'react';
@@ -9,95 +11,137 @@ import { useSelector } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
 import AnnouncementBar from '../../Home/AnnouncementBar';
 import { useSiteConfig } from '../../../context/SiteConfigContext';
+import MinCategory from '../MinCategory';
 
-// Modern desktop navbar (Cloud White): logo · centered pill search ·
-// Track / Cart / Account — clean icon+label links, no nested "More" menu.
-// (The navbar row is desktop-only; mobile uses the bottom bar.)
 const Header = () => {
 
   const { isAuthenticated, user } = useSelector((state) => state.user);
-
   const { cartItems } = useSelector(state => state.cart);
-
   const [togglePrimaryDropDown, setTogglePrimaryDropDown] = useState(false);
-
-  // brand name + optional logo image (Admin → Homepage → Branding)
   const { config } = useSiteConfig();
+
   const brandName = config.branding?.name || 'TechBazar';
   const logoUrl = config.branding?.logoUrl;
-  // keep the two-tone wordmark for the default brand name
-  const wordmark = brandName === 'TechBazar'
-    ? (<span className="font-display font-extrabold text-xl text-slate-900 tracking-tight whitespace-nowrap">Tech<span className="text-primary-accent">Bazar</span></span>)
-    : (<span className="font-display font-extrabold text-xl text-slate-900 tracking-tight whitespace-nowrap">{brandName}</span>);
 
-  // admin has its own sidebar layout on mobile — hide the store
-  // announcement strip there so the admin chrome owns the top edge.
   const { pathname } = useLocation();
   const isAdmin = pathname.startsWith('/admin');
 
+  const wordmark = brandName === 'TechBazar'
+    ? (<span className="font-display font-extrabold text-xl tracking-tight whitespace-nowrap" style={{ color: 'var(--color-accent)' }}>Tech<span style={{ color: 'var(--color-text-primary)' }}>Bazar</span></span>)
+    : (<span className="font-display font-extrabold text-xl tracking-tight whitespace-nowrap" style={{ color: 'var(--color-accent)' }}>{brandName}</span>);
+
+  if (isAdmin) return null;
+
   return (
+    <header className="fixed top-0 w-full z-10" style={{ backgroundColor: 'var(--color-header)', borderBottom: '1px solid var(--color-border)' }}>
 
-    <header className="bg-white border-b border-line fixed top-0 w-full z-10">
+      {/* ── Top micro-bar: announce strip ── */}
+      <AnnouncementBar />
 
-      {/* top announcement strip — above the navbar; visible on mobile too
-          (only the navbar row below is desktop-only) */}
-      {!isAdmin && <AnnouncementBar />}
+      {/* ── Main navbar row ── */}
+      <div className="hidden md:block w-full" style={{ backgroundColor: 'var(--color-header)' }}>
+        <div className="max-w-7xl mx-auto px-4 lg:px-6 py-3 flex items-center gap-4">
 
-      {/* navbar row (desktop only — mobile uses the bottom bar; hidden on /admin) */}
-      {!isAdmin && (
-      <div className="hidden md:flex w-full sm:w-11/12 px-4 py-2.5 m-auto items-center gap-4 relative">
-
-        {/* logo — uploaded image or text wordmark (Admin → Homepage) */}
-        <Link className="shrink-0 flex items-center" to="/">
-          {logoUrl ? (
-            <img src={logoUrl} alt={brandName} className="h-7 w-auto max-w-[140px] object-contain" draggable="false" />
-          ) : (
-            wordmark
-          )}
-        </Link>
-
-        {/* search — centered pill */}
-        <div className="flex-1 max-w-xl mx-auto">
-          <Searchbar />
-        </div>
-
-        {/* right navs */}
-        <div className="flex items-center gap-1 sm:gap-5 ml-auto relative">
-
-          {isAuthenticated === false ?
-            <Link to="/login" className="btn-accent rounded-lg px-4 py-1.5 text-sm cursor-pointer">Login</Link>
-            :
-            (
-              <span className="flex items-center text-slate-700 hover:text-primary-accent font-medium gap-1 cursor-pointer transition" onClick={() => setTogglePrimaryDropDown(!togglePrimaryDropDown)}>{user.name && user.name.split(" ", 1)}
-                <span>{togglePrimaryDropDown ? <ExpandLessIcon sx={{ fontSize: "16px" }} /> : <ExpandMoreIcon sx={{ fontSize: "16px" }} />}</span>
-              </span>
-            )
-          }
-
-          {togglePrimaryDropDown && <PrimaryDropDownMenu setTogglePrimaryDropDown={setTogglePrimaryDropDown} user={user} />}
-
-          <Link to="/track" className="flex items-center text-slate-700 hover:text-primary-accent font-medium gap-1.5 transition">
-            <TrackChangesIcon sx={{ fontSize: '18px' }} />
-            Track Order
+          {/* Logo */}
+          <Link to="/" className="shrink-0 flex items-center gap-2 mr-2">
+            {logoUrl ? (
+              <img src={logoUrl} alt={brandName} className="h-8 w-auto max-w-[140px] object-contain" draggable="false" />
+            ) : (
+              wordmark
+            )}
           </Link>
 
-          <Link to="/cart" className="flex items-center text-slate-700 hover:text-primary-accent font-medium gap-2 relative transition">
-            <span><ShoppingCartIcon /></span>
-            {cartItems.length > 0 &&
-              <div className="w-5 h-5 p-2 bg-primary-accent text-white text-xs rounded-full absolute -top-2 left-3 flex justify-center items-center border border-white">
-                {cartItems.length}
+          {/* Search — takes most of the horizontal space */}
+          <div className="flex-1 max-w-2xl">
+            <Searchbar />
+          </div>
+
+          {/* Right utility nav */}
+          <div className="flex items-center gap-4 ml-auto shrink-0">
+
+            {/* Deliver to */}
+            <div className="hidden lg:flex items-center gap-1.5 cursor-pointer group">
+              <LocationOnIcon sx={{ fontSize: '18px', color: 'var(--color-accent)' }} />
+              <div className="flex flex-col leading-none">
+                <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>Deliver to</span>
+                <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>Select Location</span>
               </div>
-            }
-            Cart
-          </Link>
-        </div>
-        {/* right navs */}
+            </div>
 
+            {/* Track order */}
+            <Link to="/track" className="hidden lg:flex items-center gap-1.5 group">
+              <TrackChangesIcon sx={{ fontSize: '18px', color: 'var(--color-accent)' }} />
+              <div className="flex flex-col leading-none">
+                <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>Track</span>
+                <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>Your order</span>
+              </div>
+            </Link>
+
+            {/* All Offers */}
+            <div className="hidden lg:flex items-center gap-1.5 cursor-pointer">
+              <OffersIcon sx={{ fontSize: '18px', color: 'var(--color-accent)' }} />
+              <div className="flex flex-col leading-none">
+                <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>All</span>
+                <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>Offers</span>
+              </div>
+            </div>
+
+            {/* Sign in / Account */}
+            <div className="relative">
+              {!isAuthenticated ? (
+                <Link
+                  to="/login"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200"
+                  style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}
+                >
+                  Sign In/Join
+                </Link>
+              ) : (
+                <button
+                  className="flex items-center gap-1 text-sm font-semibold transition"
+                  style={{ color: 'var(--color-text-primary)' }}
+                  onClick={() => setTogglePrimaryDropDown(!togglePrimaryDropDown)}
+                >
+                  {user.name?.split(' ', 1)}
+                  {togglePrimaryDropDown
+                    ? <ExpandLessIcon sx={{ fontSize: '16px' }} />
+                    : <ExpandMoreIcon sx={{ fontSize: '16px' }} />}
+                </button>
+              )}
+              {togglePrimaryDropDown && (
+                <PrimaryDropDownMenu
+                  setTogglePrimaryDropDown={setTogglePrimaryDropDown}
+                  user={user}
+                />
+              )}
+            </div>
+
+            {/* Cart */}
+            <Link to="/cart" className="relative flex items-center gap-1.5 group">
+              <div className="relative">
+                <ShoppingCartIcon sx={{ fontSize: '26px', color: 'var(--color-accent)' }} />
+                {cartItems.length > 0 && (
+                  <span
+                    className="absolute -top-1.5 -right-1.5 w-4 h-4 text-[10px] font-bold text-white rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: 'var(--color-accent)' }}
+                  >
+                    {cartItems.length}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col leading-none">
+                <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>My</span>
+                <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>Cart</span>
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        {/* ── Category strip directly under navbar ── */}
+        <MinCategory />
       </div>
-      )}
-      {/* navbar row */}
     </header>
-  )
+  );
 };
 
 export default Header;

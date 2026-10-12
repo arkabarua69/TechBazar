@@ -4,117 +4,119 @@ import WorkIcon from '@mui/icons-material/Work';
 import StarsIcon from '@mui/icons-material/Stars';
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import HelpIcon from '@mui/icons-material/Help';
+import PhoneIcon from '@mui/icons-material/Phone';
 import paymentMethods from '../../../assets/images/payment-methods.svg';
 import { useLocation } from 'react-router-dom';
 import { useSiteConfig } from '../../../context/SiteConfigContext';
 import { DEFAULT_SITE_CONFIG } from '../../../utils/siteConfig';
 
-// shortcut-strip icon registry (Admin → Homepage → Branding & Content)
-const SHORTCUT_ICONS = {
-    Work: WorkIcon,
-    Stars: StarsIcon,
-    CardGiftcard: CardGiftcardIcon,
-    Help: HelpIcon,
-};
+const SHORTCUT_ICONS = { Work: WorkIcon, Stars: StarsIcon, CardGiftcard: CardGiftcardIcon, Help: HelpIcon };
 
-// Footer link row: internal routes use SPA <Link>, external URLs open in a new tab
 const FooterLink = ({ item }) =>
-  item.internal ? (
-    <Link to={item.redirect} className="text-slate-400 hover:text-white text-sm transition">{item.name}</Link>
-  ) : (
-    <a href={item.redirect} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white text-sm transition">{item.name}</a>
-  );
-
-// multi-line address blocks keep their <br/> structure
-const Address = ({ text }) => (
-  <p className="mt-2 leading-5">
-    {String(text || '').split('\n').map((line, i) => (
-      <span key={i}>{line}<br /></span>
-    ))}
-  </p>
-);
+    item.internal ? (
+        <Link to={item.redirect} className="block text-sm transition-opacity hover:opacity-100" style={{ color: 'var(--color-footer-text)', opacity: 0.7 }}>
+            › {item.name}
+        </Link>
+    ) : (
+        <a href={item.redirect} target="_blank" rel="noreferrer" className="block text-sm transition-opacity hover:opacity-100" style={{ color: 'var(--color-footer-text)', opacity: 0.7 }}>
+            › {item.name}
+        </a>
+    );
 
 const Footer = () => {
+    const location = useLocation();
+    const [adminRoute, setAdminRoute] = useState(false);
 
-  const location = useLocation();
-  const [adminRoute, setAdminRoute] = useState(false);
+    const { config } = useSiteConfig();
+    const footer = config.content?.footer || DEFAULT_SITE_CONFIG.content.footer;
+    const columns = footer.columns || [];
+    const company = footer.company || {};
+    const shortcuts = footer.shortcuts || [];
+    const since = footer.since || 2007;
+    const brandName = config.branding?.name || 'TechBazar';
 
-  // footer columns, company block, shortcuts & copyright (Admin → Homepage)
-  const { config } = useSiteConfig();
-  const footer = config.content?.footer || DEFAULT_SITE_CONFIG.content.footer;
-  const columns = footer.columns || [];
-  const company = footer.company || {};
-  const shortcuts = footer.shortcuts || [];
-  const copyright = footer.copyright || 'TechBazar.com';
-  const since = footer.since || 2007;
+    useEffect(() => {
+        setAdminRoute(location.pathname.startsWith('/admin'));
+    }, [location]);
 
-  useEffect(() => {
-    setAdminRoute(location.pathname.split("/", 2).includes("admin"))
-  }, [location]);
+    if (adminRoute) return null;
 
-  return (
-    <>
-      {!adminRoute && (
-        <>
-          <footer className="mt-20 w-full py-1 sm:py-4 px-4 sm:px-12 bg-primary-darkBlue text-white text-xs border-b border-white/10 flex flex-col sm:flex-row overflow-hidden">
-            {/* link groups — 2 columns on mobile, 5 across on desktop */}
-            <div className="w-full sm:w-7/12 flex flex-wrap sm:flex-nowrap">
+    return (
+        <footer style={{ backgroundColor: 'var(--color-footer)', color: 'var(--color-footer-text)' }}>
 
-              {columns.map((el, i) => (
-                <div className="w-1/2 sm:w-1/5 flex flex-col gap-2 my-3 sm:my-6 sm:ml-5" key={i}>
-                  <h2 className="font-display font-bold text-white text-sm uppercase tracking-wider mb-2">{el.title}</h2>
-                  {(el.links || []).map((item, i) => (
-                    <FooterLink item={item} key={i} />
-                  ))}
-
+            {/* ── Shortcut strip ── */}
+            <div className="border-b" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+                <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+                    {shortcuts.map((s, i) => {
+                        const Icon = SHORTCUT_ICONS[s.icon] || WorkIcon;
+                        const inner = (
+                            <span className="flex items-center gap-2 text-sm font-medium transition-opacity hover:opacity-100" style={{ color: 'var(--color-footer-text)', opacity: 0.75 }}>
+                                <Icon sx={{ fontSize: '18px', color: 'var(--color-accent)' }} />
+                                {s.label}
+                            </span>
+                        );
+                        return s.href?.startsWith('/') ? (
+                            <Link key={i} to={s.href}>{inner}</Link>
+                        ) : (
+                            <a key={i} href={s.href || '/policy'} target="_blank" rel="noreferrer">{inner}</a>
+                        );
+                    })}
+                    <img draggable="false" src={paymentMethods} alt="Payment Methods" className="h-6 opacity-60" />
                 </div>
-              ))}
-
             </div>
 
-            <div className="border-white/10 h-36 w-1 border-l mr-5 mt-6 hidden sm:block"></div>
-            <div className="w-full sm:w-5/12 my-6 mx-5 sm:mx-0 flex flex-col sm:flex-row gap-2 sm:gap-0 justify-between">
-              <div className="w-full sm:w-1/2">
-                <h2 className="font-display font-bold text-white text-sm uppercase tracking-wider">Mail Us:</h2>
-                <Address text={company.mailUs} />
-              </div>
+            {/* ── Main columns ── */}
+            <div className="max-w-7xl mx-auto px-4 lg:px-6 py-8 sm:py-10">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8">
 
-              <div className="w-full sm:w-1/2">
-                <h2 className="font-display font-bold text-white text-sm uppercase tracking-wider">Registered Office Address:</h2>
-                <Address text={company.registered} />
-                {company.cin ? <span>{company.cin}<br /></span> : null}
-                {company.telephone ? (
-                  <span>Telephone: <a className="text-primary-accent hover:text-white transition" href={`tel:${company.telephone}`}>{company.telephone.replace(/(\d{4})(\d{3})(\d{4})/, '$1 $2 $3')}</a></span>
-                ) : null}
-              </div>
+                    {/* Brand + contact */}
+                    <div className="col-span-2 sm:col-span-1">
+                        <h3 className="font-bold text-lg mb-3" style={{ color: 'var(--color-footer-text)' }}>{brandName}</h3>
+                        {company.telephone && (
+                            <div className="flex items-center gap-2 mb-3">
+                                <PhoneIcon sx={{ fontSize: '15px', color: 'var(--color-accent)' }} />
+                                <a href={`tel:${company.telephone}`} className="text-sm transition-opacity hover:opacity-100" style={{ color: 'var(--color-footer-text)', opacity: 0.7 }}>
+                                    {company.telephone}
+                                </a>
+                            </div>
+                        )}
+                        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--color-footer-text)', opacity: 0.45 }}>Download App</p>
+                        <div className="flex gap-2">
+                            <a href="https://apps.apple.com" target="_blank" rel="noreferrer"
+                               className="flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-medium transition-opacity hover:opacity-90"
+                               style={{ borderColor: 'rgba(255,255,255,0.18)', color: 'var(--color-footer-text)' }}>
+                                🍎 App Store
+                            </a>
+                            <a href="https://play.google.com" target="_blank" rel="noreferrer"
+                               className="flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-medium transition-opacity hover:opacity-90"
+                               style={{ borderColor: 'rgba(255,255,255,0.18)', color: 'var(--color-footer-text)' }}>
+                                ▶ Play
+                            </a>
+                        </div>
+                    </div>
+
+                    {/* Link columns from CMS */}
+                    {columns.map((col, i) => (
+                        <div key={i}>
+                            <h4 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--color-footer-text)' }}>
+                                {col.title}
+                            </h4>
+                            <div className="flex flex-col gap-1.5">
+                                {(col.links || []).map((item, j) => (
+                                    <FooterLink item={item} key={j} />
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
 
-          </footer>
-          {/* <!-- footer ends --> -->
-
-          {/* utility strip — visible on every screen size (wraps on mobile) */}
-          <div className="px-4 sm:px-16 py-6 w-full bg-primary-darkBlue flex flex-wrap justify-between items-center gap-3 text-sm text-slate-500">
-            {shortcuts.map((s, i) => {
-              const ShortcutIcon = SHORTCUT_ICONS[s.icon] || WorkIcon;
-              const inner = (
-                <>
-                  <span className="text-yellow-400"><ShortcutIcon sx={{ fontSize: "20px" }} /></span> {s.label}
-                </>
-              );
-              return s.href && s.href.startsWith('/') ? (
-                <Link key={i} to={s.href} className="flex items-center gap-2 text-slate-400 hover:text-white transition">{inner}</Link>
-              ) : (
-                <a key={i} href={s.href || '/policy'} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-white transition">{inner}</a>
-              );
-            })}
-
-            <span>&copy; {since}-{new Date().getFullYear()} {copyright}</span>
-            <img draggable="false" src={paymentMethods} alt="Card Payment" />
-          </div>
-        </>
-      )}
-    </>
-  )
+            {/* ── Copyright bar ── */}
+            <div className="border-t text-center py-4 text-xs" style={{ borderColor: 'rgba(255,255,255,0.07)', color: 'var(--color-footer-text)', opacity: 0.5 }}>
+                © {since}–{new Date().getFullYear()} All rights reserved · {company.name || brandName}
+            </div>
+        </footer>
+    );
 };
 
 export default Footer;

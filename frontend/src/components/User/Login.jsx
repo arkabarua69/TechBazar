@@ -1,4 +1,3 @@
-import TextField from '@mui/material/TextField';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,116 +5,148 @@ import { clearErrors, loginUser } from '../../actions/userAction';
 import { useSnackbar } from 'notistack';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import MetaData from '../Layouts/MetaData';
+import { useSiteConfig } from '../../context/SiteConfigContext';
 
+// Social login icon buttons (UI only — OAuth integration separate)
+const SocialBtn = ({ children, label }) => (
+    <button
+        type="button"
+        aria-label={label}
+        className="w-12 h-12 rounded-full border-2 border-gray-200 bg-white flex items-center justify-center hover:border-orange-400 hover:shadow-md transition-all duration-200 text-lg font-bold"
+    >
+        {children}
+    </button>
+);
+
+// Login page — reference design: peach background, white rounded card, orange-red accent
 const Login = () => {
-
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { enqueueSnackbar } = useSnackbar();
     const location = useLocation();
+    const { config } = useSiteConfig();
 
     const { loading, isAuthenticated, error } = useSelector((state) => state.user);
 
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+    const brandName = config.branding?.name || 'TechBazar';
 
     const handleLogin = (e) => {
         e.preventDefault();
         dispatch(loginUser(email, password));
-    }
+    };
 
-    const redirect = location.search ? location.search.split("=")[1] : "account";
+    const redirect = location.search ? location.search.split('=')[1] : 'account';
 
     useEffect(() => {
         if (error) {
-            enqueueSnackbar(error, { variant: "error" });
+            enqueueSnackbar(error, { variant: 'error' });
             dispatch(clearErrors());
         }
-        if (isAuthenticated) {
-            navigate(`/${redirect}`)
-        }
+        if (isAuthenticated) navigate(`/${redirect}`);
     }, [dispatch, error, isAuthenticated, redirect, navigate, enqueueSnackbar]);
 
     return (
         <>
-            <MetaData title="Login | TechBazar" />
-
+            <MetaData title={`Login | ${brandName}`} />
             {loading && <BackdropLoader />}
-            <main className="w-full mt-4 sm:pt-6 sm:mt-0">
 
-                {/* <!-- row --> */}
-                <div className="surface flex flex-col sm:flex-row overflow-hidden w-full sm:w-5/6 md:w-4/6 lg:w-3/5 sm:mt-4 m-auto mb-7 shadow-lg rounded-lg">
-                    {/* <!-- sidebar column  --> */}
-                    <div className="loginSidebar bg-gradient-to-br from-primary-accent via-indigo-600 to-blue-700 p-6 sm:p-10 pr-8 sm:pr-12 flex sm:flex flex-col justify-between gap-4 w-full sm:w-2/5 relative order-2 sm:order-1 text-center sm:text-left">
-                        <div className="absolute inset-0 opacity-25 pointer-events-none" aria-hidden="true" style={{ backgroundImage: 'radial-gradient(circle at top right, rgba(255,255,255,0.3), transparent 65%)' }}></div>
-                        <div className="relative z-10 flex flex-col gap-3 sm:gap-4">
-                            <h1 className="font-display font-bold text-white text-2xl sm:text-4xl leading-tight drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">Welcome Back</h1>
-                            <p className="text-white/95 text-sm sm:text-lg pr-0 sm:pr-2 drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">Login to get access to your Orders, Wishlist and Recommendations</p>
-                        </div>
-                        <div className="relative z-10 text-xs text-white/90 hidden sm:block drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">Shop smarter. Track faster.</div>
-                    </div>
-                    {/* <!-- sidebar column  --> */}
+            {/* Full-page peach background */}
+            <div className="auth-page-bg min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
 
-                    {/* <!-- login column --> */}
-                    <div className="flex-1 overflow-hidden p-4 sm:p-10 order-1 sm:order-2">
-
-                        {/* <!-- edit info container --> */}
-                        <div className="max-w-md mx-auto flex flex-col gap-8">
-
-                            <div className="text-center flex flex-col gap-2">
-                                <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900">Sign in to TechBazar</h2>
-                                <p className="text-sm text-slate-500">Enter your credentials to continue</p>
-                            </div>
-
-                            {/* <!-- input container --> */}
-                            <form onSubmit={handleLogin} className="flex flex-col gap-5">
-                                <div className="flex flex-col w-full gap-4">
-
-                                    <TextField
-                                        fullWidth
-                                        id="email"
-                                        label="Email Address"
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        required
-                                        autoComplete="email"
-                                    />
-                                    <TextField
-                                        fullWidth
-                                        id="password"
-                                        label="Password"
-                                        type="password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        required
-                                        autoComplete="current-password"
-                                    />
-
-                                    {/* <!-- button container --> */}
-                                    <div className="flex flex-col gap-3 mt-1">
-                                        <p className="text-xs text-slate-500 text-center sm:text-left">By continuing, you agree to TechBazar's <a href="/policy" className="text-primary-accent hover:underline font-medium"> Terms of Use</a> and <a href="/policy" className="text-primary-accent hover:underline font-medium"> Privacy Policy.</a></p>
-                                        <button type="submit" className="btn-accent w-full py-3 text-sm font-bold uppercase tracking-wide">Login</button>
-                                        <Link to="/password/forgot" className="btn-ghost w-full py-3 text-sm text-center font-semibold">Forgot Password?</Link>
-                                    </div>
-                                    {/* <!-- button container --> */}
-
-                                </div>
-                            </form>
-                            {/* <!-- input container --> */}
-
-                            <div className="text-center">
-                                <Link to="/register" className="font-medium text-sm text-primary-accent hover:underline block w-full text-center">New to TechBazar? Create an account</Link>
-                            </div>
-                        </div>
-                        {/* <!-- edit info container --> */}
-
-                    </div>
-                    {/* <!-- login column --> */}
+                {/* Geometric dots pattern */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    {[...Array(6)].map((_, i) => (
+                        <div key={i} className="absolute rounded-full border border-orange-200/30"
+                            style={{
+                                width: `${120 + i * 80}px`, height: `${120 + i * 80}px`,
+                                top: `${10 + i * 8}%`, left: `${5 + i * 4}%`,
+                                opacity: 0.3 - i * 0.04,
+                            }}
+                        />
+                    ))}
+                    {[...Array(4)].map((_, i) => (
+                        <div key={i} className="absolute rounded-full border border-orange-300/20"
+                            style={{
+                                width: `${80 + i * 60}px`, height: `${80 + i * 60}px`,
+                                bottom: `${5 + i * 10}%`, right: `${8 + i * 5}%`,
+                                opacity: 0.25 - i * 0.05,
+                            }}
+                        />
+                    ))}
                 </div>
-                {/* <!-- row --> */}
 
-            </main>
+                <div className="w-full max-w-sm mx-auto relative z-10">
+
+                    {/* White phone-shaped card */}
+                    <div className="auth-card p-8">
+
+                        {/* Title */}
+                        <div className="text-center mb-7">
+                            <h1 className="text-2xl font-bold" style={{ color: '#E84B0F' }}>Login here</h1>
+                            <p className="text-gray-600 font-medium mt-1 text-sm">Welcome back you've been missed!</p>
+                        </div>
+
+                        {/* Form */}
+                        <form onSubmit={handleLogin} className="flex flex-col gap-3">
+                            <input
+                                type="email"
+                                placeholder="Email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                autoComplete="email"
+                                className="input-field"
+                            />
+                            <input
+                                type="password"
+                                placeholder="Password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                autoComplete="current-password"
+                                className="input-field"
+                            />
+
+                            {/* Forgot password */}
+                            <div className="text-right -mt-1">
+                                <Link to="/password/forgot" className="text-sm font-medium" style={{ color: '#E84B0F' }}>
+                                    Forgot your password?
+                                </Link>
+                            </div>
+
+                            {/* Sign in button */}
+                            <button type="submit" className="btn-accent w-full py-3 text-sm font-semibold mt-1">
+                                Sign in
+                            </button>
+                        </form>
+
+                        {/* Create account */}
+                        <p className="text-center text-sm text-gray-500 mt-4">
+                            <Link to="/register" className="text-gray-700 font-medium hover:text-orange-600 transition">
+                                Create new account
+                            </Link>
+                        </p>
+
+                        {/* Divider */}
+                        <div className="flex items-center gap-3 my-5">
+                            <div className="flex-1 h-px bg-gray-200"></div>
+                            <span className="text-xs text-orange-500 font-medium">Or continue with</span>
+                            <div className="flex-1 h-px bg-gray-200"></div>
+                        </div>
+
+                        {/* Social icons */}
+                        <div className="flex items-center justify-center gap-4">
+                            <SocialBtn label="Google">G</SocialBtn>
+                            <SocialBtn label="Facebook">f</SocialBtn>
+                            <SocialBtn label="Apple">🍎</SocialBtn>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
         </>
     );
 };

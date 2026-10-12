@@ -50,7 +50,7 @@ const BottomBar = () => {
         <>
             <MenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
 
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-line shadow-[0_-4px_16px_rgba(15,23,42,0.06)] pb-[env(safe-area-inset-bottom)]">
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 pb-[env(safe-area-inset-bottom)]" style={{ backgroundColor: 'var(--color-header)', borderTop: '1px solid var(--color-border)' }}>
                 <ul className="grid" style={{ gridTemplateColumns: `repeat(${withMenu.length}, minmax(0, 1fr))` }}>
                     {withMenu.map((item, i) => {
                         // ── centre ☰ Menu — highlighted circle ──
@@ -62,7 +62,10 @@ const BottomBar = () => {
                                         aria-label="Open menu"
                                         className="w-full flex flex-col items-center justify-center gap-1 py-2"
                                     >
-                                        <span className="mt-[-1.375rem] w-14 h-14 rounded-full bg-primary-accent text-white shadow-[0_8px_20px_rgba(59,130,246,0.45)] border-4 border-white flex items-center justify-center transition active:scale-95">
+                                        <span
+                            className="mt-[-1.375rem] w-14 h-14 rounded-full text-white shadow-lg border-4 border-white flex items-center justify-center transition active:scale-95"
+                            style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 8px 20px rgba(232,75,15,0.4)' }}
+                        >
                                             <MenuIcon sx={{ fontSize: '22px' }} />
                                         </span>
                                         <span className="text-xxs font-semibold text-slate-700">Menu</span>
@@ -79,15 +82,14 @@ const BottomBar = () => {
                             <li key={`${href}-${i}`}>
                                 <Link
                                     to={href}
-                                    className={`relative flex flex-col items-center justify-center gap-0.5 py-2.5 transition duration-200 ${
-                                        active ? 'text-primary-accent' : 'text-slate-500 hover:text-primary-accent'
-                                    }`}
+                                    className={`relative flex flex-col items-center justify-center gap-0.5 py-2.5 transition duration-200`}
+                                    style={{ color: active ? 'var(--color-accent)' : 'var(--color-text-secondary)' }}
                                 >
-                                    {active && <span className="absolute top-0 w-8 h-0.5 rounded-full bg-primary-accent" />}
+                                    {active && <span className="absolute top-0 w-8 h-0.5 rounded-full" style={{ backgroundColor: 'var(--color-accent)' }} />}
                                     <span className="relative">
                                         <Icon sx={{ fontSize: '21px' }} />
                                         {badge > 0 && (
-                                            <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 text-xxs font-bold text-white bg-primary-accent rounded-full flex items-center justify-center">
+                                            <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 text-xxs font-bold text-white rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-accent)' }}>
                                                 {badge}
                                             </span>
                                         )}
