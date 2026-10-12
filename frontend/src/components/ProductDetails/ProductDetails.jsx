@@ -214,13 +214,14 @@ if (activeColor) lines.push(`Color: ${activeColor}`);
 
                                 {/* left: image gallery + thumbnail strip */}
                                 <div className="flex flex-col gap-3">
-                                    <div className="relative bg-white border border-line rounded-xl h-64 sm:h-[26rem] flex items-center justify-center p-5 overflow-hidden group">
+                                    {/* main image — full contain so nothing is cropped */}
+                                    <div className="relative bg-white border border-line rounded-xl h-72 sm:h-[30rem] lg:h-[32rem] flex items-center justify-center overflow-hidden group">
                                         {images[activeImage] && (
                                             <img
                                                 draggable="false"
                                                 src={images[activeImage].url}
                                                 alt={product.name}
-                                                className="h-full w-full object-cover group-hover:scale-105 transition duration-300"
+                                                className="w-full h-full object-contain p-3 sm:p-5 group-hover:scale-105 transition duration-300"
                                             />
                                         )}
 
@@ -250,18 +251,18 @@ if (activeColor) lines.push(`Color: ${activeColor}`);
                                         </button>
                                     </div>
 
-                                    {/* thumbnail strip */}
+                                    {/* thumbnail strip — contain so full thumb is visible */}
                                     {images.length > 1 && (
                                         <div className="flex gap-2 overflow-x-auto pb-1">
                                             {images.map((img, i) => (
                                                 <button
                                                     key={i}
                                                     onClick={() => setActiveImage(i)}
-                                                    className={`shrink-0 w-16 h-16 rounded-lg border-2 bg-white p-1.5 flex items-center justify-center transition ${
+                                                    className={`shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg border-2 bg-white p-1.5 flex items-center justify-center transition ${
                                                         activeImage === i ? 'border-primary-accent' : 'border-line hover:border-slate-300'
                                                     }`}
                                                 >
-                                                    <img src={img.url} alt={`${product.name} ${i + 1}`} className="h-full w-full object-cover" draggable="false" />
+                                                    <img src={img.url} alt={`${product.name} ${i + 1}`} className="w-full h-full object-contain" draggable="false" />
                                                 </button>
                                             ))}
                                         </div>

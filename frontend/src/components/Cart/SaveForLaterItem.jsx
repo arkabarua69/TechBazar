@@ -25,8 +25,8 @@ const SaveForLaterItem = ({ product, name, seller, price, cuttedPrice, image, st
 
             <div className="flex flex-col sm:flex-row gap-5 items-stretch w-full" href="#">
                 {/* <!-- product image --> */}
-                <div className="w-full sm:w-28 h-28 flex-shrink-0 bg-cloud border border-line rounded-xl overflow-hidden">
-                    <img draggable="false" className="h-full w-full object-cover" src={image} alt={name} />
+                <div className="w-full sm:w-28 h-28 flex-shrink-0 bg-cloud border border-line rounded-xl overflow-hidden flex items-center justify-center">
+                    <img draggable="false" className="h-full w-full object-contain p-2" src={image} alt={name} />
                 </div>
                 {/* <!-- product image --> */}
 

@@ -63,8 +63,8 @@ const OrderDetails = () => {
                                         <div className="flex flex-col sm:flex-row bg-cloud border border-line rounded-xl p-3" key={_id}>
 
                                             <div className="flex flex-col sm:flex-row sm:w-1/2 gap-2">
-                                                <div className="w-full sm:w-24 h-24 bg-cloud border border-line rounded-xl overflow-hidden flex-shrink-0">
-                                                    <img draggable="false" className="h-full w-full object-cover" src={image} alt={name} />
+                                                <div className="w-full sm:w-24 h-24 bg-cloud border border-line rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center">
+                                                    <img draggable="false" className="h-full w-full object-contain p-2" src={image} alt={name} />
                                                 </div>
                                                 <div className="flex flex-col gap-1 overflow-hidden">
                                                     <p className="text-sm font-medium text-slate-900">{name.length > 60 ? `${name.substring(0, 60)}...` : name}</p>

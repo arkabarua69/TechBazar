@@ -17,8 +17,8 @@ const Product = (props) => {
 
     return (
         <div className="surface p-4 flex gap-3 w-full group hover:shadow-md transition">
-            <div className="w-28 h-28 flex-shrink-0 bg-cloud border border-line rounded-xl overflow-hidden">
-                <img draggable="false" className="h-full w-full object-cover" src={image} alt={name} />
+            <div className="w-28 h-28 flex-shrink-0 bg-cloud border border-line rounded-xl overflow-hidden flex items-center justify-center">
+                <img draggable="false" className="h-full w-full object-contain p-2" src={image} alt={name} />
             </div>
 
             {/* <!-- description --> */}

@@ -92,12 +92,12 @@ const FlashSale = ({ flashSale = {}, products = [] }) => {
                                     to={`/product/${product._id}`}
                                     className="group bg-white rounded-xl border border-line overflow-hidden flex flex-col text-slate-900 hover:shadow-md hover:-translate-y-0.5 transition duration-200"
                                 >
-                                    <div className="h-20 sm:h-24 bg-white overflow-hidden">
+                                    <div className="h-24 sm:h-28 bg-white overflow-hidden flex items-center justify-center">
                                         <img
                                             draggable="false"
                                             src={product.images[0].url}
                                             alt={product.name}
-                                            className="h-full w-full object-cover group-hover:scale-105 transition duration-300"
+                                            className="h-full w-full object-contain p-1.5 group-hover:scale-105 transition duration-300"
                                         />
                                     </div>
                                     <div className="flex flex-col gap-1.5 p-2.5 sm:p-3">

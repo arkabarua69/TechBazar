@@ -29,8 +29,8 @@ const Product = ({ _id, name, images, ratings, numOfReviews, price, cuttedPrice 
         <div className="group surface overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex flex-col relative">
             {/* <!-- image & product title --> */}
             <Link to={`/product/${_id}`} className="flex flex-col items-center text-center group border-b border-line">
-                <div className="w-full h-36 sm:h-44 bg-white overflow-hidden">
-                    <img draggable="false" className="w-full h-full object-cover transition duration-300 group-hover:scale-105" src={images && images[0].url} alt="" />
+                <div className="w-full h-40 sm:h-48 bg-white overflow-hidden flex items-center justify-center">
+                    <img draggable="false" className="w-full h-full object-contain p-2 transition duration-300 group-hover:scale-105" src={images && images[0].url} alt="" />
                 </div>
                 <h2 className="w-full font-display font-semibold text-sm text-slate-900 line-clamp-2 text-left mt-3 px-3 sm:px-4 group-hover:text-primary-accent transition duration-200">{name.length > 85 ? `${name.substring(0, 85)}...` : name}</h2>
             </Link>

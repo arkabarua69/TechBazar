@@ -75,7 +75,7 @@ const ProductTable = () => {
                 return (
                     <div className="flex items-center gap-2">
                         <div className="w-10 h-10 rounded-full">
-                            <img draggable="false" src={params.row.image} alt={params.row.name} className="w-full h-full rounded-full object-cover" />
+                            <img draggable="false" src={params.row.image} alt={params.row.name} className="w-full h-full rounded-full object-contain" />
                         </div>
                         {params.row.name}
                     </div>

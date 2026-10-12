@@ -67,7 +67,7 @@ const ProductCardDesktop = ({ product }) => {
                         draggable="false"
                         src={image}
                         alt={name}
-                        className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="h-full w-full object-contain p-1 group-hover:scale-105 transition-transform duration-500"
                     />
                 )}
 

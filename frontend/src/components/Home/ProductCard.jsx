@@ -55,13 +55,13 @@ const ProductCard = ({ product }) => {
         <div className="group surface overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition duration-200 flex flex-col">
 
             {/* ── image ── */}
-            <Link to={`/product/${_id}`} className="relative h-36 sm:h-44 bg-white border-b border-line overflow-hidden">
+            <Link to={`/product/${_id}`} className="relative h-40 sm:h-48 bg-white border-b border-line overflow-hidden flex items-center justify-center">
                 {image && (
                     <img
                         draggable="false"
                         src={image}
                         alt={name}
-                        className="h-full w-full object-cover group-hover:scale-105 transition duration-300"
+                        className="w-full h-full object-contain p-2 sm:p-3 group-hover:scale-105 transition duration-300"
                     />
                 )}
             </Link>

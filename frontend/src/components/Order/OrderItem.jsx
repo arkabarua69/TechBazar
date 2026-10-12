@@ -10,8 +10,8 @@ const OrderItem = (props) => {
     return (
         <Link to={`/order_details/${orderId}`} className="border-b border-line px-4 sm:px-5 py-4 flex flex-col sm:flex-row gap-3 hover:bg-cloud transition">
             {/* <!-- image container --> */}
-            <div className="w-full sm:w-24 h-24 bg-cloud border border-line rounded-xl overflow-hidden flex-shrink-0">
-                <img draggable="false" className="h-full w-full object-cover" src={image} alt={name} />
+            <div className="w-full sm:w-24 h-24 bg-cloud border border-line rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center">
+                <img draggable="false" className="h-full w-full object-contain p-2" src={image} alt={name} />
             </div>
             {/* <!-- image container --> */}
 
