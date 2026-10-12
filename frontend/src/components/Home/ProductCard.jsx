@@ -22,7 +22,6 @@ const ProductCard = ({ product }) => {
     const discount = Number(getDiscount(price, cuttedPrice)) || 0;
     const image = images && images[0] && images[0].url;
     const outOfStock = stock < 1;
-    const hotDeal = discount >= 25;
 
     // spec chips (skip the COD line — it has its own badge)
     const specs = (Array.isArray(highlights) ? highlights : [])
@@ -63,6 +62,17 @@ const ProductCard = ({ product }) => {
                         alt={name}
                         className="w-full h-full object-contain p-2 sm:p-3 group-hover:scale-105 transition duration-300"
                     />
+                )}
+                {/* discount badge */}
+                {discount > 0 && !outOfStock && (
+                    <span className="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wide text-white bg-red-500 px-1.5 py-0.5 rounded shadow">
+                        {discount}% off
+                    </span>
+                )}
+                {outOfStock && (
+                    <span className="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wide text-white bg-slate-500 px-1.5 py-0.5 rounded shadow">
+                        Out of Stock
+                    </span>
                 )}
             </Link>
 

@@ -6,6 +6,9 @@ import MetaData from '../Layouts/MetaData';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import { formatDate } from '../../utils/functions';
 import BottomSheet from './BottomSheet';
+import PhoneIcon from '@mui/icons-material/Phone';
+import ChatIcon from '@mui/icons-material/Chat';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import {
     bn,
     shortOrderId,
