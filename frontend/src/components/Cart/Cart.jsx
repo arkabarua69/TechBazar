@@ -22,75 +22,86 @@ const Cart = () => {
         <>
             <MetaData title="Shopping Cart | TechBazar" />
 
-            {/* ── cart header band — full-bleed, content centered ── */}
-            <section className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-100 border-b border-line">
-                <div className="mx-auto max-w-4xl px-5 sm:px-6 py-6 sm:py-8">
-                    <h1 className="font-display font-extrabold text-xl sm:text-3xl text-slate-900 leading-tight">
-                        Shopping Cart <span className="text-slate-400">({cartItems.length})</span>
-                    </h1>
-                    <p className="text-sm text-slate-500 mt-1">Review your items before checkout</p>
-                </div>
-            </section>
-            {/* ── /cart header band ── */}
+            {/* ── Page wrapper ── */}
+            <div className="min-h-screen" style={{ backgroundColor: '#f0f2f5' }}>
+                <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
 
-            {/* main centered content column */}
-            <main className="mx-auto max-w-4xl px-5 sm:px-6 flex flex-col gap-4 pb-28 md:pb-16 mt-6 sm:mt-8">
+                    {/* Page title */}
+                    <h1 className="font-display font-bold text-2xl text-slate-800 mb-6">Cart</h1>
 
-                {/* <!-- row --> */}
-                <div className="flex flex-col sm:flex-row gap-4 w-full">
+                    {/* Main row: table + sidebar */}
+                    <div className="flex flex-col lg:flex-row gap-6 items-start">
 
-                    {/* <!-- cart column --> */}
-                    <div className="flex-1 flex flex-col gap-4 min-w-0">
+                        {/* ── Left: cart table ── */}
+                        <div className="flex-1 min-w-0 flex flex-col gap-6">
 
-                        {/* <!-- cart items container --> */}
-                        <div className="surface flex flex-col overflow-hidden">
-                            <span className="border-b border-line px-4 sm:px-5 py-4 font-display font-bold text-base sm:text-lg text-slate-900">My Cart ({cartItems.length})</span>
+                            {/* Cart table card */}
+                            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
 
-                            {cartItems && cartItems.length === 0 && (
-                                <EmptyCart />
-                            )}
+                                {cartItems.length === 0 ? (
+                                    <EmptyCart />
+                                ) : (
+                                    <>
+                                        {/* Table header */}
+                                        <div className="hidden sm:grid grid-cols-[2fr_1fr_0.7fr_1fr_1.2fr_1fr_auto] gap-2 px-6 py-3 border-b border-slate-100">
+                                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Products</span>
+                                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Color</span>
+                                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Size</span>
+                                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Price</span>
+                                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Quantity</span>
+                                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Total</span>
+                                            <span className="w-5" />
+                                        </div>
 
-                            {cartItems && cartItems.map((item) => (
-                                <CartItem {...item} inCart={true} />
-                            )
-                            )}
+                                        {/* Cart rows */}
+                                        {cartItems.map((item) => (
+                                            <CartItem key={item.product} {...item} inCart={true} />
+                                        ))}
 
-                            {/* <!-- place order btn --> */}
-                            <div className="flex justify-end">
-                                <button onClick={placeOrderHandler} disabled={cartItems.length < 1 ? true : false} className={`${cartItems.length < 1 ? "bg-slate-200 text-slate-500 cursor-not-allowed" : "btn-accent"} w-full sm:w-1/3 mx-2 sm:mx-6 my-4 py-3 text-sm font-bold`}>PLACE ORDER</button>
+                                        {/* Items subtotal row */}
+                                        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100">
+                                            <span className="text-sm text-slate-600 font-medium">Items subtotal :</span>
+                                            <span className="font-bold text-slate-900 text-base">
+                                                Tk {cartItems.reduce((s, i) => s + i.price * i.quantity, 0).toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </>
+                                )}
                             </div>
-                            {/* <!-- place order btn --> */}
 
-                        </div>
-                        {/* <!-- cart items container --> */}
-
-                        {/* <!-- saved for later items container --> */}
-                        <div className="surface flex flex-col overflow-hidden">
-                            <span className="border-b border-line px-4 sm:px-5 py-4 font-display font-bold text-base sm:text-lg text-slate-900">Saved For Later ({saveForLaterItems.length})</span>
-                            {saveForLaterItems && saveForLaterItems.map((item) => (
-                                <SaveForLaterItem {...item} />
-                            )
+                            {/* ── Saved for later ── */}
+                            {saveForLaterItems.length > 0 && (
+                                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                                    <div className="px-6 py-4 border-b border-slate-100">
+                                        <span className="font-display font-bold text-slate-800">Saved For Later ({saveForLaterItems.length})</span>
+                                    </div>
+                                    {saveForLaterItems.map((item) => (
+                                        <SaveForLaterItem key={item.product} {...item} />
+                                    ))}
+                                </div>
                             )}
                         </div>
-                        {/* <!-- saved for later container --> */}
+                        {/* ── /Left ── */}
+
+                        {/* ── Right: summary sidebar ── */}
+                        <PriceSidebar cartItems={cartItems} onCheckout={placeOrderHandler} />
 
                     </div>
-                    {/* <!-- cart column --> */}
-
-                    <PriceSidebar cartItems={cartItems} />
                 </div>
-                {/* <!-- row --> */}
+            </div>
 
-            </main>
-
-            {/* sticky mobile checkout bar — app-style, sits above the bottom tab bar */}
+            {/* ── Mobile sticky checkout bar ── */}
             {cartItems.length > 0 && (
-                <div className="md:hidden fixed bottom-16 left-0 right-0 z-30 bg-white border-t border-line px-4 py-3 flex items-center justify-between gap-3 shadow-[0_-4px_16px_rgba(15,23,42,0.06)]">
+                <div className="lg:hidden fixed bottom-16 left-0 right-0 z-30 bg-white border-t border-slate-200 px-4 py-3 flex items-center justify-between gap-3 shadow-[0_-4px_16px_rgba(15,23,42,0.08)]">
                     <div className="flex flex-col">
                         <span className="text-[11px] text-slate-500">{cartItems.length} item{cartItems.length > 1 ? 's' : ''}</span>
                         <span className="font-display font-bold text-slate-900">Tk {totalPrice.toLocaleString()}</span>
                     </div>
-                    <button onClick={placeOrderHandler} className="btn-accent px-5 py-2.5 text-sm font-bold uppercase shrink-0">
+                    <button
+                        onClick={placeOrderHandler}
+                        className="text-white text-sm font-bold uppercase px-6 py-2.5 rounded-lg shrink-0"
+                        style={{ backgroundColor: '#E84B0F' }}
+                    >
                         Checkout
                     </button>
                 </div>

@@ -1,10 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
-import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
-import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
-import MoreHorizOutlinedIcon from '@mui/icons-material/MoreHorizOutlined';
+import { LayoutDashboard, ShoppingBag, Tag, Settings, MoreHorizontal } from 'lucide-react';
 import { ORDERS_ALERT_EVENT } from '../../utils/adminHelpers';
 
 // Dedicated ADMIN bottom bar (mobile only) — replaces the customer bottom bar
@@ -25,11 +21,11 @@ const AdminBottomNav = () => {
     }, []);
 
     const items = [
-        { label: 'Dashboard', href: '/admin/dashboard', icon: DashboardOutlinedIcon, match: (p) => p === '/admin/dashboard' || p === '/admin' },
-        { label: 'Orders', href: '/admin/store_orders', icon: Inventory2OutlinedIcon, match: (p) => p.startsWith('/admin/store_orders') || p.startsWith('/admin/orders'), badge: ordersBadge },
-        { label: 'Products', href: '/admin/products', icon: SellOutlinedIcon, match: (p) => p.startsWith('/admin/products') || p.startsWith('/admin/add_product') },
-        { label: 'Settings', href: '/admin/homepage', icon: SettingsOutlinedIcon, match: (p) => p.startsWith('/admin/homepage') },
-        { label: 'More', href: '/admin/more', icon: MoreHorizOutlinedIcon, match: (p) => p.startsWith('/admin/more') },
+        { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard, match: (p) => p === '/admin/dashboard' || p === '/admin' },
+        { label: 'Orders', href: '/admin/store_orders', icon: ShoppingBag, match: (p) => p.startsWith('/admin/store_orders') || p.startsWith('/admin/orders'), badge: ordersBadge },
+        { label: 'Products', href: '/admin/products', icon: Tag, match: (p) => p.startsWith('/admin/products') || p.startsWith('/admin/add_product') },
+        { label: 'Settings', href: '/admin/homepage', icon: Settings, match: (p) => p.startsWith('/admin/homepage') },
+        { label: 'More', href: '/admin/more', icon: MoreHorizontal, match: (p) => p.startsWith('/admin/more') },
     ];
 
     if (!pathname.startsWith('/admin')) return null;
@@ -53,7 +49,7 @@ const AdminBottomNav = () => {
                             }`}
                         >
                             <span className="relative">
-                                <Icon sx={{ fontSize: '23px' }} />
+                                <Icon size={22} strokeWidth={1.75} />
                                 {it.badge > 0 && (
                                     <span className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] px-1 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center border border-white">
                                         {it.badge > 9 ? '9+' : it.badge}

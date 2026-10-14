@@ -1,99 +1,140 @@
 import { useSnackbar } from 'notistack';
 import { useDispatch } from 'react-redux';
 import { addItemsToCart, removeItemsFromCart } from '../../actions/cartAction';
-import { getDeliveryDate, getDiscount } from '../../utils/functions';
+import { getDiscount } from '../../utils/functions';
 import { saveForLater } from '../../actions/saveForLaterAction';
 import { Link } from 'react-router-dom';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 const CartItem = ({ product, name, seller, price, cuttedPrice, image, stock, quantity, inCart }) => {
 
     const dispatch = useDispatch();
     const { enqueueSnackbar } = useSnackbar();
 
-    const increaseQuantity = (id, quantity, stock) => {
-        const newQty = quantity + 1;
-        if (quantity >= stock) {
+    const increaseQuantity = (id, qty, stock) => {
+        if (qty >= stock) {
             enqueueSnackbar("Maximum Order Quantity", { variant: "warning" });
             return;
-        };
-        dispatch(addItemsToCart(id, newQty));
-    }
+        }
+        dispatch(addItemsToCart(id, qty + 1));
+    };
 
-    const decreaseQuantity = (id, quantity) => {
-        const newQty = quantity - 1;
-        if (quantity <= 1) return;
-        dispatch(addItemsToCart(id, newQty));
-    }
-    
+    const decreaseQuantity = (id, qty) => {
+        if (qty <= 1) return;
+        dispatch(addItemsToCart(id, qty - 1));
+    };
+
     const removeCartItem = (id) => {
         dispatch(removeItemsFromCart(id));
         enqueueSnackbar("Product Removed From Cart", { variant: "success" });
-    }
+    };
 
     const saveForLaterHandler = (id) => {
         dispatch(saveForLater(id));
         removeCartItem(id);
         enqueueSnackbar("Saved For Later", { variant: "success" });
-    }
+    };
+
+    const discount = getDiscount(price, cuttedPrice);
 
     return (
-        <div className="flex flex-col gap-3 py-5 pl-2 sm:pl-6 border-b border-line overflow-hidden" key={product}>
+        <>
+            {/* ── Desktop row (table-style) ── */}
+            <div className="hidden sm:grid grid-cols-[2fr_1fr_0.7fr_1fr_1.2fr_1fr_auto] gap-2 items-center px-6 py-4 border-b border-slate-100 hover:bg-slate-50 transition-colors">
 
-            <Link to={`/product/${product}`} className="flex flex-col sm:flex-row gap-5 items-stretch w-full group">
-                {/* <!-- product image --> */}
-                <div className="w-full sm:w-28 h-28 flex-shrink-0 bg-cloud border border-line rounded-xl overflow-hidden flex items-center justify-center">
-                    <img draggable="false" className="h-full w-full object-contain p-2" src={image} alt={name} />
-                </div>
-                {/* <!-- product image --> */}
-
-                {/* <!-- description --> */}
-                <div className="flex flex-col sm:gap-5 w-full pr-6">
-                    {/* <!-- product title --> */}
-                    <div className="flex flex-col sm:flex-row justify-between items-start pr-5 gap-1 sm:gap-0">
-                        <div className="flex flex-col gap-0.5 sm:w-3/5">
-                            <p className="group-hover:text-primary-accent transition duration-200">{name.length > 42 ? `${name.substring(0, 42)}...` : name}</p>
-                            <span className="text-sm text-slate-500">Seller: {seller}</span>
-                        </div>
-
-                        <div className="flex flex-col sm:gap-2">
-                            <p className="text-sm text-slate-600">Delivery by {getDeliveryDate()} | <span className="text-primary-green">Free</span> <span className="line-through">Tk {quantity * 40}</span></p>
-                            <span className="text-xs text-slate-400">7 Days Replacement Policy</span>
-                        </div>
-
+                {/* Product */}
+                <Link to={`/product/${product}`} className="flex items-center gap-3 group">
+                    <div className="w-14 h-14 flex-shrink-0 bg-slate-50 border border-slate-100 rounded-xl overflow-hidden flex items-center justify-center">
+                        <img draggable="false" className="h-full w-full object-contain p-1" src={image} alt={name} />
                     </div>
-                    {/* <!-- product title --> */}
-
-                    {/* <!-- price desc --> */}
-                    <div className="flex items-baseline gap-2 text-xl font-medium">
-                        <span>Tk {(price * quantity).toLocaleString()}</span>
-                        <span className="text-sm text-slate-400 line-through font-normal">Tk {(cuttedPrice * quantity).toLocaleString()}</span>
-                        <span className="text-sm text-primary-green">{getDiscount(price, cuttedPrice)}%&nbsp;off</span>
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                        <p
+                            className="text-sm font-medium leading-snug group-hover:underline transition-colors truncate"
+                            style={{ color: '#E84B0F' }}
+                        >
+                            {name.length > 40 ? `${name.substring(0, 40)}…` : name}
+                        </p>
+                        <span className="text-xs text-slate-400">Seller: {seller}</span>
                     </div>
-                    {/* <!-- price desc --> */}
+                </Link>
 
-                </div>
-                {/* <!-- description --> */}
-            </Link>
+                {/* Color — not stored per-item; show dash */}
+                <span className="text-sm text-slate-600">—</span>
 
-            {/* <!-- save for later --> */}
-            <div className="flex justify-between pr-4 sm:pr-0 sm:justify-start sm:gap-6">
-                {/* <!-- quantity --> */}
-                <div className="flex gap-1 items-center">
-                    <span onClick={() => decreaseQuantity(product, quantity)} className="w-7 h-7 text-3xl font-light bg-cloud border border-line rounded-full flex items-center justify-center cursor-pointer"><p>-</p></span>
-                    <input className="w-11 border border-line rounded-lg outline-none text-center py-1 text-slate-700 font-medium text-sm qtyInput" value={quantity} disabled />
-                    <span onClick={() => increaseQuantity(product, quantity, stock)} className="w-7 h-7 text-xl font-light bg-cloud border border-line rounded-full flex items-center justify-center cursor-pointer">+</span>
+                {/* Size — not stored per-item; show dash */}
+                <span className="text-sm text-slate-600">—</span>
+
+                {/* Price */}
+                <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-semibold text-slate-800">Tk {price.toLocaleString()}</span>
+                    {discount > 0 && (
+                        <span className="text-xs text-slate-400 line-through">Tk {cuttedPrice.toLocaleString()}</span>
+                    )}
                 </div>
-                {/* <!-- quantity --> */}
+
+                {/* Quantity stepper */}
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => decreaseQuantity(product, quantity)}
+                        className="w-7 h-7 flex items-center justify-center rounded-full border border-slate-200 text-lg font-light text-slate-600 hover:border-[#E84B0F] hover:text-[#E84B0F] transition-colors"
+                    >−</button>
+                    <span className="w-8 text-center text-sm font-semibold text-slate-800">{quantity}</span>
+                    <button
+                        onClick={() => increaseQuantity(product, quantity, stock)}
+                        className="w-7 h-7 flex items-center justify-center rounded-full border border-slate-200 text-lg font-light text-slate-600 hover:border-[#E84B0F] hover:text-[#E84B0F] transition-colors"
+                    >+</button>
+                </div>
+
+                {/* Total */}
+                <span className="text-sm font-bold" style={{ color: '#E84B0F' }}>
+                    Tk {(price * quantity).toLocaleString()}
+                </span>
+
+                {/* Delete */}
                 {inCart && (
-                    <>
-                    <button onClick={() => saveForLaterHandler(product)} className="sm:ml-4 text-primary-accent text-sm font-semibold hover:text-blue-600 transition duration-200">SAVE FOR LATER</button>
-                    <button onClick={() => removeCartItem(product)} className="text-sm font-semibold text-slate-500 hover:text-red-600 transition duration-200">REMOVE</button>
-                    </>
+                    <button onClick={() => removeCartItem(product)} className="text-slate-300 hover:text-red-500 transition-colors ml-1">
+                        <DeleteOutlineIcon fontSize="small" />
+                    </button>
                 )}
             </div>
-            {/* <!-- save for later --> */}
 
-        </div>
+            {/* ── Mobile card ── */}
+            <div className="sm:hidden flex gap-3 px-4 py-4 border-b border-slate-100">
+                <Link to={`/product/${product}`} className="w-16 h-16 flex-shrink-0 bg-slate-50 border border-slate-100 rounded-xl overflow-hidden flex items-center justify-center">
+                    <img draggable="false" className="h-full w-full object-contain p-1" src={image} alt={name} />
+                </Link>
+                <div className="flex-1 min-w-0 flex flex-col gap-2">
+                    <Link to={`/product/${product}`}>
+                        <p className="text-sm font-medium leading-snug" style={{ color: '#E84B0F' }}>
+                            {name.length > 45 ? `${name.substring(0, 45)}…` : name}
+                        </p>
+                    </Link>
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-sm font-bold text-slate-800">Tk {(price * quantity).toLocaleString()}</span>
+                        {discount > 0 && (
+                            <span className="text-xs text-slate-400 line-through">Tk {(cuttedPrice * quantity).toLocaleString()}</span>
+                        )}
+                        {discount > 0 && (
+                            <span className="text-xs font-semibold" style={{ color: '#E84B0F' }}>{discount}% off</span>
+                        )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                        {/* qty stepper */}
+                        <div className="flex items-center gap-1">
+                            <button onClick={() => decreaseQuantity(product, quantity)} className="w-7 h-7 flex items-center justify-center rounded-full border border-slate-200 text-lg font-light">−</button>
+                            <span className="w-7 text-center text-sm font-semibold">{quantity}</span>
+                            <button onClick={() => increaseQuantity(product, quantity, stock)} className="w-7 h-7 flex items-center justify-center rounded-full border border-slate-200 text-lg font-light">+</button>
+                        </div>
+                        {inCart && (
+                            <div className="flex gap-3">
+                                <button onClick={() => saveForLaterHandler(product)} className="text-xs font-semibold" style={{ color: '#E84B0F' }}>Save</button>
+                                <button onClick={() => removeCartItem(product)} className="text-xs font-semibold text-slate-400 hover:text-red-500">Remove</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </>
     );
 };
 

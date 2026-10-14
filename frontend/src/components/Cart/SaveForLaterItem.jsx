@@ -62,7 +62,7 @@ const SaveForLaterItem = ({ product, name, seller, price, cuttedPrice, image, st
                     <span className="w-7 h-7 text-xl font-light bg-cloud border border-line rounded-full flex items-center justify-center cursor-not-allowed">+</span>
                 </div>
                 {/* <!-- quantity --> */}
-                <button onClick={() => moveToCartHandler(product, quantity)} className="sm:ml-4 text-primary-accent text-sm font-semibold hover:text-blue-600 transition duration-200">MOVE TO CART</button>
+                <button onClick={() => moveToCartHandler(product, quantity)} className="sm:ml-4 text-primary-accent text-sm font-semibold hover:opacity-75 transition duration-200">MOVE TO CART</button>
                 <button onClick={() => removeFromSaveForLaterHandler(product)} className="text-sm font-semibold text-slate-500 hover:text-red-600 transition duration-200">REMOVE</button>
             </div>
             {/* <!-- move to cart --> */}

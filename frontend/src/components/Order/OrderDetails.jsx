@@ -5,7 +5,6 @@ import { useParams } from 'react-router-dom';
 import { clearErrors, getOrderDetails } from '../../actions/orderAction';
 import Loader from '../Layouts/Loader';
 import TrackStepper from './TrackStepper';
-import MinCategory from '../Layouts/MinCategory';
 import MetaData from '../Layouts/MetaData';
 
 const OrderDetails = () => {
@@ -28,7 +27,6 @@ const OrderDetails = () => {
         <>
             <MetaData title="Order Details | TechBazar" />
 
-            <MinCategory />
             <main className="w-full sm:w-11/12 mx-auto flex flex-col gap-4 px-3 sm:px-4 pb-10 mt-3 sm:mt-6">
                 {loading ? <Loader /> : (
                     <>

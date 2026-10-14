@@ -99,8 +99,6 @@ const Account = () => {
 
             {loading ? <Loader /> :
                 <>
-                    <MinCategory />
-
                     {/* ── profile hero band — full-bleed brand gradient,
                          content centered (same pattern as the homepage hero) ── */}
                     <section className="bg-gradient-to-r from-primary-accent via-indigo-600 to-blue-700">
