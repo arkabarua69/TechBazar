@@ -23,6 +23,7 @@ const payment = require('./routes/paymentRoute');
 const storefront = require('./routes/storefrontRoute');
 const chat = require('./routes/chatRoute');
 const websiteConfig = require('./routes/websiteConfigRoute');
+const databaseRoute = require('./routes/databaseRoute');
 
 app.use('/api/v1', user);
 app.use('/api/v1', product);
@@ -31,6 +32,7 @@ app.use('/api/v1', payment);
 app.use('/api/v1', storefront);
 app.use('/api/v1', chat);
 app.use('/api/v1', websiteConfig);
+app.use('/api/v1', databaseRoute);
 
 // error middleware
 app.use(errorMiddleware);

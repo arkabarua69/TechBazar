@@ -159,6 +159,10 @@ const DEFAULT_CONFIG = {
         enableSitemap: true,
         enablePWA: false,
     },
+    // Database configuration
+    database: {
+        mongoUri: '', // stored encrypted
+    },
 };
 
 // Schema for website configuration
@@ -342,6 +346,10 @@ const websiteConfigSchema = new mongoose.Schema({
         enablePWA: { type: Boolean, default: DEFAULT_CONFIG.features.enablePWA },
     },
 
+    // Database configuration
+    database: {
+        mongoUri: { type: String, default: '' }, // stored encrypted
+    },
     // Metadata
     version: { type: Number, default: 1 },
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

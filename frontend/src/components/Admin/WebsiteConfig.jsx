@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+﻿import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import MetaData from '../Layouts/MetaData';
@@ -28,6 +28,9 @@ import {
     ChevronDown,
     ChevronUp,
     Loader2,
+    Database,
+    Trash2,
+    RefreshCw,
 } from 'lucide-react';
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MASK_STRING = '••••••••••••••••••••';
@@ -44,6 +47,7 @@ const CATEGORIES = [
     { id: 'cache',     label: 'Cache',          Icon: Zap,         count: 4  },
     { id: 'apiKeys',   label: 'API Keys',       Icon: Key,         count: 5  },
     { id: 'features',  label: 'Features',       Icon: Sliders,     count: 7  },
+    { id: 'database',  label: 'Database',       Icon: Database,    count: null },
     { id: 'homepage',  label: 'Homepage',       Icon: Layout,      count: null },
     { id: 'changelog', label: 'Change Log',     Icon: History,     count: null },
 ];
@@ -479,6 +483,283 @@ const ChangeLogPanel = () => {
                 </table>
             </div>
         </Card>
+    );
+};
+
+// ─── Database Panel ───────────────────────────────────────────────────────────
+
+const DatabasePanel = () => {
+    const { enqueueSnackbar } = useSnackbar();
+    const [status, setStatus] = useState(null);
+    const [statusLoading, setStatusLoading] = useState(true);
+    const [uri, setUri] = useState('');
+    const [uriDirty, setUriDirty] = useState(false);
+    const [testing, setTesting] = useState(false);
+    const [testResult, setTestResult] = useState(null);
+    const [saving, setSaving] = useState(false);
+    const [seeding, setSeeding] = useState(false);
+    const [seedResult, setSeedResult] = useState(null);
+    const [showDropModal, setShowDropModal] = useState(false);
+    const [dropConfirm, setDropConfirm] = useState('');
+    const [dropping, setDropping] = useState(false);
+
+    const fetchStatus = async () => {
+        setStatusLoading(true);
+        try {
+            const { data } = await axios.get('/api/v1/admin/database/status');
+            setStatus(data);
+            if (!uriDirty) setUri(data.currentUri || '');
+        } catch (err) {
+            enqueueSnackbar('Failed to load database status', { variant: 'error' });
+        } finally {
+            setStatusLoading(false);
+        }
+    };
+
+    useEffect(() => { fetchStatus(); }, []);
+
+    const handleTest = async () => {
+        if (!uri || (!uri.startsWith('mongodb://') && !uri.startsWith('mongodb+srv://'))) {
+            enqueueSnackbar('Enter a valid MongoDB URI', { variant: 'warning' });
+            return;
+        }
+        setTesting(true);
+        setTestResult(null);
+        try {
+            const { data } = await axios.post('/api/v1/admin/database/test', { uri });
+            setTestResult({ success: true, info: data.info });
+            enqueueSnackbar('Connection test successful', { variant: 'success' });
+        } catch (err) {
+            setTestResult({ success: false, message: err.response?.data?.message || 'Test failed' });
+            enqueueSnackbar(err.response?.data?.message || 'Test failed', { variant: 'error' });
+        } finally {
+            setTesting(false);
+        }
+    };
+
+    const handleSaveUri = async () => {
+        if (!uri || (!uri.startsWith('mongodb://') && !uri.startsWith('mongodb+srv://'))) {
+            enqueueSnackbar('Enter a valid MongoDB URI', { variant: 'warning' });
+            return;
+        }
+        setSaving(true);
+        try {
+            const { data } = await axios.put('/api/v1/admin/database/uri', { uri });
+            enqueueSnackbar(data.message, { variant: 'success' });
+            setUriDirty(false);
+            fetchStatus();
+        } catch (err) {
+            enqueueSnackbar(err.response?.data?.message || 'Save failed', { variant: 'error' });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleSeed = async () => {
+        setSeeding(true);
+        setSeedResult(null);
+        try {
+            const { data } = await axios.post('/api/v1/admin/database/seed');
+            setSeedResult(data.results);
+            enqueueSnackbar(data.message, { variant: 'success' });
+            fetchStatus();
+        } catch (err) {
+            enqueueSnackbar(err.response?.data?.message || 'Seed failed', { variant: 'error' });
+        } finally {
+            setSeeding(false);
+        }
+    };
+
+    const handleDrop = async () => {
+        if (dropConfirm !== 'DROP_ALL_DATA') {
+            enqueueSnackbar('Type DROP_ALL_DATA to confirm', { variant: 'warning' });
+            return;
+        }
+        setDropping(true);
+        try {
+            const { data } = await axios.post('/api/v1/admin/database/drop', { confirm: dropConfirm });
+            enqueueSnackbar(data.message, { variant: 'success' });
+            setShowDropModal(false);
+            setDropConfirm('');
+            fetchStatus();
+        } catch (err) {
+            enqueueSnackbar(err.response?.data?.message || 'Drop failed', { variant: 'error' });
+        } finally {
+            setDropping(false);
+        }
+    };
+
+    const stateColor = (s) => {
+        if (s === 'connected') return 'text-green-600 bg-green-50 border border-green-200';
+        if (s === 'connecting') return 'text-yellow-600 bg-yellow-50 border border-yellow-200';
+        return 'text-red-600 bg-red-50 border border-red-200';
+    };
+
+    const formatBytes = (b) => {
+        if (!b) return '0 B';
+        const k = 1024;
+        const sz = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(b) / Math.log(k));
+        return (b / Math.pow(k, i)).toFixed(1) + ' ' + sz[i];
+    };
+
+    return (
+        <div className="flex flex-col gap-5">
+            {showDropModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={() => setShowDropModal(false)}>
+                    <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-3 mb-3">
+                            <span className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+                                <Trash2 size={18} className="text-red-500" />
+                            </span>
+                            <h2 className="text-base font-semibold text-gray-900">Clear All Data</h2>
+                        </div>
+                        <p className="text-sm text-gray-500 mb-4 leading-relaxed">
+                            Deletes all documents from every collection. Cannot be undone.
+                            Type <strong>DROP_ALL_DATA</strong> to confirm.
+                        </p>
+                        <input type="text" value={dropConfirm} onChange={(e) => setDropConfirm(e.target.value)}
+                            placeholder="DROP_ALL_DATA"
+                            className="border border-gray-200 rounded-xl px-3 py-2 text-sm w-full mb-4 focus:outline-none focus:border-red-400 font-mono" />
+                        <div className="flex gap-2 justify-end">
+                            <button onClick={() => { setShowDropModal(false); setDropConfirm(''); }}
+                                className="border border-gray-300 text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-xl text-sm font-semibold">Cancel</button>
+                            <button onClick={handleDrop} disabled={dropping || dropConfirm !== 'DROP_ALL_DATA'}
+                                className="bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2">
+                                {dropping ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                Clear All Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <Card>
+                <div className="flex items-center justify-between mb-3">
+                    <SectionHeading>Connection Status</SectionHeading>
+                    <button onClick={fetchStatus} className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 -mt-3">
+                        <RefreshCw size={12} /> Refresh
+                    </button>
+                </div>
+                {statusLoading ? (
+                    <div className="flex items-center gap-2 text-gray-400 py-4 text-sm">
+                        <Loader2 size={16} className="animate-spin" /> Checking connection...
+                    </div>
+                ) : status ? (
+                    <div className="flex flex-col gap-4">
+                        <div className="flex items-center gap-3">
+                            <span className={"px-3 py-1 rounded-full text-xs font-bold uppercase " + stateColor(status.status)}>
+                                {status.status}
+                            </span>
+                            {status.stats && (
+                                <span className="text-xs text-gray-400 font-mono">{status.stats.host} / {status.stats.name}</span>
+                            )}
+                        </div>
+                        {status.stats && (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                {[
+                                    { label: 'Collections', value: status.stats.collections },
+                                    { label: 'Documents', value: Number(status.stats.documents || 0).toLocaleString() },
+                                    { label: 'Data Size', value: formatBytes(status.stats.dataSize) },
+                                    { label: 'Storage', value: formatBytes(status.stats.storageSize) },
+                                ].map(function(item) { return (
+                                    <div key={item.label} className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
+                                        <p className="text-lg font-bold text-gray-800">{item.value != null ? item.value : '-'}</p>
+                                        <p className="text-xs text-gray-400 mt-0.5">{item.label}</p>
+                                    </div>
+                                ); })}
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <p className="text-sm text-gray-400">Unable to fetch status.</p>
+                )}
+            </Card>
+
+            <Card>
+                <SectionHeading>MongoDB URI</SectionHeading>
+                <p className="text-xs text-gray-400 mb-4">
+                    Stored encrypted in the database. A server restart is required to apply a new URI.
+                </p>
+                <div className="flex flex-col gap-3">
+                    <div>
+                        <label className={labelCls}>MongoDB Connection URI</label>
+                        <input type="text" value={uri}
+                            onChange={(e) => { setUri(e.target.value); setUriDirty(true); setTestResult(null); }}
+                            placeholder="mongodb+srv://user:password@cluster.mongodb.net/dbname"
+                            className={inputCls} />
+                        <p className="text-xs text-gray-400 mt-1">Format: mongodb+srv://user:pass@cluster.host/database</p>
+                    </div>
+                    {testResult && (
+                        <div className={"rounded-xl p-3 text-sm border " + (testResult.success ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200')}>
+                            {testResult.success ? (
+                                <div>
+                                    <p className="font-semibold">Connection successful</p>
+                                    {testResult.info && (
+                                        <p className="text-xs mt-1 opacity-80 font-mono">
+                                            {testResult.info.host} / {testResult.info.name} — {testResult.info.collections} collections, {Number(testResult.info.documents || 0).toLocaleString()} docs
+                                        </p>
+                                    )}
+                                </div>
+                            ) : <p>{testResult.message}</p>}
+                        </div>
+                    )}
+                    <div className="flex gap-2 flex-wrap">
+                        <button onClick={handleTest} disabled={testing || !uri}
+                            className="border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-50 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2">
+                            {testing ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
+                            {testing ? 'Testing...' : 'Test Connection'}
+                        </button>
+                        <button onClick={handleSaveUri} disabled={saving || !uriDirty}
+                            className="bg-[#E84B0F] hover:bg-[#C63E0A] disabled:opacity-50 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2">
+                            {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                            {saving ? 'Saving...' : 'Save URI'}
+                        </button>
+                    </div>
+                </div>
+            </Card>
+
+            <Card>
+                <SectionHeading>Seed Database</SectionHeading>
+                <p className="text-sm text-gray-500 mb-3">
+                    Creates demo admin (<strong>admin@example.com</strong> / <strong>admin1234</strong>), a regular user, and sample products.
+                    Safe to run multiple times — skips existing data.
+                </p>
+                <button onClick={handleSeed} disabled={seeding}
+                    className="bg-[#E84B0F] hover:bg-[#C63E0A] disabled:opacity-50 text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2">
+                    {seeding ? <Loader2 size={15} className="animate-spin" /> : <Database size={15} />}
+                    {seeding ? 'Seeding...' : 'Run Seed'}
+                </button>
+                {seedResult && (
+                    <div className="mt-4 bg-gray-50 rounded-xl p-4 border border-gray-100">
+                        <p className="text-xs font-semibold text-gray-700 mb-2">Seed Results</p>
+                        <div className="text-xs font-mono text-gray-600 flex flex-col gap-1">
+                            {(seedResult.users || []).map((u, i) => (
+                                <p key={i}>{u.includes('created') ? '+' : '-'} {u}</p>
+                            ))}
+                            {seedResult.products && (seedResult.products.skipped
+                                ? <p className="text-gray-400 mt-1">Products: {seedResult.products.existing} exist (skipped)</p>
+                                : <p className="text-green-600 mt-1">+ Products: {seedResult.products.seeded} seeded</p>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </Card>
+
+            <Card>
+                <SectionHeading>Danger Zone</SectionHeading>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-red-50 rounded-xl border border-red-200">
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-red-700">Clear All Database Data</p>
+                        <p className="text-xs text-red-500 mt-0.5">Deletes all documents from every collection. Irreversible.</p>
+                    </div>
+                    <button onClick={() => setShowDropModal(true)}
+                        className="border border-red-300 text-red-600 hover:bg-red-100 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 shrink-0">
+                        <Trash2 size={14} /> Clear Data
+                    </button>
+                </div>
+            </Card>
+        </div>
     );
 };
 // ─── Homepage Panel (embedded SiteEditor) ─────────────────────────────────────
@@ -1035,6 +1316,9 @@ const WebsiteConfig = () => {
     // ── Render active category fields ─────────────────────────────────────────────
     const renderCategoryContent = () => {
         if (!config) return null;
+        if (activeCategory === 'database') {
+            return <DatabasePanel />;
+        }
         if (activeCategory === 'homepage') {
             return <HomepagePanel />;
         }
@@ -1125,7 +1409,7 @@ const WebsiteConfig = () => {
                     {/* Save */}
                     <button
                         onClick={handleSave}
-                        disabled={saving || activeCategory === 'changelog' || activeCategory === 'homepage'}
+                        disabled={saving || activeCategory === 'changelog' || activeCategory === 'homepage' || activeCategory === 'database'}
                         title={activeCategory === 'homepage' ? 'Use the Homepage save button' : undefined}
                         className="bg-[#E84B0F] hover:bg-[#C63E0A] disabled:opacity-50 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors"
                     >
