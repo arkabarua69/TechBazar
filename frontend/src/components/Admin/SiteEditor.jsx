@@ -90,6 +90,27 @@ const SiteEditor = () => {
             [section]: { ...prev[section], [group]: { ...prev[section][group], [key]: value } },
         }));
 
+    // ── Auto-save a single image field to /api/v1/admin/siteconfig immediately ──
+    // This runs right after ImgBB upload so the URL persists through page reloads
+    // without the admin needing to press "Save" separately.
+    const autoSaveImage = async (section, key, url) => {
+        setSection(section, key, url);
+        await axios.put(
+            '/api/v1/admin/siteconfig',
+            { [section]: { [key]: url } },
+            { headers: { 'Content-Type': 'application/json', Accept: 'application/json' } }
+        );
+    };
+
+    const autoSaveNested = async (section, group, key, url) => {
+        setNested(section, group, key, url);
+        await axios.put(
+            '/api/v1/admin/siteconfig',
+            { [section]: { [group]: { [key]: url } } },
+            { headers: { 'Content-Type': 'application/json', Accept: 'application/json' } }
+        );
+    };
+
     const setArrayItem = (arrayKey, index, field, value) =>
         setConfig((prev) => {
             const arr = clone(prev[arrayKey] || []);
@@ -263,6 +284,7 @@ const SiteEditor = () => {
                                     label={t('label_image')}
                                     currentUrl={h.image ?? ''}
                                     onUploaded={(url) => setSection('hero', 'image', url)}
+                                    onAutoSave={(url) => autoSaveImage('hero', 'image', url)}
                                     previewClass="max-h-36 max-w-full object-cover rounded-lg w-full"
                                 />
                             </div>
@@ -282,6 +304,7 @@ const SiteEditor = () => {
                                         label={t('label_image')}
                                         currentUrl={h[group]?.image ?? ''}
                                         onUploaded={(url) => setNested('hero', group, 'image', url)}
+                                        onAutoSave={(url) => autoSaveNested('hero', group, 'image', url)}
                                         previewClass="max-h-24 max-w-full object-cover rounded-lg w-full"
                                     />
                                     <Field label={t('label_button_link')} value={h[group]?.link} onChange={(v) => setNested('hero', group, 'link', v)} />
@@ -451,6 +474,7 @@ const SiteEditor = () => {
                                         label={t('logo_url')}
                                         currentUrl={b.logoUrl ?? ''}
                                         onUploaded={(url) => setSection('branding', 'logoUrl', url)}
+                                        onAutoSave={(url) => autoSaveImage('branding', 'logoUrl', url)}
                                         previewClass="max-h-12 max-w-full object-contain"
                                     />
                                 </div>

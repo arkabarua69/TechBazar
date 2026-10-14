@@ -7,6 +7,11 @@ const {
     saveMongoUri,
     runSeed,
     dropCollections,
+    getCollections,
+    getCollectionDocs,
+    updateCollectionDoc,
+    deleteCollectionDoc,
+    createCollection,
 } = require('../controllers/databaseController');
 
 const adminOnly = [isAuthenticatedUser, authorizeRoles('admin')];
@@ -16,5 +21,12 @@ router.post('/admin/database/test', ...adminOnly, testConnection);
 router.put('/admin/database/uri', ...adminOnly, saveMongoUri);
 router.post('/admin/database/seed', ...adminOnly, runSeed);
 router.post('/admin/database/drop', ...adminOnly, dropCollections);
+
+// Collection browser & editor
+router.get('/admin/database/collections', ...adminOnly, getCollections);
+router.post('/admin/database/collections', ...adminOnly, createCollection);
+router.get('/admin/database/collections/:name', ...adminOnly, getCollectionDocs);
+router.put('/admin/database/collections/:name/:id', ...adminOnly, updateCollectionDoc);
+router.delete('/admin/database/collections/:name/:id', ...adminOnly, deleteCollectionDoc);
 
 module.exports = router;

@@ -38,6 +38,7 @@ import ReviewsTable from './components/Admin/ReviewsTable';
 import StoreOrders from './components/Admin/StoreOrders';
 import ChatInbox from './components/Admin/ChatInbox';
 import WebsiteConfig from './components/Admin/WebsiteConfig';
+import DatabaseManager from './components/Admin/DatabaseManager';
 import More from './components/Admin/More';
 import AdminBottomNav from './components/Admin/AdminBottomNav';
 import ChatWidget from './components/Chat/ChatWidget';
@@ -273,6 +274,14 @@ function App() {
           <ProtectedRoute isAdmin={true}>
             <Dashboard activeTab={9}>
               <WebsiteConfig />
+            </Dashboard>
+          </ProtectedRoute>
+        } ></Route>
+        {/* Database Manager — admin only */}
+        <Route path="/admin/database" element={
+          <ProtectedRoute isAdmin={true}>
+            <Dashboard activeTab={10}>
+              <DatabaseManager />
             </Dashboard>
           </ProtectedRoute>
         } ></Route>
