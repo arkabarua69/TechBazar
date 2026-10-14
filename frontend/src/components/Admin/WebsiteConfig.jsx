@@ -486,6 +486,182 @@ const ChangeLogPanel = () => {
     );
 };
 
+// ─── Branding Panel (logo, site identity + full ThemeEditor) ─────────────────
+
+const BrandingPanel = () => {
+    const { enqueueSnackbar } = useSnackbar();
+    const { reloadConfig } = useSiteConfig();
+
+    // Branding fields live in websiteconfig (logo, favicon, colors)
+    const [brandConfig, setBrandConfig] = useState(null);
+    const [brandLoading, setBrandLoading] = useState(true);
+    const [brandSaving, setBrandSaving] = useState(false);
+
+    // Theme lives in siteconfig (same endpoint as HomepagePanel)
+    const [theme, setTheme] = useState(null);
+    const [themeLoading, setThemeLoading] = useState(true);
+    const [themeSaving, setThemeSaving] = useState(false);
+
+    // ── Load branding (websiteconfig) ──────────────────────────────────────────
+    useEffect(() => {
+        setBrandLoading(true);
+        axios.get('/api/v1/admin/websiteconfig', { headers: { Accept: 'application/json' } })
+            .then((res) => { if (res.data?.config) setBrandConfig(res.data.config); })
+            .catch(() => enqueueSnackbar('Failed to load branding config', { variant: 'error' }))
+            .finally(() => setBrandLoading(false));
+    }, [enqueueSnackbar]);
+
+    // ── Load theme (siteconfig) ────────────────────────────────────────────────
+    useEffect(() => {
+        setThemeLoading(true);
+        axios.get('/api/v1/siteconfig', { headers: { Accept: 'application/json' } })
+            .then((res) => { if (res.data?.config?.theme) setTheme(res.data.config.theme); })
+            .catch(() => enqueueSnackbar('Failed to load theme', { variant: 'error' }))
+            .finally(() => setThemeLoading(false));
+    }, [enqueueSnackbar]);
+
+    const setBrand = (field, value) =>
+        setBrandConfig((prev) => ({ ...prev, branding: { ...prev.branding, [field]: value } }));
+
+    // ── Save branding fields ───────────────────────────────────────────────────
+    const saveBranding = async () => {
+        if (!brandConfig) return;
+        setBrandSaving(true);
+        try {
+            await axios.put('/api/v1/admin/websiteconfig', { config: { branding: brandConfig.branding } });
+            enqueueSnackbar('Branding saved', { variant: 'success' });
+        } catch (err) {
+            enqueueSnackbar(err.response?.data?.message || 'Save failed', { variant: 'error' });
+        } finally {
+            setBrandSaving(false);
+        }
+    };
+
+    // ── Save theme ─────────────────────────────────────────────────────────────
+    const saveTheme = async () => {
+        if (!theme) return;
+        setThemeSaving(true);
+        try {
+            await axios.put('/api/v1/admin/siteconfig', { theme }, {
+                headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            });
+            enqueueSnackbar('Theme saved', { variant: 'success' });
+            reloadConfig();
+        } catch (err) {
+            enqueueSnackbar(err.response?.data?.message || 'Theme save failed', { variant: 'error' });
+        } finally {
+            setThemeSaving(false);
+        }
+    };
+
+    if (brandLoading || themeLoading) {
+        return (
+            <Card>
+                <div className="flex items-center justify-center py-16 text-gray-400">
+                    <Loader2 size={22} className="animate-spin mr-2" /> Loading branding settings...
+                </div>
+            </Card>
+        );
+    }
+
+    const b = brandConfig?.branding || {};
+
+    return (
+        <div className="flex flex-col gap-5">
+
+            {/* ── Site Identity ──────────────────────────────────────────────────── */}
+            <Card>
+                <div className="flex items-center justify-between mb-4">
+                    <SectionHeading>Site Identity</SectionHeading>
+                    <button
+                        onClick={saveBranding}
+                        disabled={brandSaving}
+                        className="bg-[#E84B0F] hover:bg-[#C63E0A] disabled:opacity-50 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2"
+                    >
+                        {brandSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                        {brandSaving ? 'Saving...' : 'Save Branding'}
+                    </button>
+                </div>
+                <div className="flex flex-col gap-4">
+                    <div className="grid sm:grid-cols-2 gap-4">
+                        {/* Logo */}
+                        <div>
+                            <label className={labelCls}>Logo URL</label>
+                            <input type="text" value={b.logoUrl ?? ''} onChange={(e) => setBrand('logoUrl', e.target.value)}
+                                placeholder="https://example.com/logo.png"
+                                className={inputCls} />
+                            {b.logoUrl && (
+                                <div className="mt-2 p-2 border border-gray-100 rounded-xl bg-gray-50 flex items-center justify-center" style={{ minHeight: 60 }}>
+                                    <img src={b.logoUrl} alt="Logo preview" className="max-h-12 max-w-full object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
+                                </div>
+                            )}
+                        </div>
+                        {/* Favicon */}
+                        <div>
+                            <label className={labelCls}>Favicon URL</label>
+                            <input type="text" value={b.faviconUrl ?? ''} onChange={(e) => setBrand('faviconUrl', e.target.value)}
+                                placeholder="https://example.com/favicon.ico"
+                                className={inputCls} />
+                            {b.faviconUrl && (
+                                <div className="mt-2 p-2 border border-gray-100 rounded-xl bg-gray-50 flex items-center justify-center" style={{ minHeight: 60 }}>
+                                    <img src={b.faviconUrl} alt="Favicon preview" className="max-h-8 max-w-full object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Quick color fields */}
+                    <div className="grid sm:grid-cols-3 gap-4">
+                        {[
+                            { label: 'Primary Color', field: 'primaryColor' },
+                            { label: 'Secondary Color', field: 'secondaryColor' },
+                            { label: 'Accent Color', field: 'accentColor' },
+                        ].map(({ label, field }) => (
+                            <div key={field}>
+                                <label className={labelCls}>{label}</label>
+                                <div className="flex items-center gap-2">
+                                    <input type="color" value={/^#[0-9a-fA-F]{3,6}$/.test(b[field] || '') ? b[field] : '#000000'}
+                                        onChange={(e) => setBrand(field, e.target.value)}
+                                        className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white shrink-0" style={{ minWidth: 40 }} />
+                                    <input type="text" value={b[field] ?? ''} onChange={(e) => setBrand(field, e.target.value)}
+                                        placeholder="#000000" className={inputCls} maxLength={7} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <ToggleField label="Dark Mode" description="Enable dark theme by default"
+                        value={!!b.darkMode} onChange={(v) => setBrand('darkMode', v)} />
+                </div>
+            </Card>
+
+            {/* ── Theme & Visual Customisation ───────────────────────────────────── */}
+            <Card>
+                <div className="flex items-center justify-between mb-4">
+                    <SectionHeading>Theme &amp; Visual Customisation</SectionHeading>
+                    <button
+                        onClick={saveTheme}
+                        disabled={themeSaving}
+                        className="bg-[#E84B0F] hover:bg-[#C63E0A] disabled:opacity-50 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2"
+                    >
+                        {themeSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                        {themeSaving ? 'Saving...' : 'Save Theme'}
+                    </button>
+                </div>
+                <p className="text-xs text-gray-400 mb-4 -mt-2">
+                    Changes apply instantly as a live preview. Click <strong>Save Theme</strong> to persist site-wide.
+                </p>
+                {theme ? (
+                    <ThemeEditor theme={theme} onChange={setTheme} />
+                ) : (
+                    <div className="flex items-center gap-2 text-gray-400 py-8 text-sm justify-center">
+                        <Loader2 size={16} className="animate-spin" /> Loading theme...
+                    </div>
+                )}
+            </Card>
+        </div>
+    );
+};
 // ─── Database Panel ───────────────────────────────────────────────────────────
 
 const DatabasePanel = () => {
@@ -1200,15 +1376,6 @@ const HomepagePanel = () => {
                 <HomepageField label="Welcome Message" textarea value={ch.welcomeMessage} onChange={(v) => setHpSection('chat', 'welcomeMessage', v)} />
             </Card>
 
-            {/* Theme Editor */}
-            <Card>
-                <SectionHeading>Theme &amp; Visual Customisation</SectionHeading>
-                <p className="text-xs text-gray-500 mb-4">Changes preview instantly. Click Save Homepage to apply site-wide.</p>
-                <ThemeEditor
-                    theme={hpConfig.theme || {}}
-                    onChange={(theme) => setHpConfig((prev) => ({ ...prev, theme }))}
-                />
-            </Card>
         </div>
     );
 };
@@ -1316,6 +1483,9 @@ const WebsiteConfig = () => {
     // ── Render active category fields ─────────────────────────────────────────────
     const renderCategoryContent = () => {
         if (!config) return null;
+        if (activeCategory === 'branding') {
+            return <BrandingPanel />;
+        }
         if (activeCategory === 'database') {
             return <DatabasePanel />;
         }
@@ -1409,7 +1579,7 @@ const WebsiteConfig = () => {
                     {/* Save */}
                     <button
                         onClick={handleSave}
-                        disabled={saving || activeCategory === 'changelog' || activeCategory === 'homepage' || activeCategory === 'database'}
+                        disabled={saving || activeCategory === 'changelog' || activeCategory === 'homepage' || activeCategory === 'database' || activeCategory === 'branding'}
                         title={activeCategory === 'homepage' ? 'Use the Homepage save button' : undefined}
                         className="bg-[#E84B0F] hover:bg-[#C63E0A] disabled:opacity-50 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors"
                     >
