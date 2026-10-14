@@ -9,16 +9,15 @@ import ChatBubbleOutlineOutlinedIcon from '@mui/icons-material/ChatBubbleOutline
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import { logoutUser } from '../../actions/userAction';
 import MetaData from '../Layouts/MetaData';
-
 // "More" tab of the admin bottom nav — everything not in the 4 main tabs,
 // presented as a native settings-style list.
 const More = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { user } = useSelector((state) => state.user);
-
     const sections = [
         {
             title: 'Account',
@@ -33,6 +32,7 @@ const More = () => {
                 { label: 'Cash on Delivery Orders', desc: 'Regular paid orders', icon: ReceiptLongOutlinedIcon, to: '/admin/orders' },
                 { label: 'Add Product', desc: 'Create a new listing', icon: AddBoxOutlinedIcon, to: '/admin/new_product' },
                 { label: 'Storefront Settings', desc: 'bKash / Nagad · delivery charge · banner', icon: HomeOutlinedIcon, to: '/admin/homepage' },
+                { label: 'Website Config', desc: 'API keys, SMTP, theme, SEO & more', icon: SettingsOutlinedIcon, to: '/admin/config' },
             ],
         },
         {
@@ -44,15 +44,12 @@ const More = () => {
             ],
         },
     ];
-
     return (
         <>
             <MetaData title='More | TechBazar Admin' />
-
             <div className="pb-4">
                 <h2 className="text-xl font-extrabold text-gray-900 mb-1">More</h2>
                 <p className="text-xs text-gray-500 mb-4">Account, settings &amp; management</p>
-
                 {sections.map((sec) => (
                     <div key={sec.title} className="mb-5">
                         <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-2">
@@ -80,7 +77,6 @@ const More = () => {
                                     </>
                                 );
                                 const cls = 'w-full flex items-center gap-3 px-4 py-3 active:bg-gray-50 transition-colors';
-
                                 return it.to ? (
                                     <button key={it.label} onClick={() => navigate(it.to)} className={cls + ' border-b border-gray-100 last:border-0'}>
                                         {content}
@@ -94,11 +90,9 @@ const More = () => {
                         </div>
                     </div>
                 ))}
-
-                <p className="text-center text-[11px] text-gray-400">TechBazar Admin © 2026</p>
+                <p className="text-center text-[11px] text-gray-400">TechBazar Admin &copy; 2026</p>
             </div>
         </>
     );
 };
-
 export default More;
