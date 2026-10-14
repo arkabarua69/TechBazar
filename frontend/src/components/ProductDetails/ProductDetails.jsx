@@ -29,7 +29,6 @@ import { NEW_REVIEW_RESET } from '../../constants/productConstants';
 import { addItemsToCart } from '../../actions/cartAction';
 import { getDiscount } from '../../utils/functions';
 import { addToWishlist, removeFromWishlist } from '../../actions/wishlistAction';
-import MinCategory from '../Layouts/MinCategory';
 import MetaData from '../Layouts/MetaData';
 import ProductCard from '../Home/ProductCard';
 
@@ -204,7 +203,6 @@ if (activeColor) lines.push(`Color: ${activeColor}`);
             ) : (
                 <>
                     <MetaData title={`${product.name} | TechBazar`} />
-                    <MinCategory />
                     <main className="mt-4 sm:mt-0">
 
                         <div className="w-full sm:w-11/12 mx-auto px-3 sm:px-4 flex flex-col gap-4 pb-6">

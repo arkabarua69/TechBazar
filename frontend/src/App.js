@@ -38,6 +38,7 @@ import ReviewsTable from './components/Admin/ReviewsTable';
 import StoreOrders from './components/Admin/StoreOrders';
 import SiteEditor from './components/Admin/SiteEditor';
 import ChatInbox from './components/Admin/ChatInbox';
+import WebsiteConfig from './components/Admin/WebsiteConfig';
 import More from './components/Admin/More';
 import AdminBottomNav from './components/Admin/AdminBottomNav';
 import ChatWidget from './components/Chat/ChatWidget';
@@ -299,6 +300,15 @@ function App() {
             </Dashboard>
           </ProtectedRoute>
         } ></Route>
+        {/* Website Configuration — admin only */}
+        <Route path="/admin/config" element={
+          <ProtectedRoute isAdmin={true}>
+            <Dashboard activeTab={9}>
+              <WebsiteConfig />
+            </Dashboard>
+          </ProtectedRoute>
+        } ></Route>
+
 
         {/* "More" tab of the admin bottom nav */}
         <Route path="/admin/more" element={

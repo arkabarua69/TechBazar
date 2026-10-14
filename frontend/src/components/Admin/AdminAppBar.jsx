@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import MenuIcon from '@mui/icons-material/Menu';
-import SearchIcon from '@mui/icons-material/Search';
-import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
-import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import { Menu, Search, Bell, User } from 'lucide-react';
 import axios from 'axios';
 import { alertPulse, emitOrdersAlert, SEARCH_FOCUS_EVENT, LAST_SEEN_KEY } from '../../utils/adminHelpers';
 
@@ -114,7 +111,7 @@ const AdminAppBar = ({ onMenu }) => {
                 className="w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition"
                 style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}
             >
-                <MenuIcon sx={{ fontSize: '20px' }} />
+                <Menu size={20} strokeWidth={2} />
             </button>
 
             <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -122,7 +119,7 @@ const AdminAppBar = ({ onMenu }) => {
                     className="w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm text-white"
                     style={{ backgroundColor: 'rgba(232,75,15,0.3)' }}
                 >
-                    <PersonOutlineIcon sx={{ fontSize: '20px' }} />
+                    <User size={20} strokeWidth={1.75} />
                 </div>
                 <div className="leading-tight min-w-0">
                     <p className="text-sm font-bold text-white truncate">Admin</p>
@@ -136,7 +133,7 @@ const AdminAppBar = ({ onMenu }) => {
                 className="w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition"
                 style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: '#fff' }}
             >
-                <SearchIcon sx={{ fontSize: '20px' }} />
+                <Search size={20} strokeWidth={2} />
             </button>
 
             {!onOrdersPage && (
@@ -146,7 +143,7 @@ const AdminAppBar = ({ onMenu }) => {
                     className="relative w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition"
                     style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: '#fff' }}
                 >
-                    <NotificationsNoneIcon sx={{ fontSize: '20px' }} />
+                    <Bell size={20} strokeWidth={1.75} />
                     {unseen > 0 && (
                         <span
                             className="absolute top-0.5 right-0.5 min-w-[17px] h-[17px] px-1 rounded-full text-white text-[10px] font-bold flex items-center justify-center border-2"

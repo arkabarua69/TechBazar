@@ -18,6 +18,7 @@ export const translations = {
         store_orders: 'Store Orders',
         homepage: 'Homepage',
         chat_inbox: 'Chat Inbox',
+        config: 'Config',
         my_profile: 'My Profile',
         logout: 'Logout',
 
@@ -160,6 +161,7 @@ export const translations = {
         store_orders: 'Store Orders',
         homepage: 'Homepage',
         chat_inbox: 'Chat Inbox',
+        config: 'Config',
         my_profile: 'My Profile',
         logout: 'Logout',
 
@@ -305,6 +307,7 @@ export const navLabels = {
         store_orders: 'Store Orders',
         homepage: 'Homepage',
         chat_inbox: 'Chat Inbox',
+        config: 'Config',
         my_profile: 'My Profile',
         logout: 'Logout',
     },
@@ -318,6 +321,7 @@ export const navLabels = {
         store_orders: 'Store Orders',
         homepage: 'Homepage',
         chat_inbox: 'Chat Inbox',
+        config: 'Config',
         my_profile: 'My Profile',
         logout: 'Logout',
     },

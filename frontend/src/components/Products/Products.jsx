@@ -1,23 +1,221 @@
 import Pagination from '@mui/material/Pagination';
 import Slider from '@mui/material/Slider';
 import SearchIcon from '@mui/icons-material/Search';
-import TuneIcon from '@mui/icons-material/Tune';
 import StarIcon from '@mui/icons-material/Star';
+import FavoriteIcon from '@mui/icons-material/FavoriteBorder';
+import GridViewIcon from '@mui/icons-material/GridView';
+import ViewListIcon from '@mui/icons-material/ViewList';
+import TuneIcon from '@mui/icons-material/Tune';
+import CloseIcon from '@mui/icons-material/Close';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { useSnackbar } from 'notistack';
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { clearErrors, getProducts } from '../../actions/productAction';
+import { addItemsToCart } from '../../actions/cartAction';
 import Loader from '../Layouts/Loader';
 import MinCategory from '../Layouts/MinCategory';
-import ProductCardDesktop from './ProductCardDesktop';
-import { useCategories } from '../../utils/useCategories';
 import MetaData from '../Layouts/MetaData';
+import { useCategories } from '../../utils/useCategories';
+import { getDiscount } from '../../utils/functions';
 
-// Shop page — desktop-optimized width with fixed filter sidebar + responsive
-// product grid.  Category / price / rating filters are applied server-side.
+/* ─── Collapsible filter section ─── */
+const FilterSection = ({ title, children, defaultOpen = true }) => {
+    const [open, setOpen] = useState(defaultOpen);
+    return (
+        <div className="border-b" style={{ borderColor: 'var(--color-border)' }}>
+            <button
+                className="w-full flex items-center justify-between py-3 px-4 text-sm font-semibold text-left"
+                style={{ color: 'var(--color-text-primary)' }}
+                onClick={() => setOpen(v => !v)}
+            >
+                {title}
+                {open
+                    ? <ExpandLessIcon sx={{ fontSize: '18px', color: 'var(--color-text-muted)' }} />
+                    : <ExpandMoreIcon sx={{ fontSize: '18px', color: 'var(--color-text-muted)' }} />
+                }
+            </button>
+            {open && <div className="px-4 pb-4">{children}</div>}
+        </div>
+    );
+};
+
+/* ─── Checkbox row ─── */
+const CheckRow = ({ label, checked, onChange }) => (
+    <label className="flex items-center gap-2.5 py-1 cursor-pointer group">
+        <input
+            type="checkbox"
+            checked={checked}
+            onChange={onChange}
+            className="w-4 h-4 rounded border cursor-pointer"
+            style={{ accentColor: 'var(--color-accent)' }}
+        />
+        <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{label}</span>
+    </label>
+);
+
+/* ─── Star rating row (reference: 4★ & above style) ─── */
+const RatingRow = ({ value, active, onClick }) => (
+    <button
+        onClick={onClick}
+        className="flex items-center gap-1.5 py-1 w-full"
+    >
+        <span className="flex items-center gap-0.5">
+            {[1, 2, 3, 4, 5].map(s => (
+                <StarIcon key={s} sx={{ fontSize: '14px', color: s <= value ? '#f59e0b' : '#d1d5db' }} />
+            ))}
+        </span>
+        <span className="text-xs" style={{ color: active ? 'var(--color-accent)' : 'var(--color-text-secondary)', fontWeight: active ? 600 : 400 }}>
+            {value} & above
+        </span>
+    </button>
+);
+
+/* ─── Single product card — Phoenix reference style ─── */
+const PhoenixCard = ({ product }) => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const { enqueueSnackbar } = useSnackbar();
+    const [wished, setWished] = useState(false);
+
+    const { _id, name, images, ratings, numOfReviews, price, cuttedPrice, brand, stock, highlights } = product || {};
+    const image = images?.[0]?.url;
+    const discount = Number(getDiscount(price, cuttedPrice)) || 0;
+    const saveAmount = (cuttedPrice || 0) - (price || 0);
+    const outOfStock = (stock || 0) < 1;
+    const specs = (Array.isArray(highlights) ? highlights : []).filter(h => h && !/cash on delivery/i.test(h)).slice(0, 2);
+
+    const handleCart = async (e) => {
+        e.preventDefault();
+        if (outOfStock) return;
+        try {
+            await dispatch(addItemsToCart(_id));
+            navigate('/checkout');
+        } catch {
+            enqueueSnackbar('Could not add to cart', { variant: 'error' });
+        }
+    };
+
+    return (
+        <div
+            className="group flex flex-col overflow-hidden transition-all duration-200 h-full"
+            style={{
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '12px',
+            }}
+            onMouseEnter={e => e.currentTarget.style.boxShadow = '0 6px 24px rgba(0,0,0,0.10)'}
+            onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+        >
+            {/* Image */}
+            <Link to={`/product/${_id}`} className="relative block overflow-hidden bg-white" style={{ borderRadius: '12px 12px 0 0' }}>
+                <div className="w-full aspect-[4/3] flex items-center justify-center p-4 bg-white">
+                    {image
+                        ? <img src={image} alt={name} draggable="false" className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
+                        : <div className="w-full h-full bg-gray-100 rounded flex items-center justify-center text-3xl">📦</div>
+                    }
+                </div>
+
+                {/* Wishlist */}
+                <button
+                    onClick={e => { e.preventDefault(); setWished(v => !v); }}
+                    className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                    style={{ border: '1px solid var(--color-border)' }}
+                >
+                    <FavoriteIcon sx={{ fontSize: '16px', color: wished ? 'var(--color-accent)' : '#9ca3af' }} />
+                </button>
+
+                {/* Badges */}
+                {discount > 0 && !outOfStock && (
+                    <span className="absolute top-2.5 left-2.5 text-[10px] font-bold text-white px-1.5 py-0.5 rounded"
+                        style={{ backgroundColor: 'var(--color-accent)' }}>
+                        {discount}% OFF
+                    </span>
+                )}
+                {outOfStock && (
+                    <div className="absolute inset-0 bg-white/75 flex items-center justify-center">
+                        <span className="text-xs font-bold px-3 py-1 rounded-full bg-gray-200 text-gray-600">Out of Stock</span>
+                    </div>
+                )}
+            </Link>
+
+            {/* Body */}
+            <div className="flex flex-col gap-1.5 p-3 flex-1">
+                {brand?.name && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+                        {brand.name}
+                    </span>
+                )}
+                <Link to={`/product/${_id}`}>
+                    <h3 className="text-sm font-medium leading-snug line-clamp-2 transition-colors"
+                        style={{ color: 'var(--color-text-primary)', minHeight: '2.5rem' }}
+                        onMouseEnter={e => e.currentTarget.style.color = 'var(--color-accent)'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'var(--color-text-primary)'}>
+                        {name}
+                    </h3>
+                </Link>
+
+                {/* Specs */}
+                {specs.length > 0 && (
+                    <p className="text-xs line-clamp-1" style={{ color: 'var(--color-text-muted)' }}>
+                        {specs.join(' · ')}
+                    </p>
+                )}
+
+                {/* Rating */}
+                <div className="flex items-center gap-1.5 mt-0.5">
+                    <div className="flex items-center gap-0.5">
+                        {[1,2,3,4,5].map(s => (
+                            <StarIcon key={s} sx={{ fontSize: '12px', color: s <= Math.round(ratings || 0) ? '#f59e0b' : '#e5e7eb' }} />
+                        ))}
+                    </div>
+                    <span className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+                        ({(numOfReviews || 0).toLocaleString()} people rated)
+                    </span>
+                </div>
+
+                {/* Price */}
+                <div className="flex items-baseline gap-2 mt-1">
+                    {cuttedPrice > price && (
+                        <span className="text-xs line-through" style={{ color: 'var(--color-text-muted)' }}>
+                            Tk {(cuttedPrice || 0).toLocaleString()}
+                        </span>
+                    )}
+                    <span className="text-base font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                        Tk {(price || 0).toLocaleString()}
+                    </span>
+                </div>
+
+                {/* Save */}
+                {saveAmount > 0 && (
+                    <p className="text-xs font-semibold" style={{ color: 'var(--color-success, #16a34a)' }}>
+                        Save - Tk {saveAmount.toLocaleString()}
+                    </p>
+                )}
+            </div>
+
+            {/* Add to cart */}
+            <div className="px-3 pb-3">
+                <button
+                    onClick={handleCart}
+                    disabled={outOfStock}
+                    className="w-full py-2 rounded-lg text-sm font-semibold transition-all duration-200"
+                    style={outOfStock
+                        ? { backgroundColor: 'var(--color-border)', color: 'var(--color-text-muted)', cursor: 'not-allowed' }
+                        : { backgroundColor: 'var(--color-accent)', color: '#fff' }
+                    }
+                >
+                    {outOfStock ? 'Out of Stock' : 'Order Now'}
+                </button>
+            </div>
+        </div>
+    );
+};
+
+/* ─── Main Products page ─── */
 const Products = () => {
-
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { enqueueSnackbar } = useSnackbar();
@@ -26,299 +224,336 @@ const Products = () => {
     const categories = useCategories();
 
     const [price, setPrice] = useState([0, 200000]);
-    // use URLSearchParams so multiple query params (?category=X&foo=Y) don't corrupt the value
-    const [category, setCategory] = useState(() => {
-        const params = new URLSearchParams(location.search);
-        return params.get('category') || '';
-    });
+    const [priceInputMin, setPriceInputMin] = useState('');
+    const [priceInputMax, setPriceInputMax] = useState('');
+    const [category, setCategory] = useState(() => new URLSearchParams(location.search).get('category') || '');
     const [ratings, setRatings] = useState(0);
     const [sort, setSort] = useState('default');
     const [searchInput, setSearchInput] = useState(params.keyword || '');
     const [filtersOpen, setFiltersOpen] = useState(false);
-
-    // let a normal mouse wheel scroll the chip row horizontally (app feel)
-    const chipsRowRef = useRef(null);
-    const onChipsWheel = (e) => {
-        const el = chipsRowRef.current;
-        if (el && Math.abs(e.deltaY) > Math.abs(e.deltaX) && el.scrollWidth > el.clientWidth) {
-            el.scrollLeft += e.deltaY;
-        }
-    };
-
-    // pagination
+    const [viewMode, setViewMode] = useState('grid'); // grid | list
     const [currentPage, setCurrentPage] = useState(1);
 
-    const { products, loading, error, productsCount, resultPerPage, filteredProductsCount } = useSelector((state) => state.products);
+    // Availability
+    const [inStock, setInStock] = useState(false);
+    const [preBook, setPreBook] = useState(false);
+    const [outOfStockFilter, setOutOfStockFilter] = useState(false);
+
+    const { products, loading, error, filteredProductsCount, resultPerPage } = useSelector(s => s.products);
     const keyword = params.keyword;
 
-    const priceHandler = (e, newPrice) => {
-        setPrice(newPrice);
-    }
+    useEffect(() => { setSearchInput(keyword || ''); }, [keyword]);
+    useEffect(() => {
+        if (error) { enqueueSnackbar(error, { variant: 'error' }); dispatch(clearErrors()); }
+        dispatch(getProducts(keyword, category, price, ratings, currentPage));
+    }, [dispatch, keyword, category, price, ratings, currentPage, error, enqueueSnackbar]);
+    useEffect(() => { setCurrentPage(1); }, [keyword, category, price, ratings]);
 
     const clearFilters = () => {
-        setPrice([0, 200000]);
-        setCategory("");
-        setRatings(0);
+        setPrice([0, 200000]); setPriceInputMin(''); setPriceInputMax('');
+        setCategory(''); setRatings(0); setInStock(false); setPreBook(false); setOutOfStockFilter(false);
         setCurrentPage(1);
-    }
+    };
+
+    const applyPriceInput = () => {
+        const mn = parseInt(priceInputMin, 10) || 0;
+        const mx = parseInt(priceInputMax, 10) || 200000;
+        setPrice([Math.min(mn, mx), Math.max(mn, mx)]);
+    };
 
     const searchSubmit = (e) => {
         e.preventDefault();
         const q = searchInput.trim();
         navigate(q ? `/products/${encodeURIComponent(q)}` : '/products');
-    }
+    };
 
-    useEffect(() => {
-        setSearchInput(keyword || '');
-    }, [keyword]);
-
-    useEffect(() => {
-        if (error) {
-            enqueueSnackbar(error, { variant: "error" });
-            dispatch(clearErrors());
-        }
-        dispatch(getProducts(keyword, category, price, ratings, currentPage));
-    }, [dispatch, keyword, category, price, ratings, currentPage, error, enqueueSnackbar]);
-
-    // reset to first page whenever the active filter changes so users
-    // never see an empty page-3 after switching category or search term
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [keyword, category, price, ratings]);
-
-    // client-side sorting of the current page
     const sortedProducts = useMemo(() => {
-        const list = [...(products || [])];
-        if (sort === 'price-asc') list.sort((a, b) => (a.price || 0) - (b.price || 0));
-        else if (sort === 'price-desc') list.sort((a, b) => (b.price || 0) - (a.price || 0));
-        else if (sort === 'rating') list.sort((a, b) => (b.ratings || 0) - (a.ratings || 0));
+        let list = [...(products || [])];
+        if (inStock) list = list.filter(p => (p.stock || 0) > 0);
+        if (outOfStockFilter) list = list.filter(p => (p.stock || 0) === 0);
+        if (sort === 'price-asc')  list.sort((a, b) => (a.price || 0) - (b.price || 0));
+        if (sort === 'price-desc') list.sort((a, b) => (b.price || 0) - (a.price || 0));
+        if (sort === 'rating')     list.sort((a, b) => (b.ratings || 0) - (a.ratings || 0));
+        if (sort === 'newest')     list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         return list;
-    }, [products, sort]);
+    }, [products, sort, inStock, outOfStockFilter]);
 
-    const count = filteredProductsCount ?? productsCount ?? products?.length ?? 0;
+    const count = filteredProductsCount ?? products?.length ?? 0;
 
-    // ── shared filter card (mobile panel + desktop sidebar) ──
-    const filtersCard = (
-        <div className="bg-white border border-line rounded-xl shadow-sm">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-line">
-<p className="font-display font-bold text-sm text-slate-900">Filters</p>
-            <button onClick={clearFilters} className="text-xs font-semibold text-primary-accent hover:underline">Clear all</button>
+    // ── Sidebar filter panel ──
+    const Sidebar = () => (
+        <aside
+            className="w-full"
+            style={{
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '12px',
+                overflow: 'hidden',
+            }}
+        >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                <span className="text-base font-bold" style={{ color: 'var(--color-text-primary)' }}>Filters</span>
+                <button onClick={clearFilters} className="text-xs font-semibold transition-colors"
+                    style={{ color: 'var(--color-accent)' }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
+                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+                    Clear all
+                </button>
             </div>
-            <div className="px-4 py-3.5 flex flex-col gap-5">
-                {/* category */}
-                <div className="flex flex-col gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Category</span>
-                    <div className="flex flex-col gap-1.5">
-                        <button
-                            onClick={() => setCategory('')}
-                            className={`text-xs sm:text-sm font-semibold rounded-lg px-3 py-2 text-left transition duration-200 ${
-                                category === ''
-                                    ? 'bg-primary-accent text-white'
-                                    : 'bg-cloud text-slate-700 hover:bg-primary-accent/5'
-                            }`}
-                        >
-                            All Products
-                        </button>
-                        {categories.map((cat) => (
-                            <button
-                                key={cat}
-                                onClick={() => setCategory(cat)}
-                                className={`text-xs sm:text-sm font-semibold rounded-lg px-3 py-2 text-left transition duration-200 ${
-                                    category === cat
-                                        ? 'bg-primary-accent text-white'
-                                        : 'bg-cloud text-slate-700 hover:bg-primary-accent/5'
-                                }`}
-                            >
-                                {cat}
-                            </button>
-                        ))}
-                    </div>
-                </div>
 
-                {/* price range */}
-                <div className="flex flex-col gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Price</span>
-                    <Slider
-                        value={price}
-                        onChange={priceHandler}
-                        valueLabelDisplay="auto"
-                        min={0}
-                        max={200000}
-                        sx={{ color: '#3b82f6' }}
+            {/* Availability */}
+            <FilterSection title="Availability">
+                <CheckRow label="In stock" checked={inStock} onChange={e => setInStock(e.target.checked)} />
+                <CheckRow label="Pre-book" checked={preBook} onChange={e => setPreBook(e.target.checked)} />
+                <CheckRow label="Out of stock" checked={outOfStockFilter} onChange={e => setOutOfStockFilter(e.target.checked)} />
+            </FilterSection>
+
+            {/* Category */}
+            <FilterSection title="Category">
+                <div className="flex flex-col">
+                    <CheckRow label="All Products" checked={category === ''} onChange={() => setCategory('')} />
+                    {categories.map(cat => (
+                        <CheckRow key={cat} label={cat} checked={category === cat} onChange={() => setCategory(cat === category ? '' : cat)} />
+                    ))}
+                </div>
+            </FilterSection>
+
+            {/* Price range */}
+            <FilterSection title="Price range">
+                <Slider
+                    value={price}
+                    onChange={(_, v) => setPrice(v)}
+                    min={0}
+                    max={200000}
+                    sx={{
+                        color: 'var(--color-accent)',
+                        '& .MuiSlider-thumb': { width: 14, height: 14 },
+                        mb: 1.5,
+                    }}
+                />
+                <div className="flex items-center gap-2 mt-2">
+                    <input
+                        type="number"
+                        placeholder="Min"
+                        value={priceInputMin}
+                        onChange={e => setPriceInputMin(e.target.value)}
+                        className="w-full text-sm px-2 py-1.5 rounded-lg outline-none text-center"
+                        style={{ border: '1px solid var(--color-border)', color: 'var(--color-text-primary)', backgroundColor: 'var(--color-surface)' }}
                     />
-                    <div className="flex items-center justify-between gap-2 text-xs">
-                        <span className="border border-line rounded-lg px-2 py-1 bg-cloud text-slate-700 font-medium">Tk {price[0].toLocaleString()}</span>
-                        <span className="text-slate-400">to</span>
-                        <span className="border border-line rounded-lg px-2 py-1 bg-cloud text-slate-700 font-medium">Tk {price[1].toLocaleString()}</span>
-                    </div>
+                    <span className="text-xs shrink-0" style={{ color: 'var(--color-text-muted)' }}>to</span>
+                    <input
+                        type="number"
+                        placeholder="Max"
+                        value={priceInputMax}
+                        onChange={e => setPriceInputMax(e.target.value)}
+                        className="w-full text-sm px-2 py-1.5 rounded-lg outline-none text-center"
+                        style={{ border: '1px solid var(--color-border)', color: 'var(--color-text-primary)', backgroundColor: 'var(--color-surface)' }}
+                    />
+                    <button
+                        onClick={applyPriceInput}
+                        className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-opacity hover:opacity-90"
+                        style={{ backgroundColor: 'var(--color-accent)' }}
+                    >
+                        Go
+                    </button>
                 </div>
+                <p className="text-xs mt-1.5" style={{ color: 'var(--color-text-muted)' }}>
+                    Tk {price[0].toLocaleString()} – Tk {price[1].toLocaleString()}
+                </p>
+            </FilterSection>
 
-                {/* ratings */}
-                <div className="flex flex-col gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Rating</span>
-                    <div className="flex flex-wrap gap-1.5">
-                        {[4, 3, 2, 1].map((r) => (
-                            <button
-                                key={r}
-                                onClick={() => setRatings(Number(ratings) === r ? 0 : r)}
-                                className={`text-xs font-semibold rounded-lg px-2.5 py-1.5 border transition duration-200 flex items-center gap-1 ${
-                                    Number(ratings) === r
-                                        ? 'bg-primary-accent text-white border-primary-accent'
-                                        : 'bg-white border-line text-slate-600 hover:border-primary-accent hover:text-primary-accent'
-                                }`}>
-                                {r}
-                                <StarIcon sx={{ fontSize: '12px' }} />
-                                +
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </div>
+            {/* Rating */}
+            <FilterSection title="Rating">
+                {[4, 3, 2, 1].map(r => (
+                    <RatingRow
+                        key={r}
+                        value={r}
+                        active={Number(ratings) === r}
+                        onClick={() => setRatings(Number(ratings) === r ? 0 : r)}
+                    />
+                ))}
+            </FilterSection>
+        </aside>
     );
-
-    // ── category chips (horizontal scroll on mobile, wrap on desktop) ──
-    const chipBase = "shrink-0 text-xs sm:text-sm font-semibold rounded-full px-4 py-2 border transition duration-200";
-    const chips = [
-        { label: 'All Products', value: '' },
-        ...categories.map((c) => ({ label: c, value: c })),
-    ];
 
     return (
         <>
-            <MetaData title={keyword ? `${keyword} | TechBazar` : 'Shop | TechBazar'} />
+            <MetaData title={keyword ? `${keyword} | Products` : 'Shop | All Products'} />
 
-            <MinCategory />
+            {/* ── Page wrapper ── */}
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-5 sm:py-6">
 
-            {/* ── shop header band — full-bleed, content centered ── */}
-            <section className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-100 border-b border-line">
-                <div className="mx-auto max-w-7xl px-5 sm:px-6 py-6 sm:py-8 flex flex-col gap-4">
-
-                    {/* page header — same rhythm as the home page */}
-                    <div className="flex items-end justify-between gap-3 flex-wrap">
-                        <div>
-                            <h1 className="font-display font-extrabold text-xl sm:text-3xl text-slate-900 leading-tight">
-{keyword ? `Results for “${keyword}”` : 'All Products'}
-        </h1>
-        <p className="text-sm text-slate-500 mt-1">{count} products found</p>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            {/* sort — app-style compact select */}
-                            <select
-                                value={sort}
-                                onChange={(e) => setSort(e.target.value)}
-                                className="border border-line rounded-lg px-3 py-2 text-sm bg-white text-slate-700 font-medium focus:outline-none focus:border-primary-accent cursor-pointer"
-                                aria-label="Sort products">
-<option value="default">Sort: Default</option>
-                        <option value="price-asc">Price: Low to High</option>
-                        <option value="price-desc">Price: High to Low</option>
-                        <option value="rating">By Rating</option>
-                            </select>
-
-                            {/* filters toggle — mobile & tablet */}
-                            <button
-                                onClick={() => setFiltersOpen((v) => !v)}
-                                className={`lg:hidden flex items-center gap-1.5 text-sm font-semibold rounded-lg px-3 py-2 border transition duration-200 ${
-                                    filtersOpen
-                                        ? 'bg-primary-accent text-white border-primary-accent'
-                                        : 'bg-white text-slate-700 border-line hover:border-primary-accent hover:text-primary-accent'
-                                }`}>
-                                <TuneIcon sx={{ fontSize: '18px' }} /> Filters
-                            </button>
-                        </div>
+                {/* ── Top bar: title + search + sort + view toggle ── */}
+                <div
+                    className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5 p-4 rounded-xl"
+                    style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+                >
+                    <div className="flex-1">
+                        <h1 className="text-lg font-bold leading-tight" style={{ color: 'var(--color-text-primary)' }}>
+                            {keyword ? `Results for "${keyword}"` : 'All Products'}
+                        </h1>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+                            {count.toLocaleString()} products found
+                        </p>
                     </div>
 
-                    {/* search bar — app style */}
-                    <form onSubmit={searchSubmit} className="relative w-full sm:max-w-md">
-                        <SearchIcon sx={{ fontSize: '20px', color: '#64748b' }} className="absolute left-3 top-[50%] -translate-y-1/2 pointer-events-none" />
+                    {/* Search */}
+                    <form onSubmit={searchSubmit} className="flex items-center rounded-xl overflow-hidden sm:w-56 lg:w-72"
+                        style={{ border: '1.5px solid var(--color-border)', backgroundColor: 'var(--color-surface)' }}>
                         <input
                             value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                            placeholder="Search products… (e.g. smartwatch)"
-                            className="w-full border border-line rounded-xl bg-white pl-10 pr-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-primary-accent"
+                            onChange={e => setSearchInput(e.target.value)}
+                            placeholder="Search..."
+                            className="flex-1 px-3 py-2 text-sm outline-none bg-transparent"
+                            style={{ color: 'var(--color-text-primary)' }}
                         />
+                        <button type="submit" className="px-3 py-2" style={{ color: 'var(--color-text-muted)' }}>
+                            <SearchIcon sx={{ fontSize: '18px' }} />
+                        </button>
                     </form>
 
-                    {/* category chips — horizontal scroll on mobile, wheel-friendly */}
-                    <div className="relative -mx-5 px-5 sm:mx-0 sm:px-0">
-                        <div
-                            ref={chipsRowRef}
-                            onWheel={onChipsWheel}
-                            className="no-scrollbar flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible"
+                    {/* Sort */}
+                    <select
+                        value={sort}
+                        onChange={e => setSort(e.target.value)}
+                        className="text-sm px-3 py-2 rounded-xl outline-none cursor-pointer"
+                        style={{
+                            border: '1.5px solid var(--color-border)',
+                            color: 'var(--color-text-primary)',
+                            backgroundColor: 'var(--color-surface)',
+                        }}
+                    >
+                        <option value="default">Default sorting</option>
+                        <option value="price-asc">Price: Low → High</option>
+                        <option value="price-desc">Price: High → Low</option>
+                        <option value="rating">Top Rated</option>
+                        <option value="newest">Newest</option>
+                    </select>
+
+                    {/* View toggle */}
+                    <div className="hidden sm:flex items-center gap-1 p-1 rounded-lg" style={{ border: '1.5px solid var(--color-border)', backgroundColor: 'var(--color-surface)' }}>
+                        <button
+                            onClick={() => setViewMode('grid')}
+                            className="p-1.5 rounded-md transition-all"
+                            style={viewMode === 'grid'
+                                ? { backgroundColor: 'var(--color-accent)', color: '#fff' }
+                                : { color: 'var(--color-text-muted)' }}
                         >
-                            {chips.map((chip) => (
-                                <button
-                                    key={chip.value}
-                                    onClick={() => setCategory(chip.value)}
-                                    className={`${chipBase} ${
-                                        category === chip.value
-                                            ? 'bg-primary-accent text-white border-primary-accent'
-                                            : 'bg-white text-slate-600 border-line hover:border-primary-accent hover:text-primary-accent'
-                                    }`}>
-                                    {chip.label}
-                                </button>
-                            ))}
-                        </div>
-                        {/* fade hint — more chips beyond the right edge */}
-                        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-blue-50 via-blue-50/70 to-transparent sm:hidden" />
+                            <GridViewIcon sx={{ fontSize: '18px' }} />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className="p-1.5 rounded-md transition-all"
+                            style={viewMode === 'list'
+                                ? { backgroundColor: 'var(--color-accent)', color: '#fff' }
+                                : { color: 'var(--color-text-muted)' }}
+                        >
+                            <ViewListIcon sx={{ fontSize: '18px' }} />
+                        </button>
                     </div>
 
+                    {/* Mobile filter toggle */}
+                    <button
+                        onClick={() => setFiltersOpen(v => !v)}
+                        className="lg:hidden flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+                        style={filtersOpen
+                            ? { backgroundColor: 'var(--color-accent)', color: '#fff', border: '1.5px solid var(--color-accent)' }
+                            : { border: '1.5px solid var(--color-border)', color: 'var(--color-text-secondary)', backgroundColor: 'var(--color-surface)' }}
+                    >
+                        <TuneIcon sx={{ fontSize: '16px' }} />
+                        Filters
+                    </button>
                 </div>
-            </section>
-            {/* ── /shop header band ── */}
 
-            {/* main content column — desktop-optimized width */}
-            <main className="mx-auto max-w-7xl px-5 sm:px-6 flex flex-col gap-6 pb-16 mt-6 sm:mt-8">
-
-                {/* mobile / tablet filter panel */}
-                {filtersOpen && <div className="lg:hidden">{filtersCard}</div>}
-
+                {/* ── Body: sidebar + grid ── */}
                 <div className="flex gap-5 items-start">
-                    {/* desktop filter sidebar */}
-                    <aside className="hidden lg:block w-56 shrink-0 sticky top-24">
-                        {filtersCard}
-                    </aside>
 
-                    {/* product column */}
-                    <div className="flex-1 min-w-0 flex flex-col gap-4">
-                        {!loading && products?.length === 0 && (
-                            <div className="flex flex-col items-center justify-center gap-2 bg-white border border-line rounded-xl p-10 text-center">
+                    {/* Desktop sidebar */}
+                    <div className="hidden lg:block w-56 xl:w-60 shrink-0 sticky top-28">
+                        <Sidebar />
+                    </div>
+
+                    {/* Mobile sidebar overlay */}
+                    {filtersOpen && (
+                        <div className="lg:hidden fixed inset-0 z-50 flex">
+                            <div className="absolute inset-0 bg-black/50" onClick={() => setFiltersOpen(false)} />
+                            <div className="relative w-72 max-w-[85vw] ml-0 h-full overflow-y-auto"
+                                style={{ backgroundColor: 'var(--color-surface)' }}>
+                                <div className="flex items-center justify-between px-4 py-3"
+                                    style={{ borderBottom: '1px solid var(--color-border)' }}>
+                                    <span className="font-bold text-sm" style={{ color: 'var(--color-text-primary)' }}>Filters</span>
+                                    <button onClick={() => setFiltersOpen(false)} style={{ color: 'var(--color-text-muted)' }}>
+                                        <CloseIcon sx={{ fontSize: '20px' }} />
+                                    </button>
+                                </div>
+                                <Sidebar />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Product area */}
+                    <div className="flex-1 min-w-0">
+                        {loading ? (
+                            <Loader />
+                        ) : sortedProducts.length === 0 ? (
+                            <div
+                                className="flex flex-col items-center justify-center gap-3 p-12 rounded-xl text-center"
+                                style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+                            >
                                 <span className="text-5xl">🔍</span>
-<h2 className="font-display font-bold text-lg text-slate-900">No products found</h2>
-                            <p className="text-sm text-slate-500">Try a different search, or change the filters.</p>
+                                <h2 className="font-bold text-lg" style={{ color: 'var(--color-text-primary)' }}>No products found</h2>
+                                <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Try a different search or clear the filters.</p>
                                 <button
                                     onClick={clearFilters}
-                                    className="mt-2 text-sm font-semibold text-primary-accent border border-line hover:border-primary-accent rounded-lg px-4 py-2 transition duration-200">
-                                    Clear filters
+                                    className="mt-1 px-5 py-2 rounded-xl text-sm font-semibold text-white"
+                                    style={{ backgroundColor: 'var(--color-accent)' }}
+                                >
+                                    Clear Filters
                                 </button>
                             </div>
-                        )}
-
-                        {loading ? <Loader /> : (
+                        ) : (
                             <>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
-                                    {sortedProducts.map((product) => (
-                                        <ProductCardDesktop key={product._id} product={product} />
-                                    ))}
-                                </div>
+                                {/* Grid */}
+                                {viewMode === 'grid' ? (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
+                                        {sortedProducts.map(p => (
+                                            <PhoenixCard key={p._id} product={p} />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    /* List view */
+                                    <div className="flex flex-col gap-3">
+                                        {sortedProducts.map(p => (
+                                            <ListCard key={p._id} product={p} />
+                                        ))}
+                                    </div>
+                                )}
 
+                                {/* Pagination */}
                                 {filteredProductsCount > resultPerPage && (
-                                    <div className="flex justify-center mt-2">
+                                    <div className="flex justify-center mt-8">
                                         <Pagination
-                                            count={Number(((filteredProductsCount + 6) / resultPerPage).toFixed())}
+                                            count={Math.ceil(filteredProductsCount / (resultPerPage || 12))}
                                             page={currentPage}
-                                            onChange={(e, val) => { setCurrentPage(val); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                            onChange={(_, val) => { setCurrentPage(val); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                            shape="rounded"
                                             sx={{
                                                 '& .MuiPaginationItem-root': {
-                                                    borderRadius: '10px',
-                                                    color: '#64748b',
-                                                    border: '1px solid #e8ecf1',
+                                                    color: 'var(--color-text-secondary)',
+                                                    borderColor: 'var(--color-border)',
+                                                    borderRadius: '8px',
+                                                    fontSize: '13px',
+                                                    fontWeight: 500,
                                                 },
                                                 '& .MuiPaginationItem-page.Mui-selected': {
-                                                    backgroundColor: '#3b82f6',
+                                                    backgroundColor: 'var(--color-accent)',
                                                     color: '#fff',
-                                                    borderColor: '#3b82f6',
+                                                    borderColor: 'var(--color-accent)',
+                                                },
+                                                '& .MuiPaginationItem-page:hover': {
+                                                    borderColor: 'var(--color-accent)',
+                                                    color: 'var(--color-accent)',
                                                 },
                                             }}
                                         />
@@ -328,8 +563,70 @@ const Products = () => {
                         )}
                     </div>
                 </div>
-            </main>
+            </div>
         </>
+    );
+};
+
+/* ─── List view card ─── */
+const ListCard = ({ product }) => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const { enqueueSnackbar } = useSnackbar();
+    const { _id, name, images, ratings, numOfReviews, price, cuttedPrice, brand, stock, highlights } = product || {};
+    const image = images?.[0]?.url;
+    const discount = Number(getDiscount(price, cuttedPrice)) || 0;
+    const saveAmount = (cuttedPrice || 0) - (price || 0);
+    const outOfStock = (stock || 0) < 1;
+    const specs = (Array.isArray(highlights) ? highlights : []).filter(h => h && !/cash on delivery/i.test(h)).slice(0, 3);
+
+    return (
+        <div
+            className="flex gap-4 p-4 rounded-xl transition-all duration-200"
+            style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+            onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)'}
+            onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+        >
+            <Link to={`/product/${_id}`} className="shrink-0 w-28 h-28 sm:w-36 sm:h-36 bg-white rounded-xl overflow-hidden flex items-center justify-center p-2"
+                style={{ border: '1px solid var(--color-border)' }}>
+                {image && <img src={image} alt={name} draggable="false" className="w-full h-full object-contain" />}
+            </Link>
+            <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                {brand?.name && <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>{brand.name}</span>}
+                <Link to={`/product/${_id}`}><h3 className="text-sm font-semibold line-clamp-2 transition-colors"
+                    style={{ color: 'var(--color-text-primary)' }}
+                    onMouseEnter={e => e.currentTarget.style.color = 'var(--color-accent)'}
+                    onMouseLeave={e => e.currentTarget.style.color = 'var(--color-text-primary)'}>{name}</h3></Link>
+                <div className="flex items-center gap-1">
+                    {[1,2,3,4,5].map(s => <StarIcon key={s} sx={{ fontSize: '12px', color: s <= Math.round(ratings||0) ? '#f59e0b' : '#e5e7eb' }} />)}
+                    <span className="text-[11px] ml-1" style={{ color: 'var(--color-text-muted)' }}>({numOfReviews||0})</span>
+                </div>
+                {specs.length > 0 && <ul className="hidden sm:flex flex-col gap-0.5">
+                    {specs.map((s, i) => <li key={i} className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>• {s}</li>)}
+                </ul>}
+                <div className="flex items-baseline gap-2 mt-auto pt-2">
+                    {cuttedPrice > price && <span className="text-xs line-through" style={{ color: 'var(--color-text-muted)' }}>Tk {(cuttedPrice||0).toLocaleString()}</span>}
+                    <span className="text-base font-bold" style={{ color: 'var(--color-text-primary)' }}>Tk {(price||0).toLocaleString()}</span>
+                    {discount > 0 && <span className="text-[11px] font-bold text-white px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--color-accent)' }}>{discount}%</span>}
+                </div>
+                {saveAmount > 0 && <p className="text-xs font-semibold" style={{ color: 'var(--color-success,#16a34a)' }}>Save Tk {saveAmount.toLocaleString()}</p>}
+            </div>
+            <div className="shrink-0 flex flex-col gap-2 items-end justify-between">
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={outOfStock
+                    ? { backgroundColor: '#fef2f2', color: '#ef4444' }
+                    : { backgroundColor: '#f0fdf4', color: '#16a34a' }}>
+                    {outOfStock ? 'Out of Stock' : 'In Stock'}
+                </span>
+                <button
+                    onClick={async () => { if (!outOfStock) { await dispatch(addItemsToCart(_id)); navigate('/checkout'); } }}
+                    disabled={outOfStock}
+                    className="px-4 py-2 rounded-lg text-xs font-semibold text-white transition-opacity hover:opacity-90"
+                    style={{ backgroundColor: outOfStock ? 'var(--color-border)' : 'var(--color-accent)', cursor: outOfStock ? 'not-allowed' : 'pointer' }}
+                >
+                    Order Now
+                </button>
+            </div>
+        </div>
     );
 };
 

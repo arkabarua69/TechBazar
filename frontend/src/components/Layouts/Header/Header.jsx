@@ -11,7 +11,6 @@ import { useSelector } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
 import AnnouncementBar from '../../Home/AnnouncementBar';
 import { useSiteConfig } from '../../../context/SiteConfigContext';
-import MinCategory from '../MinCategory';
 
 const Header = () => {
 
@@ -136,9 +135,6 @@ const Header = () => {
             </Link>
           </div>
         </div>
-
-        {/* ── Category strip directly under navbar ── */}
-        <MinCategory />
       </div>
     </header>
   );
