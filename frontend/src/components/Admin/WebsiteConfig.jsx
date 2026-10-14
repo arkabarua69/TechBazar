@@ -2,8 +2,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import MetaData from '../Layouts/MetaData';
+import ThemeEditor from './ThemeEditor';
+import { DEFAULT_SITE_CONFIG } from '../../utils/siteConfig';
+import { useSiteConfig } from '../../context/SiteConfigContext';
 import {
     Globe,
+    Layout,
     Palette,
     Search,
     Mail,
@@ -25,11 +29,8 @@ import {
     ChevronUp,
     Loader2,
 } from 'lucide-react';
-
 // ─── Constants ────────────────────────────────────────────────────────────────
-
 const MASK_STRING = '••••••••••••••••••••';
-
 const CATEGORIES = [
     { id: 'general',   label: 'General',       Icon: Globe,       count: 12 },
     { id: 'branding',  label: 'Branding',       Icon: Palette,     count: 6  },
@@ -43,10 +44,10 @@ const CATEGORIES = [
     { id: 'cache',     label: 'Cache',          Icon: Zap,         count: 4  },
     { id: 'apiKeys',   label: 'API Keys',       Icon: Key,         count: 5  },
     { id: 'features',  label: 'Features',       Icon: Sliders,     count: 7  },
+    { id: 'homepage',  label: 'Homepage',       Icon: Layout,      count: null },
     { id: 'changelog', label: 'Change Log',     Icon: History,     count: null },
 ];
-
-// Fields that carry sensitive data — if value still equals MASK_STRING, send "" on save
+// Fields that carry sensitive data – if value still equals MASK_STRING, send "" on save
 const SECRET_FIELDS = new Set([
     'email.smtpPassword',
     'email.sendgridApiKey',
@@ -59,15 +60,11 @@ const SECRET_FIELDS = new Set([
     'apiKeys.otherApiKey1',
     'apiKeys.otherApiKey2',
 ]);
-
 const isSecretField = (section, field) => SECRET_FIELDS.has(`${section}.${field}`);
-
 // ─── Field Components ─────────────────────────────────────────────────────────
-
 const inputCls =
     'border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 w-full bg-white';
 const labelCls = 'text-xs font-medium text-gray-500 mb-1 block';
-
 const TextField = ({ label, value, onChange, placeholder = '' }) => (
     <div>
         <label className={labelCls}>{label}</label>
@@ -80,7 +77,6 @@ const TextField = ({ label, value, onChange, placeholder = '' }) => (
         />
     </div>
 );
-
 const NumberField = ({ label, value, onChange, min, max, placeholder = '' }) => (
     <div>
         <label className={labelCls}>{label}</label>
@@ -95,7 +91,6 @@ const NumberField = ({ label, value, onChange, min, max, placeholder = '' }) => 
         />
     </div>
 );
-
 const TextareaField = ({ label, value, onChange, placeholder = '' }) => (
     <div>
         <label className={labelCls}>{label}</label>
@@ -108,7 +103,6 @@ const TextareaField = ({ label, value, onChange, placeholder = '' }) => (
         />
     </div>
 );
-
 const SelectField = ({ label, value, onChange, options }) => (
     <div>
         <label className={labelCls}>{label}</label>
@@ -123,7 +117,6 @@ const SelectField = ({ label, value, onChange, options }) => (
         </select>
     </div>
 );
-
 const ToggleField = ({ label, description, value, onChange }) => (
     <div className="flex items-center justify-between gap-4 py-1">
         <div className="min-w-0">
@@ -164,39 +157,32 @@ const ToggleField = ({ label, description, value, onChange }) => (
         </button>
     </div>
 );
-
 const SecretField = ({ label, section, field, value, onSecretChange }) => {
     // `value` is whatever the config holds (usually MASK_STRING)
     // `localValue` is what we show in the input
     const [localValue, setLocalValue] = useState('');
     const [show, setShow] = useState(false);
     const [editing, setEditing] = useState(false);
-
     // When config reloads, reset local state
     useEffect(() => {
         setLocalValue('');
         setEditing(false);
     }, [value]);
-
     const displayValue = editing ? localValue : (value === MASK_STRING ? MASK_STRING : (value || ''));
-
     const handleFocus = () => {
         setEditing(true);
         setLocalValue('');
     };
-
     const handleChange = (e) => {
         setLocalValue(e.target.value);
         onSecretChange(section, field, e.target.value);
     };
-
     const handleBlur = () => {
         if (localValue === '') {
             setEditing(false);
             onSecretChange(section, field, null); // null = "leave as is"
         }
     };
-
     return (
         <div>
             <label className={labelCls}>{label}</label>
@@ -224,7 +210,6 @@ const SecretField = ({ label, section, field, value, onSecretChange }) => {
         </div>
     );
 };
-
 const ColorField = ({ label, value, onChange }) => {
     const safeVal = value && /^#[0-9a-fA-F]{3,6}$/.test(value) ? value : '#000000';
     return (
@@ -250,32 +235,25 @@ const ColorField = ({ label, value, onChange }) => {
         </div>
     );
 };
-
 // ─── Section Renderer ─────────────────────────────────────────────────────────
-
 const SectionHeading = ({ children }) => (
     <h3 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">{children}</h3>
 );
-
 const Card = ({ children, className = '' }) => (
     <div className={`bg-white border border-gray-200 rounded-2xl shadow-sm p-5 ${className}`}>
         {children}
     </div>
 );
-
-// ─── Build the fields tree for search ────────────────────────────────────────
-
+// ─── Build the fields tree for search ─────────────────────────────────────────
 // Returns array of { sectionId, sectionLabel, fieldKey, fieldLabel, element(config, handlers) }
 // We use this for search only; normal rendering is done directly.
 const buildFieldIndex = (config, handlers) => {
     if (!config) return [];
     const { set, onSecretChange } = handlers;
     const index = [];
-
     const add = (sectionId, fieldKey, fieldLabel, element) => {
         index.push({ sectionId, fieldKey, fieldLabel, element });
     };
-
     // general
     add('general', 'siteName', 'Site Name', <TextField key="siteName" label="Site Name" value={config.general?.siteName} onChange={(v) => set('general', 'siteName', v)} />);
     add('general', 'siteTitle', 'Site Title', <TextField key="siteTitle" label="Site Title" value={config.general?.siteTitle} onChange={(v) => set('general', 'siteTitle', v)} />);
@@ -289,7 +267,6 @@ const buildFieldIndex = (config, handlers) => {
     add('general', 'currencySymbol', 'Currency Symbol', <TextField key="currencySymbol" label="Currency Symbol" value={config.general?.currencySymbol} onChange={(v) => set('general', 'currencySymbol', v)} placeholder="৳" />);
     add('general', 'maintenanceMode', 'Maintenance Mode', <ToggleField key="maintenanceMode" label="Maintenance Mode" description="Take the site offline for maintenance" value={config.general?.maintenanceMode} onChange={(v) => set('general', 'maintenanceMode', v)} />);
     add('general', 'maintenanceMessage', 'Maintenance Message', <TextareaField key="maintenanceMessage" label="Maintenance Message" value={config.general?.maintenanceMessage} onChange={(v) => set('general', 'maintenanceMessage', v)} />);
-
     // branding
     add('branding', 'logoUrl', 'Logo URL', <TextField key="logoUrl" label="Logo URL" value={config.branding?.logoUrl} onChange={(v) => set('branding', 'logoUrl', v)} />);
     add('branding', 'faviconUrl', 'Favicon URL', <TextField key="faviconUrl" label="Favicon URL" value={config.branding?.faviconUrl} onChange={(v) => set('branding', 'faviconUrl', v)} />);
@@ -297,7 +274,6 @@ const buildFieldIndex = (config, handlers) => {
     add('branding', 'secondaryColor', 'Secondary Color', <ColorField key="secondaryColor" label="Secondary Color" value={config.branding?.secondaryColor} onChange={(v) => set('branding', 'secondaryColor', v)} />);
     add('branding', 'accentColor', 'Accent Color', <ColorField key="accentColor" label="Accent Color" value={config.branding?.accentColor} onChange={(v) => set('branding', 'accentColor', v)} />);
     add('branding', 'darkMode', 'Dark Mode', <ToggleField key="darkMode" label="Dark Mode" description="Enable dark theme by default" value={config.branding?.darkMode} onChange={(v) => set('branding', 'darkMode', v)} />);
-
     // seo
     add('seo', 'metaKeywords', 'Meta Keywords', <TextareaField key="metaKeywords" label="Meta Keywords" value={config.seo?.metaKeywords} onChange={(v) => set('seo', 'metaKeywords', v)} />);
     add('seo', 'metaRobots', 'Meta Robots', <SelectField key="metaRobots" label="Meta Robots" value={config.seo?.metaRobots} onChange={(v) => set('seo', 'metaRobots', v)} options={[{value:'index, follow',label:'index, follow'},{value:'noindex, nofollow',label:'noindex, nofollow'},{value:'index, nofollow',label:'index, nofollow'},{value:'noindex, follow',label:'noindex, follow'}]} />);
@@ -305,7 +281,6 @@ const buildFieldIndex = (config, handlers) => {
     add('seo', 'googleTagManagerId', 'Google Tag Manager ID', <TextField key="googleTagManagerId" label="Google Tag Manager ID" value={config.seo?.googleTagManagerId} onChange={(v) => set('seo', 'googleTagManagerId', v)} placeholder="GTM-XXXXXXX" />);
     add('seo', 'metaOgImage', 'OG Image URL', <TextField key="metaOgImage" label="OG Image URL" value={config.seo?.metaOgImage} onChange={(v) => set('seo', 'metaOgImage', v)} />);
     add('seo', 'metaOgType', 'OG Type', <SelectField key="metaOgType" label="OG Type" value={config.seo?.metaOgType} onChange={(v) => set('seo', 'metaOgType', v)} options={[{value:'website',label:'website'},{value:'article',label:'article'},{value:'product',label:'product'}]} />);
-
     // email
     add('email', 'smtpHost', 'SMTP Host', <TextField key="smtpHost" label="SMTP Host" value={config.email?.smtpHost} onChange={(v) => set('email', 'smtpHost', v)} />);
     add('email', 'smtpPort', 'SMTP Port', <NumberField key="smtpPort" label="SMTP Port" value={config.email?.smtpPort} onChange={(v) => set('email', 'smtpPort', v)} min={1} max={65535} />);
@@ -315,7 +290,6 @@ const buildFieldIndex = (config, handlers) => {
     add('email', 'smtpFromName', 'From Name', <TextField key="smtpFromName" label="From Name" value={config.email?.smtpFromName} onChange={(v) => set('email', 'smtpFromName', v)} />);
     add('email', 'smtpFromEmail', 'From Email', <TextField key="smtpFromEmail" label="From Email" value={config.email?.smtpFromEmail} onChange={(v) => set('email', 'smtpFromEmail', v)} />);
     add('email', 'sendgridApiKey', 'SendGrid API Key', <SecretField key="sendgridApiKey" label="SendGrid API Key" section="email" field="sendgridApiKey" value={config.email?.sendgridApiKey} onSecretChange={onSecretChange} />);
-
     // payment
     add('payment', 'stripePublicKey', 'Stripe Public Key', <TextField key="stripePublicKey" label="Stripe Public Key" value={config.payment?.stripePublicKey} onChange={(v) => set('payment', 'stripePublicKey', v)} />);
     add('payment', 'stripeSecretKey', 'Stripe Secret Key', <SecretField key="stripeSecretKey" label="Stripe Secret Key" section="payment" field="stripeSecretKey" value={config.payment?.stripeSecretKey} onSecretChange={onSecretChange} />);
@@ -325,13 +299,11 @@ const buildFieldIndex = (config, handlers) => {
     add('payment', 'bKashNumber', 'bKash Number', <TextField key="bKashNumber" label="bKash Number" value={config.payment?.bKashNumber} onChange={(v) => set('payment', 'bKashNumber', v)} />);
     add('payment', 'nagadNumber', 'Nagad Number', <TextField key="nagadNumber" label="Nagad Number" value={config.payment?.nagadNumber} onChange={(v) => set('payment', 'nagadNumber', v)} />);
     add('payment', 'defaultPaymentMethod', 'Default Payment Method', <SelectField key="defaultPaymentMethod" label="Default Payment Method" value={config.payment?.defaultPaymentMethod} onChange={(v) => set('payment', 'defaultPaymentMethod', v)} options={[{value:'cash_on_delivery',label:'Cash on Delivery'},{value:'stripe',label:'Stripe'},{value:'paytm',label:'Paytm'},{value:'bkash',label:'bKash'},{value:'nagad',label:'Nagad'}]} />);
-
     // cloud
     add('cloud', 'cloudinaryCloudName', 'Cloudinary Cloud Name', <TextField key="cloudinaryCloudName" label="Cloudinary Cloud Name" value={config.cloud?.cloudinaryCloudName} onChange={(v) => set('cloud', 'cloudinaryCloudName', v)} />);
     add('cloud', 'cloudinaryApiKey', 'Cloudinary API Key', <SecretField key="cloudinaryApiKey" label="Cloudinary API Key" section="cloud" field="cloudinaryApiKey" value={config.cloud?.cloudinaryApiKey} onSecretChange={onSecretChange} />);
     add('cloud', 'cloudinaryApiSecret', 'Cloudinary API Secret', <SecretField key="cloudinaryApiSecret" label="Cloudinary API Secret" section="cloud" field="cloudinaryApiSecret" value={config.cloud?.cloudinaryApiSecret} onSecretChange={onSecretChange} />);
     add('cloud', 'cloudinaryFolder', 'Cloudinary Folder', <TextField key="cloudinaryFolder" label="Cloudinary Folder" value={config.cloud?.cloudinaryFolder} onChange={(v) => set('cloud', 'cloudinaryFolder', v)} />);
-
     // social
     add('social', 'facebookUrl', 'Facebook URL', <TextField key="facebookUrl" label="Facebook URL" value={config.social?.facebookUrl} onChange={(v) => set('social', 'facebookUrl', v)} />);
     add('social', 'twitterUrl', 'Twitter / X URL', <TextField key="twitterUrl" label="Twitter / X URL" value={config.social?.twitterUrl} onChange={(v) => set('social', 'twitterUrl', v)} />);
@@ -339,14 +311,12 @@ const buildFieldIndex = (config, handlers) => {
     add('social', 'youtubeUrl', 'YouTube URL', <TextField key="youtubeUrl" label="YouTube URL" value={config.social?.youtubeUrl} onChange={(v) => set('social', 'youtubeUrl', v)} />);
     add('social', 'linkedinUrl', 'LinkedIn URL', <TextField key="linkedinUrl" label="LinkedIn URL" value={config.social?.linkedinUrl} onChange={(v) => set('social', 'linkedinUrl', v)} />);
     add('social', 'whatsappNumber', 'WhatsApp Number', <TextField key="whatsappNumber" label="WhatsApp Number" value={config.social?.whatsappNumber} onChange={(v) => set('social', 'whatsappNumber', v)} placeholder="8801700000000" />);
-
     // shipping
-    add('shipping', 'insideDhaka', 'Delivery — Inside Dhaka (Tk)', <NumberField key="insideDhaka" label="Delivery — Inside Dhaka (Tk)" value={config.shipping?.insideDhaka} onChange={(v) => set('shipping', 'insideDhaka', v)} min={0} />);
-    add('shipping', 'outsideDhaka', 'Delivery — Outside Dhaka (Tk)', <NumberField key="outsideDhaka" label="Delivery — Outside Dhaka (Tk)" value={config.shipping?.outsideDhaka} onChange={(v) => set('shipping', 'outsideDhaka', v)} min={0} />);
+    add('shipping', 'insideDhaka', 'Delivery – Inside Dhaka (Tk)', <NumberField key="insideDhaka" label="Delivery – Inside Dhaka (Tk)" value={config.shipping?.insideDhaka} onChange={(v) => set('shipping', 'insideDhaka', v)} min={0} />);
+    add('shipping', 'outsideDhaka', 'Delivery – Outside Dhaka (Tk)', <NumberField key="outsideDhaka" label="Delivery – Outside Dhaka (Tk)" value={config.shipping?.outsideDhaka} onChange={(v) => set('shipping', 'outsideDhaka', v)} min={0} />);
     add('shipping', 'freeShippingThreshold', 'Free Shipping Threshold (Tk)', <NumberField key="freeShippingThreshold" label="Free Shipping Threshold (Tk)" value={config.shipping?.freeShippingThreshold} onChange={(v) => set('shipping', 'freeShippingThreshold', v)} min={0} />);
     add('shipping', 'estimatedDeliveryDays', 'Estimated Delivery Days', <TextField key="estimatedDeliveryDays" label="Estimated Delivery Days" value={config.shipping?.estimatedDeliveryDays} onChange={(v) => set('shipping', 'estimatedDeliveryDays', v)} placeholder="3-5" />);
     add('shipping', 'returnPolicyDays', 'Return Policy (days)', <NumberField key="returnPolicyDays" label="Return Policy (days)" value={config.shipping?.returnPolicyDays} onChange={(v) => set('shipping', 'returnPolicyDays', v)} min={0} max={365} />);
-
     // security
     add('security', 'maxLoginAttempts', 'Max Login Attempts', <NumberField key="maxLoginAttempts" label="Max Login Attempts" value={config.security?.maxLoginAttempts} onChange={(v) => set('security', 'maxLoginAttempts', v)} min={1} max={20} />);
     add('security', 'loginLockoutMinutes', 'Login Lockout (minutes)', <NumberField key="loginLockoutMinutes" label="Login Lockout (minutes)" value={config.security?.loginLockoutMinutes} onChange={(v) => set('security', 'loginLockoutMinutes', v)} min={1} max={1440} />);
@@ -354,20 +324,17 @@ const buildFieldIndex = (config, handlers) => {
     add('security', 'requireEmailVerification', 'Require Email Verification', <ToggleField key="requireEmailVerification" label="Require Email Verification" description="" value={config.security?.requireEmailVerification} onChange={(v) => set('security', 'requireEmailVerification', v)} />);
     add('security', 'requirePhoneVerification', 'Require Phone Verification', <ToggleField key="requirePhoneVerification" label="Require Phone Verification" description="" value={config.security?.requirePhoneVerification} onChange={(v) => set('security', 'requirePhoneVerification', v)} />);
     add('security', 'enableTwoFactorAuth', 'Enable Two-Factor Auth', <ToggleField key="enableTwoFactorAuth" label="Enable Two-Factor Auth" description="" value={config.security?.enableTwoFactorAuth} onChange={(v) => set('security', 'enableTwoFactorAuth', v)} />);
-
     // cache
     add('cache', 'cacheEnabled', 'Enable Caching', <ToggleField key="cacheEnabled" label="Enable Caching" description="Cache API responses for better performance" value={config.cache?.cacheEnabled} onChange={(v) => set('cache', 'cacheEnabled', v)} />);
     add('cache', 'cacheDuration', 'Cache Duration (seconds)', <NumberField key="cacheDuration" label="Cache Duration (seconds)" value={config.cache?.cacheDuration} onChange={(v) => set('cache', 'cacheDuration', v)} min={60} max={86400} />);
     add('cache', 'redisEnabled', 'Enable Redis', <ToggleField key="redisEnabled" label="Enable Redis" description="Use Redis for distributed caching" value={config.cache?.redisEnabled} onChange={(v) => set('cache', 'redisEnabled', v)} />);
     add('cache', 'redisUrl', 'Redis URL', <TextField key="redisUrl" label="Redis URL" value={config.cache?.redisUrl} onChange={(v) => set('cache', 'redisUrl', v)} placeholder="redis://localhost:6379" />);
-
     // apiKeys
     add('apiKeys', 'businessKoroApiKey', 'Business Koro API Key', <SecretField key="businessKoroApiKey" label="Business Koro API Key" section="apiKeys" field="businessKoroApiKey" value={config.apiKeys?.businessKoroApiKey} onSecretChange={onSecretChange} />);
     add('apiKeys', 'businessKoroBaseUrl', 'Business Koro Base URL', <TextField key="businessKoroBaseUrl" label="Business Koro Base URL" value={config.apiKeys?.businessKoroBaseUrl} onChange={(v) => set('apiKeys', 'businessKoroBaseUrl', v)} />);
     add('apiKeys', 'businessKoroDomain', 'Business Koro Domain', <TextField key="businessKoroDomain" label="Business Koro Domain" value={config.apiKeys?.businessKoroDomain} onChange={(v) => set('apiKeys', 'businessKoroDomain', v)} />);
     add('apiKeys', 'otherApiKey1', 'Custom API Key 1', <SecretField key="otherApiKey1" label="Custom API Key 1" section="apiKeys" field="otherApiKey1" value={config.apiKeys?.otherApiKey1} onSecretChange={onSecretChange} />);
     add('apiKeys', 'otherApiKey2', 'Custom API Key 2', <SecretField key="otherApiKey2" label="Custom API Key 2" section="apiKeys" field="otherApiKey2" value={config.apiKeys?.otherApiKey2} onSecretChange={onSecretChange} />);
-
     // features
     add('features', 'enableGuestCheckout', 'Guest Checkout', <ToggleField key="enableGuestCheckout" label="Guest Checkout" description="Allow purchases without registration" value={config.features?.enableGuestCheckout} onChange={(v) => set('features', 'enableGuestCheckout', v)} />);
     add('features', 'enableWishlist', 'Wishlist', <ToggleField key="enableWishlist" label="Wishlist" description="Enable wishlist feature for users" value={config.features?.enableWishlist} onChange={(v) => set('features', 'enableWishlist', v)} />);
@@ -376,16 +343,12 @@ const buildFieldIndex = (config, handlers) => {
     add('features', 'enableNewsletter', 'Newsletter', <ToggleField key="enableNewsletter" label="Newsletter" description="Enable newsletter subscription" value={config.features?.enableNewsletter} onChange={(v) => set('features', 'enableNewsletter', v)} />);
     add('features', 'enableSitemap', 'Sitemap', <ToggleField key="enableSitemap" label="Sitemap" description="Auto-generate XML sitemap" value={config.features?.enableSitemap} onChange={(v) => set('features', 'enableSitemap', v)} />);
     add('features', 'enablePWA', 'Progressive Web App (PWA)', <ToggleField key="enablePWA" label="Progressive Web App (PWA)" description="Enable PWA features" value={config.features?.enablePWA} onChange={(v) => set('features', 'enablePWA', v)} />);
-
     return index;
 };
-
 // ─── Skeleton Loader ──────────────────────────────────────────────────────────
-
 const SkeletonPulse = ({ className }) => (
     <div className={`animate-pulse bg-gray-200 rounded-xl ${className}`} />
 );
-
 const LoadingSkeleton = () => (
     <div className="flex flex-col gap-4 p-2">
         <SkeletonPulse className="h-8 w-48" />
@@ -402,9 +365,7 @@ const LoadingSkeleton = () => (
         </div>
     </div>
 );
-
 // ─── Reset Confirmation Modal ─────────────────────────────────────────────────
-
 const ResetModal = ({ onConfirm, onCancel }) => (
     <div
         className="fixed inset-0 z-50 flex items-center justify-center"
@@ -441,23 +402,18 @@ const ResetModal = ({ onConfirm, onCancel }) => (
         </div>
     </div>
 );
-
 // ─── Changelog Panel ──────────────────────────────────────────────────────────
-
 const SENSITIVE_PATTERN = /secret|key|password|token|apikey/i;
-
 const maskIfSensitive = (fieldName, value) => {
-    if (!value) return '—';
+    if (!value) return '–';
     if (SENSITIVE_PATTERN.test(fieldName)) return MASK_STRING;
     if (typeof value === 'string' && value.length > 30 && /[A-Za-z0-9+/=]{20,}/.test(value)) return MASK_STRING;
     return value;
 };
-
 const ChangeLogPanel = () => {
     const { enqueueSnackbar } = useSnackbar();
     const [log, setLog] = useState([]);
     const [loading, setLoading] = useState(true);
-
     useEffect(() => {
         const fetchLog = async () => {
             setLoading(true);
@@ -472,7 +428,6 @@ const ChangeLogPanel = () => {
         };
         fetchLog();
     }, [enqueueSnackbar]);
-
     if (loading) {
         return (
             <Card>
@@ -483,7 +438,6 @@ const ChangeLogPanel = () => {
             </Card>
         );
     }
-
     if (log.length === 0) {
         return (
             <Card>
@@ -495,7 +449,6 @@ const ChangeLogPanel = () => {
             </Card>
         );
     }
-
     return (
         <Card className="overflow-hidden p-0">
             <div className="px-5 pt-5 pb-3 border-b border-gray-100">
@@ -518,7 +471,7 @@ const ChangeLogPanel = () => {
                                 <td className="px-4 py-3 text-gray-500 max-w-[180px] truncate">{maskIfSensitive(entry.field, entry.oldValue)}</td>
                                 <td className="px-4 py-3 text-gray-700 max-w-[180px] truncate">{maskIfSensitive(entry.field, entry.newValue)}</td>
                                 <td className="px-4 py-3 text-gray-400 whitespace-nowrap text-xs">
-                                    {entry.changedAt ? new Date(entry.changedAt).toLocaleString() : '—'}
+                                    {entry.changedAt ? new Date(entry.changedAt).toLocaleString() : '–'}
                                 </td>
                             </tr>
                         ))}
@@ -528,9 +481,457 @@ const ChangeLogPanel = () => {
         </Card>
     );
 };
+// ─── Homepage Panel (embedded SiteEditor) ─────────────────────────────────────
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+const HomepageField = ({ label, value, onChange, textarea, type = 'text', placeholder = '' }) => (
+    <div className="flex flex-col gap-1">
+        <label className="text-xs font-medium text-gray-500">{label}</label>
+        {textarea ? (
+            <textarea
+                value={value || ''}
+                onChange={(e) => onChange(e.target.value)}
+                rows={3}
+                placeholder={placeholder}
+                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-orange-400 resize-y w-full"
+            />
+        ) : (
+            <input
+                type={type}
+                value={value ?? ''}
+                onChange={(e) => onChange(type === 'number' ? Number(e.target.value) : e.target.value)}
+                placeholder={placeholder}
+                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-orange-400 w-full"
+            />
+        )}
+    </div>
+);
 
+const HomepagePanel = () => {
+    const { enqueueSnackbar } = useSnackbar();
+    const { reloadConfig } = useSiteConfig();
+    const [hpConfig, setHpConfig] = useState(null);
+    const [hpLoading, setHpLoading] = useState(true);
+    const [hpSaving, setHpSaving] = useState(false);
+    const [newCategory, setNewCategory] = useState('');
+
+    useEffect(() => {
+        setHpLoading(true);
+        axios.get('/api/v1/siteconfig', { headers: { Accept: 'application/json' } })
+            .then((res) => {
+                if (res.data?.config) {
+                    setHpConfig({ ...JSON.parse(JSON.stringify(DEFAULT_SITE_CONFIG)), ...JSON.parse(JSON.stringify(res.data.config)) });
+                }
+            })
+            .catch(() => enqueueSnackbar('Using default homepage content', { variant: 'warning' }))
+            .finally(() => setHpLoading(false));
+    }, [enqueueSnackbar]);
+
+    const setHpSection = (section, key, value) =>
+        setHpConfig((prev) => ({ ...prev, [section]: { ...prev[section], [key]: value } }));
+
+    const setHpNested = (section, group, key, value) =>
+        setHpConfig((prev) => ({
+            ...prev,
+            [section]: { ...prev[section], [group]: { ...prev[section]?.[group], [key]: value } },
+        }));
+
+    const setHpArrayItem = (arrayKey, index, field, value) =>
+        setHpConfig((prev) => {
+            const arr = JSON.parse(JSON.stringify(prev[arrayKey] || []));
+            arr[index] = { ...arr[index], [field]: value };
+            return { ...prev, [arrayKey]: arr };
+        });
+
+    const addHpArrayItem = (arrayKey, template) =>
+        setHpConfig((prev) => ({ ...prev, [arrayKey]: [...(prev[arrayKey] || []), template] }));
+
+    const removeHpArrayItem = (arrayKey, index) =>
+        setHpConfig((prev) => {
+            const arr = JSON.parse(JSON.stringify(prev[arrayKey] || []));
+            arr.splice(index, 1);
+            return { ...prev, [arrayKey]: arr };
+        });
+
+    const saveHp = async () => {
+        setHpSaving(true);
+        try {
+            await axios.put('/api/v1/admin/siteconfig', hpConfig, {
+                headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            });
+            enqueueSnackbar('Homepage saved', { variant: 'success' });
+            reloadConfig();
+        } catch (err) {
+            enqueueSnackbar(err.response?.data?.message || 'Save failed', { variant: 'error' });
+        } finally {
+            setHpSaving(false);
+        }
+    };
+
+    const resetHp = async () => {
+        try {
+            const { data } = await axios.put('/api/v1/admin/siteconfig/reset', {}, { headers: { Accept: 'application/json' } });
+            setHpConfig(JSON.parse(JSON.stringify(data.config)));
+            enqueueSnackbar('Homepage reset to defaults', { variant: 'success' });
+            reloadConfig();
+        } catch (err) {
+            enqueueSnackbar(err.response?.data?.message || 'Reset failed', { variant: 'error' });
+        }
+    };
+
+    if (hpLoading || !hpConfig) {
+        return (
+            <Card>
+                <div className="flex items-center justify-center py-16 text-gray-400">
+                    <Loader2 size={22} className="animate-spin mr-2" /> Loading homepage settings...
+                </div>
+            </Card>
+        );
+    }
+
+    const a = hpConfig.announcement || {};
+    const h = hpConfig.hero || {};
+    const f = hpConfig.flashSale || {};
+    const b = hpConfig.branding || {};
+    const s = hpConfig.seo || {};
+    const n = hpConfig.navigation || {};
+    const c = hpConfig.content || {};
+    const ch = hpConfig.chat || {};
+
+    const bodyToText = (lines) => (lines || []).join('\n');
+    const textToBody = (text) => text.split('\n').map((x) => x.trim()).filter(Boolean);
+    const linksToText = (links) => (links || []).map((l) => `${l.name} => ${l.redirect}`).join('\n');
+    const textToLinks = (text) =>
+        text.split('\n').map((x) => x.trim()).filter(Boolean).map((line) => {
+            const idx = line.indexOf('=>');
+            const name = idx >= 0 ? line.slice(0, idx).trim() : line;
+            const redirect = idx >= 0 ? line.slice(idx + 2).trim() : '/policy';
+            return { name, redirect, internal: redirect.startsWith('/') };
+        });
+
+    return (
+        <div className="flex flex-col gap-5">
+            {/* Save bar */}
+            <div className="flex items-center justify-between gap-3 bg-white border border-gray-200 rounded-2xl shadow-sm px-5 py-3">
+                <div>
+                    <p className="text-sm font-semibold text-gray-800">Homepage &amp; Storefront Settings</p>
+                    <p className="text-xs text-gray-400 mt-0.5">Changes apply to the landing page when you save.</p>
+                </div>
+                <div className="flex gap-2">
+                    <button
+                        onClick={resetHp}
+                        className="border border-gray-300 text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2"
+                    >
+                        <RotateCcw size={14} /> Reset
+                    </button>
+                    <button
+                        onClick={saveHp}
+                        disabled={hpSaving}
+                        className="bg-[#E84B0F] hover:bg-[#C63E0A] disabled:opacity-50 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2"
+                    >
+                        {hpSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                        {hpSaving ? 'Saving...' : 'Save Homepage'}
+                    </button>
+                </div>
+            </div>
+
+            {/* Announcements */}
+            <Card>
+                <SectionHeading>Announcements &amp; Trust Bar</SectionHeading>
+                <div className="flex flex-col gap-3">
+                    <div className="grid sm:grid-cols-3 gap-3">
+                        {(a.desktop || []).map((item, i) => (
+                            <HomepageField key={i} label={`Announcement ${i + 1}`} value={item}
+                                onChange={(v) => setHpConfig((prev) => {
+                                    const arr = JSON.parse(JSON.stringify(prev.announcement.desktop));
+                                    arr[i] = v;
+                                    return { ...prev, announcement: { ...prev.announcement, desktop: arr } };
+                                })} />
+                        ))}
+                    </div>
+                    <HomepageField label="Mobile announcement text" textarea value={a.mobile}
+                        onChange={(v) => setHpSection('announcement', 'mobile', v)} />
+                </div>
+            </Card>
+
+            {/* Hero */}
+            <Card>
+                <SectionHeading>Hero Section</SectionHeading>
+                <div className="grid sm:grid-cols-2 gap-3">
+                    <HomepageField label="Badge" value={h.badge} onChange={(v) => setHpSection('hero', 'badge', v)} />
+                    <HomepageField label="Title" value={h.title} onChange={(v) => setHpSection('hero', 'title', v)} />
+                    <div className="sm:col-span-2">
+                        <HomepageField label="Subtitle" textarea value={h.subtitle} onChange={(v) => setHpSection('hero', 'subtitle', v)} />
+                    </div>
+                    <div className="sm:col-span-2">
+                        <HomepageField label="Hero image URL" value={h.image} onChange={(v) => setHpSection('hero', 'image', v)} />
+                    </div>
+                    <HomepageField label="Button label" value={h.buttonLabel} onChange={(v) => setHpSection('hero', 'buttonLabel', v)} />
+                    <HomepageField label="Button link" value={h.buttonLink} onChange={(v) => setHpSection('hero', 'buttonLink', v)} />
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3 border-t mt-4 pt-4">
+                    {['sideTop', 'sideBottom'].map((group, gi) => (
+                        <div key={group} className="flex flex-col gap-3 bg-gray-50 rounded-xl p-3">
+                            <p className="text-xs font-semibold text-gray-500 uppercase">{gi === 0 ? 'Top Card' : 'Bottom Card'}</p>
+                            <HomepageField label="Title" value={h[group]?.title} onChange={(v) => setHpNested('hero', group, 'title', v)} />
+                            <HomepageField label="Subtitle" value={h[group]?.subtitle} onChange={(v) => setHpNested('hero', group, 'subtitle', v)} />
+                            <HomepageField label="Image URL" value={h[group]?.image} onChange={(v) => setHpNested('hero', group, 'image', v)} />
+                            <HomepageField label="Link" value={h[group]?.link} onChange={(v) => setHpNested('hero', group, 'link', v)} />
+                        </div>
+                    ))}
+                </div>
+            </Card>
+
+            {/* Trust Badges */}
+            <Card>
+                <SectionHeading>Trust Badges</SectionHeading>
+                <div className="grid sm:grid-cols-2 gap-3">
+                    {(hpConfig.trustBadges || []).map((badge, i) => (
+                        <div key={i} className="bg-gray-50 rounded-xl p-3 flex flex-col gap-2 relative">
+                            <button onClick={() => removeHpArrayItem('trustBadges', i)}
+                                className="absolute top-2 right-2 text-xs text-red-500 hover:underline">Remove</button>
+                            <div className="grid grid-cols-[80px_1fr] gap-2">
+                                <HomepageField label="Icon/Emoji" value={badge.icon} onChange={(v) => setHpArrayItem('trustBadges', i, 'icon', v)} />
+                                <HomepageField label="Title" value={badge.title} onChange={(v) => setHpArrayItem('trustBadges', i, 'title', v)} />
+                            </div>
+                            <HomepageField label="Description" value={badge.description} onChange={(v) => setHpArrayItem('trustBadges', i, 'description', v)} />
+                        </div>
+                    ))}
+                </div>
+                <button onClick={() => addHpArrayItem('trustBadges', { icon: '', title: 'New Feature', description: 'Description' })}
+                    className="mt-3 text-sm border border-dashed border-gray-400 rounded-xl px-3 py-1.5 hover:bg-gray-50">+ Add Badge</button>
+            </Card>
+
+            {/* Flash Sale */}
+            <Card>
+                <SectionHeading>Flash Sale</SectionHeading>
+                <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2">
+                        <input type="checkbox" id="flashEnabled" checked={f.enabled !== false}
+                            onChange={(e) => setHpSection('flashSale', 'enabled', e.target.checked)} className="w-4 h-4 accent-orange-500" />
+                        <label htmlFor="flashEnabled" className="text-sm text-gray-700">Show flash sale section</label>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                        <HomepageField label="Title" value={f.title} onChange={(v) => setHpSection('flashSale', 'title', v)} />
+                        <HomepageField label="Subtitle" value={f.subtitle} onChange={(v) => setHpSection('flashSale', 'subtitle', v)} />
+                        <HomepageField label="End time (24h)" type="time" value={f.endsAt} onChange={(v) => setHpSection('flashSale', 'endsAt', v)} />
+                        <HomepageField label="Note" value={f.note} onChange={(v) => setHpSection('flashSale', 'note', v)} />
+                    </div>
+                </div>
+            </Card>
+
+            {/* How to Order */}
+            <Card>
+                <SectionHeading>How to Order Steps</SectionHeading>
+                <div className="grid sm:grid-cols-3 gap-3">
+                    {(hpConfig.howToOrder || []).map((step, i) => (
+                        <div key={i} className="bg-gray-50 rounded-xl p-3 flex flex-col gap-2 relative">
+                            <button onClick={() => removeHpArrayItem('howToOrder', i)}
+                                className="absolute top-1 right-1 text-xs text-red-500 hover:underline">x</button>
+                            <div className="grid grid-cols-[60px_1fr] gap-2">
+                                <HomepageField label="Icon" value={step.icon} onChange={(v) => setHpArrayItem('howToOrder', i, 'icon', v)} />
+                                <HomepageField label="Title" value={step.title} onChange={(v) => setHpArrayItem('howToOrder', i, 'title', v)} />
+                            </div>
+                            <HomepageField label="Description" textarea value={step.description} onChange={(v) => setHpArrayItem('howToOrder', i, 'description', v)} />
+                        </div>
+                    ))}
+                </div>
+                <button onClick={() => addHpArrayItem('howToOrder', { icon: '', title: 'New Step', description: '' })}
+                    className="mt-3 text-sm border border-dashed border-gray-400 rounded-xl px-3 py-1.5 hover:bg-gray-50">+ Add Step</button>
+            </Card>
+
+            {/* Customer Reviews */}
+            <Card>
+                <SectionHeading>Customer Reviews</SectionHeading>
+                <div className="grid sm:grid-cols-2 gap-3">
+                    {(hpConfig.reviews || []).map((review, i) => (
+                        <div key={i} className="bg-gray-50 rounded-xl p-3 flex flex-col gap-2 relative">
+                            <button onClick={() => removeHpArrayItem('reviews', i)}
+                                className="absolute top-1 right-1 text-xs text-red-500 hover:underline">x</button>
+                            <div className="grid grid-cols-3 gap-2">
+                                <HomepageField label="Name" value={review.name} onChange={(v) => setHpArrayItem('reviews', i, 'name', v)} />
+                                <HomepageField label="District" value={review.district} onChange={(v) => setHpArrayItem('reviews', i, 'district', v)} />
+                                <div className="flex flex-col gap-1">
+                                    <label className="text-xs font-medium text-gray-500">Rating</label>
+                                    <select value={review.rating || 5} onChange={(e) => setHpArrayItem('reviews', i, 'rating', Number(e.target.value))}
+                                        className="border border-gray-200 rounded-xl px-2 py-2 text-sm bg-white focus:outline-none focus:border-orange-400">
+                                        {[5,4,3,2,1].map((r) => <option key={r} value={r}>{r} stars</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                            <HomepageField label="Comment" textarea value={review.comment} onChange={(v) => setHpArrayItem('reviews', i, 'comment', v)} />
+                        </div>
+                    ))}
+                </div>
+                <button onClick={() => addHpArrayItem('reviews', { name: '', district: '', rating: 5, comment: '' })}
+                    className="mt-3 text-sm border border-dashed border-gray-400 rounded-xl px-3 py-1.5 hover:bg-gray-50">+ Add Review</button>
+            </Card>
+
+            {/* Payment / Delivery / Support */}
+            <Card>
+                <SectionHeading>Payment, Delivery &amp; Support</SectionHeading>
+                <div className="grid sm:grid-cols-2 gap-3">
+                    <HomepageField label="bKash Number" value={(hpConfig.payment || {}).bKashNumber} onChange={(v) => setHpSection('payment', 'bKashNumber', v)} placeholder="017XXXXXXXX" />
+                    <HomepageField label="Nagad Number" value={(hpConfig.payment || {}).nagadNumber} onChange={(v) => setHpSection('payment', 'nagadNumber', v)} placeholder="017XXXXXXXX" />
+                    <HomepageField label="Delivery — Inside Dhaka (Tk)" type="number" value={(hpConfig.delivery || {}).insideDhaka} onChange={(v) => setHpSection('delivery', 'insideDhaka', v)} />
+                    <HomepageField label="Delivery — Outside Dhaka (Tk)" type="number" value={(hpConfig.delivery || {}).outsideDhaka} onChange={(v) => setHpSection('delivery', 'outsideDhaka', v)} />
+                    <HomepageField label="Hotline" value={(hpConfig.support || {}).hotline} onChange={(v) => setHpSection('support', 'hotline', v)} placeholder="017XXXXXXXX" />
+                    <HomepageField label="WhatsApp" value={(hpConfig.support || {}).whatsapp} onChange={(v) => setHpSection('support', 'whatsapp', v)} placeholder="88017XXXXXXXXX" />
+                </div>
+            </Card>
+
+            {/* Categories */}
+            <Card>
+                <SectionHeading>Product Categories</SectionHeading>
+                <div className="flex flex-col gap-2">
+                    {(hpConfig.categories || []).map((cat, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                            <input value={cat}
+                                onChange={(e) => setHpConfig((prev) => {
+                                    const cats = [...(prev.categories || [])];
+                                    cats[i] = e.target.value;
+                                    return { ...prev, categories: cats };
+                                })}
+                                placeholder="Category name"
+                                className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-orange-400" />
+                            <button onClick={() => setHpConfig((prev) => ({ ...prev, categories: (prev.categories || []).filter((_, idx) => idx !== i) }))}
+                                className="text-xs text-red-500 hover:underline shrink-0">Remove</button>
+                        </div>
+                    ))}
+                </div>
+                <div className="flex gap-2 mt-2">
+                    <input value={newCategory} onChange={(e) => setNewCategory(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (newCategory.trim()) { setHpConfig((prev) => ({ ...prev, categories: [...(prev.categories || []), newCategory.trim()] })); setNewCategory(''); } } }}
+                        placeholder="New category name"
+                        className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-orange-400" />
+                    <button onClick={() => { if (newCategory.trim()) { setHpConfig((prev) => ({ ...prev, categories: [...(prev.categories || []), newCategory.trim()] })); setNewCategory(''); } }}
+                        className="border border-dashed border-gray-400 rounded-xl px-3 py-1.5 text-sm hover:bg-gray-50">+ Add</button>
+                </div>
+            </Card>
+
+            {/* Branding */}
+            <Card>
+                <SectionHeading>Branding</SectionHeading>
+                <div className="grid sm:grid-cols-2 gap-3">
+                    <HomepageField label="Site Name" value={b.name} onChange={(v) => setHpSection('branding', 'name', v)} />
+                    <HomepageField label="Tagline" value={b.tagline} onChange={(v) => setHpSection('branding', 'tagline', v)} />
+                    <div className="sm:col-span-2">
+                        <HomepageField label="Logo URL" value={b.logoUrl} onChange={(v) => setHpSection('branding', 'logoUrl', v)} placeholder="https://..." />
+                    </div>
+                </div>
+            </Card>
+
+            {/* SEO */}
+            <Card>
+                <SectionHeading>SEO</SectionHeading>
+                <div className="flex flex-col gap-3">
+                    <HomepageField label="Title template (%s = page name)" value={s.titleTemplate} onChange={(v) => setHpSection('seo', 'titleTemplate', v)} placeholder="%s | TechBazar" />
+                    <HomepageField label="Default meta description" textarea value={s.description} onChange={(v) => setHpSection('seo', 'description', v)} />
+                </div>
+            </Card>
+
+            {/* Navigation Tabs */}
+            <Card>
+                <SectionHeading>Mobile Bottom Navigation Tabs</SectionHeading>
+                {(n.tabs || []).map((tab, i) => (
+                    <div key={i} className="bg-gray-50 rounded-xl p-3 flex flex-col gap-2 relative mb-2">
+                        <button onClick={() => setHpConfig((prev) => ({ ...prev, navigation: { ...prev.navigation, tabs: (prev.navigation?.tabs || []).filter((_, idx) => idx !== i) } }))}
+                            className="absolute top-1 right-1 text-xs text-red-500 hover:underline">x</button>
+                        <div className="grid grid-cols-2 gap-2">
+                            <HomepageField label="Label" value={tab.label} onChange={(v) => setHpConfig((prev) => { const tabs = JSON.parse(JSON.stringify(prev.navigation?.tabs || [])); tabs[i] = { ...tabs[i], label: v }; return { ...prev, navigation: { ...prev.navigation, tabs } }; })} />
+                            <HomepageField label="Icon" value={tab.icon} onChange={(v) => setHpConfig((prev) => { const tabs = JSON.parse(JSON.stringify(prev.navigation?.tabs || [])); tabs[i] = { ...tabs[i], icon: v }; return { ...prev, navigation: { ...prev.navigation, tabs } }; })} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <HomepageField label="Link (href)" value={tab.href} onChange={(v) => setHpConfig((prev) => { const tabs = JSON.parse(JSON.stringify(prev.navigation?.tabs || [])); tabs[i] = { ...tabs[i], href: v }; return { ...prev, navigation: { ...prev.navigation, tabs } }; })} />
+                            <HomepageField label="Key" value={tab.key} onChange={(v) => setHpConfig((prev) => { const tabs = JSON.parse(JSON.stringify(prev.navigation?.tabs || [])); tabs[i] = { ...tabs[i], key: v }; return { ...prev, navigation: { ...prev.navigation, tabs } }; })} />
+                        </div>
+                    </div>
+                ))}
+                <button onClick={() => setHpConfig((prev) => ({ ...prev, navigation: { ...prev.navigation, tabs: [...(prev.navigation?.tabs || []), { key: '', label: 'New Tab', href: '/', icon: 'Home' }] } }))}
+                    className="text-sm border border-dashed border-gray-400 rounded-xl px-3 py-1.5 hover:bg-gray-50">+ Add Tab</button>
+            </Card>
+
+            {/* Policy Page */}
+            <Card>
+                <SectionHeading>Policy Page</SectionHeading>
+                <div className="flex flex-col gap-3">
+                    <HomepageField label="Page Title" value={c.policyTitle} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, policyTitle: v } }))} />
+                    {(c.policy || []).map((sec, i) => (
+                        <div key={i} className="bg-gray-50 rounded-xl p-3 flex flex-col gap-2 relative">
+                            <button onClick={() => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, policy: (prev.content?.policy || []).filter((_, idx) => idx !== i) } }))}
+                                className="absolute top-1 right-1 text-xs text-red-500 hover:underline">x</button>
+                            <HomepageField label="Section Title" value={sec.title} onChange={(v) => setHpConfig((prev) => { const policy = JSON.parse(JSON.stringify(prev.content?.policy || [])); policy[i] = { ...policy[i], title: v }; return { ...prev, content: { ...prev.content, policy } }; })} />
+                            <HomepageField label="Bullets (one per line)" textarea value={bodyToText(sec.body)} onChange={(v) => setHpConfig((prev) => { const policy = JSON.parse(JSON.stringify(prev.content?.policy || [])); policy[i] = { ...policy[i], body: textToBody(v) }; return { ...prev, content: { ...prev.content, policy } }; })} />
+                        </div>
+                    ))}
+                    <button onClick={() => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, policy: [...(prev.content?.policy || []), { title: 'New Section', body: [''] }] } }))}
+                        className="text-sm border border-dashed border-gray-400 rounded-xl px-3 py-1.5 hover:bg-gray-50">+ Add Section</button>
+                </div>
+            </Card>
+
+            {/* Footer */}
+            <Card>
+                <SectionHeading>Footer</SectionHeading>
+                <p className="text-xs text-gray-500 mb-3">Link format: Name =&gt; /path or Name =&gt; https://...</p>
+                {(c.footer?.columns || []).map((col, ci) => (
+                    <div key={ci} className="bg-gray-50 rounded-xl p-3 flex flex-col gap-2 relative mb-2">
+                        <button onClick={() => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, columns: (prev.content?.footer?.columns || []).filter((_, idx) => idx !== ci) } } }))}
+                            className="absolute top-1 right-1 text-xs text-red-500 hover:underline">x</button>
+                        <HomepageField label="Column Title" value={col.title} onChange={(v) => setHpConfig((prev) => { const cols = JSON.parse(JSON.stringify(prev.content?.footer?.columns || [])); cols[ci] = { ...cols[ci], title: v }; return { ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, columns: cols } } }; })} />
+                        <HomepageField label="Links (one per line)" textarea value={linksToText(col.links)} onChange={(v) => setHpConfig((prev) => { const cols = JSON.parse(JSON.stringify(prev.content?.footer?.columns || [])); cols[ci] = { ...cols[ci], links: textToLinks(v) }; return { ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, columns: cols } } }; })} />
+                    </div>
+                ))}
+                <button onClick={() => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, columns: [...(prev.content?.footer?.columns || []), { title: 'New Group', links: [] }] } } }))}
+                    className="text-sm border border-dashed border-gray-400 rounded-xl px-3 py-1.5 hover:bg-gray-50 mb-4">+ Add Column</button>
+
+                <div className="border-t pt-4 flex flex-col gap-3">
+                    <p className="text-xs font-semibold text-gray-500 uppercase">Company Block</p>
+                    <HomepageField label="Company Name" value={c.footer?.company?.name} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, name: v } } } }))} />
+                    <HomepageField label="Mail Us" textarea value={c.footer?.company?.mailUs} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, mailUs: v } } } }))} />
+                    <div className="grid sm:grid-cols-2 gap-3">
+                        <HomepageField label="CIN" value={c.footer?.company?.cin} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, cin: v } } } }))} />
+                        <HomepageField label="Telephone" value={c.footer?.company?.telephone} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, telephone: v } } } }))} />
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                        <HomepageField label="Copyright Text" value={c.footer?.copyright} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, copyright: v } } }))} />
+                        <HomepageField label="Since Year" type="number" value={c.footer?.since} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, since: Number(v) } } }))} />
+                    </div>
+                </div>
+            </Card>
+
+            {/* Account FAQs */}
+            <Card>
+                <SectionHeading>Account Page FAQs</SectionHeading>
+                {(c.faqs || []).map((faq, i) => (
+                    <div key={i} className="bg-gray-50 rounded-xl p-3 flex flex-col gap-2 relative mb-2">
+                        <button onClick={() => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, faqs: (prev.content?.faqs || []).filter((_, idx) => idx !== i) } }))}
+                            className="absolute top-1 right-1 text-xs text-red-500 hover:underline">x</button>
+                        <HomepageField label="Question" value={faq.q} onChange={(v) => setHpConfig((prev) => { const faqs = JSON.parse(JSON.stringify(prev.content?.faqs || [])); faqs[i] = { ...faqs[i], q: v }; return { ...prev, content: { ...prev.content, faqs } }; })} />
+                        <HomepageField label="Answer" textarea value={faq.a} onChange={(v) => setHpConfig((prev) => { const faqs = JSON.parse(JSON.stringify(prev.content?.faqs || [])); faqs[i] = { ...faqs[i], a: v }; return { ...prev, content: { ...prev.content, faqs } }; })} />
+                    </div>
+                ))}
+                <button onClick={() => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, faqs: [...(prev.content?.faqs || []), { q: 'Question?', a: 'Answer...' }] } }))}
+                    className="text-sm border border-dashed border-gray-400 rounded-xl px-3 py-1.5 hover:bg-gray-50">+ Add FAQ</button>
+            </Card>
+
+            {/* Live Chat */}
+            <Card>
+                <SectionHeading>Live Chat</SectionHeading>
+                <HomepageField label="Welcome Message" textarea value={ch.welcomeMessage} onChange={(v) => setHpSection('chat', 'welcomeMessage', v)} />
+            </Card>
+
+            {/* Theme Editor */}
+            <Card>
+                <SectionHeading>Theme &amp; Visual Customisation</SectionHeading>
+                <p className="text-xs text-gray-500 mb-4">Changes preview instantly. Click Save Homepage to apply site-wide.</p>
+                <ThemeEditor
+                    theme={hpConfig.theme || {}}
+                    onChange={(theme) => setHpConfig((prev) => ({ ...prev, theme }))}
+                />
+            </Card>
+        </div>
+    );
+};
+// ─── Main Component ────────────────────────────────────────────────────────────
 const WebsiteConfig = () => {
     const { enqueueSnackbar } = useSnackbar();
     const [config, setConfig] = useState(null);
@@ -543,8 +944,7 @@ const WebsiteConfig = () => {
     // null means "user cleared it back, keep existing" → send ""
     // actual string means "user typed a new value" → send it
     const [pendingSecrets, setPendingSecrets] = useState({});
-
-    // ── Fetch config ──────────────────────────────────────────────────────────
+    // ── Fetch config ─────────────────────────────────────────────────────────────
     const fetchConfig = useCallback(async () => {
         setLoading(true);
         try {
@@ -557,19 +957,16 @@ const WebsiteConfig = () => {
             setLoading(false);
         }
     }, [enqueueSnackbar]);
-
     useEffect(() => {
         fetchConfig();
     }, [fetchConfig]);
-
-    // ── State updaters ────────────────────────────────────────────────────────
+    // ── State updaters ────────────────────────────────────────────────────────────
     const set = useCallback((section, field, value) => {
         setConfig((prev) => ({
             ...prev,
             [section]: { ...prev[section], [field]: value },
         }));
     }, []);
-
     const onSecretChange = useCallback((section, field, value) => {
         // value === null means "cleared back to blank"
         setPendingSecrets((prev) => ({
@@ -577,20 +974,15 @@ const WebsiteConfig = () => {
             [`${section}.${field}`]: value,
         }));
     }, []);
-
     const handlers = { set, onSecretChange };
-
-    // ── Build field index for search ──────────────────────────────────────────
+    // ── Build field index for search ──────────────────────────────────────────────
     const fieldIndex = config ? buildFieldIndex(config, handlers) : [];
-
-    // ── Search filtering ──────────────────────────────────────────────────────
+    // ── Search filtering ──────────────────────────────────────────────────────────
     const trimmedQuery = searchQuery.trim().toLowerCase();
     const isSearching = trimmedQuery.length > 0;
-
     const searchResults = isSearching
         ? fieldIndex.filter((f) => f.fieldLabel.toLowerCase().includes(trimmedQuery))
         : [];
-
     // Group search results by section
     const searchResultsBySectionId = {};
     searchResults.forEach((f) => {
@@ -599,15 +991,13 @@ const WebsiteConfig = () => {
         }
         searchResultsBySectionId[f.sectionId].push(f);
     });
-
-    // ── Save handler ──────────────────────────────────────────────────────────
+    // ── Save handler ──────────────────────────────────────────────────────────────
     const handleSave = async () => {
         if (!config) return;
         setSaving(true);
         try {
             // Build payload: deep-clone config, then apply secret logic
             const payload = JSON.parse(JSON.stringify(config));
-
             SECRET_FIELDS.forEach((key) => {
                 const [section, field] = key.split('.');
                 const pending = pendingSecrets[key];
@@ -619,7 +1009,6 @@ const WebsiteConfig = () => {
                     if (payload[section]) payload[section][field] = pending;
                 }
             });
-
             await axios.put('/api/v1/admin/websiteconfig', { config: payload });
             enqueueSnackbar('Configuration saved', { variant: 'success' });
             setPendingSecrets({});
@@ -629,8 +1018,7 @@ const WebsiteConfig = () => {
             setSaving(false);
         }
     };
-
-    // ── Reset handler ─────────────────────────────────────────────────────────
+    // ── Reset handler ─────────────────────────────────────────────────────────────
     const handleReset = async () => {
         setShowResetModal(false);
         setSaving(true);
@@ -644,19 +1032,17 @@ const WebsiteConfig = () => {
             setSaving(false);
         }
     };
-
-    // ── Render active category fields ─────────────────────────────────────────
+    // ── Render active category fields ─────────────────────────────────────────────
     const renderCategoryContent = () => {
         if (!config) return null;
-
+        if (activeCategory === 'homepage') {
+            return <HomepagePanel />;
+        }
         if (activeCategory === 'changelog') {
             return <ChangeLogPanel />;
         }
-
         const sectionFields = fieldIndex.filter((f) => f.sectionId === activeCategory);
-
         if (sectionFields.length === 0) return null;
-
         return (
             <Card>
                 <SectionHeading>
@@ -668,8 +1054,7 @@ const WebsiteConfig = () => {
             </Card>
         );
     };
-
-    // ── Render search results ─────────────────────────────────────────────────
+    // ── Render search results ─────────────────────────────────────────────────────
     const renderSearchResults = () => {
         const sectionIds = Object.keys(searchResultsBySectionId);
         if (sectionIds.length === 0) {
@@ -682,7 +1067,6 @@ const WebsiteConfig = () => {
                 </Card>
             );
         }
-
         return sectionIds.map((sectionId) => {
             const cat = CATEGORIES.find((c) => c.id === sectionId);
             const fields = searchResultsBySectionId[sectionId];
@@ -696,8 +1080,7 @@ const WebsiteConfig = () => {
             );
         });
     };
-
-    // ── Loading state ─────────────────────────────────────────────────────────
+    // ── Loading state ─────────────────────────────────────────────────────────────
     if (loading) {
         return (
             <>
@@ -706,17 +1089,14 @@ const WebsiteConfig = () => {
             </>
         );
     }
-
-    // ── Main render ───────────────────────────────────────────────────────────
+    // ── Main render ───────────────────────────────────────────────────────────────
     return (
         <>
             <MetaData title="Website Configuration | Admin" />
-
             {showResetModal && (
                 <ResetModal onConfirm={handleReset} onCancel={() => setShowResetModal(false)} />
             )}
-
-            {/* ── Top Bar ──────────────────────────────────────────────────── */}
+            {/* ── Top Bar ──────────────────────────────────────────────────────────── */}
             <div className="flex flex-col gap-3 mb-6 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                     <h1 className="text-xl font-bold text-gray-900">Website Configuration</h1>
@@ -745,7 +1125,8 @@ const WebsiteConfig = () => {
                     {/* Save */}
                     <button
                         onClick={handleSave}
-                        disabled={saving || activeCategory === 'changelog'}
+                        disabled={saving || activeCategory === 'changelog' || activeCategory === 'homepage'}
+                        title={activeCategory === 'homepage' ? 'Use the Homepage save button' : undefined}
                         className="bg-[#E84B0F] hover:bg-[#C63E0A] disabled:opacity-50 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors"
                     >
                         {saving ? (
@@ -766,8 +1147,7 @@ const WebsiteConfig = () => {
                     </button>
                 </div>
             </div>
-
-            {/* ── Mobile: horizontal category pills ────────────────────────── */}
+            {/* ── Mobile: horizontal category pills ────────────────────────────── */}
             <div className="flex gap-2 overflow-x-auto pb-2 mb-4 lg:hidden">
                 {CATEGORIES.map(({ id, label, Icon }) => (
                     <button
@@ -784,11 +1164,9 @@ const WebsiteConfig = () => {
                     </button>
                 ))}
             </div>
-
-            {/* ── Two-column layout ─────────────────────────────────────────── */}
+            {/* ── Two-column layout ─────────────────────────────────────────────── */}
             <div className="flex gap-5 items-start">
-
-                {/* ── Sidebar (desktop only) ────────────────────────────────── */}
+                {/* ── Sidebar (desktop only) ────────────────────────────────────── */}
                 <aside
                     className="hidden lg:flex flex-col gap-0.5 bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden"
                     style={{ minWidth: 220, width: 220, flexShrink: 0 }}
@@ -819,8 +1197,7 @@ const WebsiteConfig = () => {
                         </button>
                     ))}
                 </aside>
-
-                {/* ── Content area ──────────────────────────────────────────── */}
+                {/* ── Content area ──────────────────────────────────────────────── */}
                 <div className="flex-1 min-w-0">
                     {isSearching ? renderSearchResults() : renderCategoryContent()}
                 </div>
@@ -828,5 +1205,4 @@ const WebsiteConfig = () => {
         </>
     );
 };
-
 export default WebsiteConfig;

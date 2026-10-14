@@ -31,7 +31,7 @@ const More = () => {
             items: [
                 { label: 'Cash on Delivery Orders', desc: 'Regular paid orders', icon: ReceiptLongOutlinedIcon, to: '/admin/orders' },
                 { label: 'Add Product', desc: 'Create a new listing', icon: AddBoxOutlinedIcon, to: '/admin/new_product' },
-                { label: 'Storefront Settings', desc: 'bKash / Nagad · delivery charge · banner', icon: HomeOutlinedIcon, to: '/admin/homepage' },
+                { label: 'Storefront Settings', desc: 'bKash / Nagad · delivery charge · banner', icon: HomeOutlinedIcon, to: '/admin/config' },
                 { label: 'Website Config', desc: 'API keys, SMTP, theme, SEO & more', icon: SettingsOutlinedIcon, to: '/admin/config' },
             ],
         },

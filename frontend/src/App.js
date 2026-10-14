@@ -4,7 +4,7 @@ import Header from './components/Layouts/Header/Header';
 import BottomBar from './components/Layouts/BottomBar';
 import Login from './components/User/Login';
 import Register from './components/User/Register';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { loadUser } from './actions/userAction';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
@@ -36,7 +36,6 @@ import UserTable from './components/Admin/UserTable';
 import UpdateUser from './components/Admin/UpdateUser';
 import ReviewsTable from './components/Admin/ReviewsTable';
 import StoreOrders from './components/Admin/StoreOrders';
-import SiteEditor from './components/Admin/SiteEditor';
 import ChatInbox from './components/Admin/ChatInbox';
 import WebsiteConfig from './components/Admin/WebsiteConfig';
 import More from './components/Admin/More';
@@ -48,18 +47,14 @@ import Policy from './components/Policy';
 import Wishlist from './components/Wishlist/Wishlist';
 import NotFound from './components/NotFound';
 import { SiteConfigProvider } from './context/SiteConfigContext';
-
 function App() {
-
   const dispatch = useDispatch();
   const { pathname } = useLocation();
   // const [stripeApiKey, setStripeApiKey] = useState("");
-
   // async function getStripeApiKey() {
   //   const { data } = await axios.get('/api/v1/stripeapikey');
   //   setStripeApiKey(data.stripeApiKey);
   // }
-
   useEffect(() => {
     WebFont.load({
       google: {
@@ -67,12 +62,10 @@ function App() {
       },
     });
   });
-
   useEffect(() => {
     dispatch(loadUser());
     // getStripeApiKey();
   }, [dispatch]);
-
   // keep page content clear of the fixed header (desktop only; header is
   // hidden on mobile) — measure the real header height instead of guessing
   useEffect(() => {
@@ -90,7 +83,6 @@ function App() {
     window.addEventListener('resize', apply);
     return () => { window.removeEventListener('resize', apply); document.body.style.paddingTop = ''; };
   }, []);
-
   // always scroll to top on route/path change
   useEffect(() => {
     window.scrollTo({
@@ -99,7 +91,6 @@ function App() {
       behavior: "smooth"
     });
   }, [pathname])
-
   // disable right click
   window.addEventListener("contextmenu", (e) => e.preventDefault());
   window.addEventListener("keydown", (e) => {
@@ -107,7 +98,6 @@ function App() {
     if (e.ctrlKey && e.shiftKey && e.keyCode === 73) e.preventDefault();
     if (e.ctrlKey && e.shiftKey && e.keyCode === 74) e.preventDefault();
   });
-  
   return (
     <SiteConfigProvider>
       <Header />
@@ -118,33 +108,26 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/products" element={<Products />} />
         <Route path="/products/:keyword" element={<Products />} />
-
         <Route path="/cart" element={<Cart />} />
-
         {/* guest checkout (no login required) */}
         <Route path="/checkout" element={<Checkout />} />
-
         {/* guest order tracking (phone or order id) + static policy page */}
         <Route path="/track" element={<TrackOrder />} />
         <Route path="/policy" element={<Policy />} />
-
         {/* order process */}
         <Route path="/shipping" element={
           <ProtectedRoute>
             <Shipping />
           </ProtectedRoute>
         } ></Route>
-
         <Route path="/order/confirm" element={
           <ProtectedRoute>
             <OrderConfirm />
           </ProtectedRoute>
         } ></Route>
-
         <Route path="/process/payment" element={
           <ProtectedRoute>
             {/* // stripeApiKey && ( */}
@@ -154,57 +137,46 @@ function App() {
             {/* ) */}
           </ProtectedRoute>
         } ></Route>
-
         <Route path="/orders/success" element={<OrderSuccess success={true} />} />
         <Route path="/orders/failed" element={<OrderSuccess success={false} />} />
         {/* order process */}
-
         <Route path="/order/:id" element={
           <ProtectedRoute>
             <OrderStatus />
           </ProtectedRoute>
         } ></Route>
-
         <Route path="/orders" element={
           <ProtectedRoute>
             <MyOrders />
           </ProtectedRoute>
         }></Route>
-
         <Route path="/order_details/:id" element={
           <ProtectedRoute>
             <OrderDetails />
           </ProtectedRoute>
         }></Route>
-
         <Route path="/account" element={
           <ProtectedRoute>
             <Account />
           </ProtectedRoute>
         } ></Route>
-
         <Route path="/account/update" element={
           <ProtectedRoute>
             <UpdateProfile />
           </ProtectedRoute>
         } ></Route>
-
         <Route path="/password/update" element={
           <ProtectedRoute>
             <UpdatePassword />
           </ProtectedRoute>
         } ></Route>
-
         <Route path="/password/forgot" element={<ForgotPassword />} />
-
         <Route path="/password/reset/:token" element={<ResetPassword />} />
-
         <Route path="/wishlist" element={
           <ProtectedRoute>
             <Wishlist />
           </ProtectedRoute>
         } ></Route>
-
         <Route path="/admin/dashboard" element={
           <ProtectedRoute isAdmin={true}>
             <Dashboard activeTab={0}>
@@ -212,7 +184,6 @@ function App() {
             </Dashboard>
           </ProtectedRoute>
         } ></Route>
-
         <Route path="/admin/orders" element={
           <ProtectedRoute isAdmin={true}>
             <Dashboard activeTab={1}>
@@ -220,7 +191,6 @@ function App() {
             </Dashboard>
           </ProtectedRoute>
         } ></Route>
-
         <Route path="/admin/order/:id" element={
           <ProtectedRoute isAdmin={true}>
             <Dashboard activeTab={1}>
@@ -228,7 +198,6 @@ function App() {
             </Dashboard>
           </ProtectedRoute>
         } ></Route>
-
         <Route path="/admin/products" element={
           <ProtectedRoute isAdmin={true}>
             <Dashboard activeTab={2}>
@@ -236,7 +205,6 @@ function App() {
             </Dashboard>
           </ProtectedRoute>
         } ></Route>
-
         <Route path="/admin/new_product" element={
           <ProtectedRoute isAdmin={true}>
             <Dashboard activeTab={3}>
@@ -244,7 +212,6 @@ function App() {
             </Dashboard>
           </ProtectedRoute>
         } ></Route>
-
         <Route path="/admin/product/:id" element={
           <ProtectedRoute isAdmin={true}>
             <Dashboard activeTab={2}>
@@ -252,7 +219,6 @@ function App() {
             </Dashboard>
           </ProtectedRoute>
         } ></Route>
-
         <Route path="/admin/users" element={
           <ProtectedRoute isAdmin={true}>
             <Dashboard activeTab={4}>
@@ -260,7 +226,6 @@ function App() {
             </Dashboard>
           </ProtectedRoute>
         } ></Route>
-
         <Route path="/admin/user/:id" element={
           <ProtectedRoute isAdmin={true}>
             <Dashboard activeTab={4}>
@@ -268,7 +233,6 @@ function App() {
             </Dashboard>
           </ProtectedRoute>
         } ></Route>
-
         <Route path="/admin/reviews" element={
           <ProtectedRoute isAdmin={true}>
             <Dashboard activeTab={5}>
@@ -276,7 +240,6 @@ function App() {
             </Dashboard>
           </ProtectedRoute>
         } ></Route>
-
         <Route path="/admin/store_orders" element={
           <ProtectedRoute isAdmin={true}>
             <Dashboard activeTab={6}>
@@ -284,15 +247,8 @@ function App() {
             </Dashboard>
           </ProtectedRoute>
         } ></Route>
-
-        <Route path="/admin/homepage" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={7}>
-              <SiteEditor />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
-
+        {/* /admin/homepage redirects to /admin/config where Homepage is now a category */}
+        <Route path="/admin/homepage" element={<Navigate to="/admin/config" replace />} />
         <Route path="/admin/chat" element={
           <ProtectedRoute isAdmin={true}>
             <Dashboard activeTab={8}>
@@ -300,7 +256,7 @@ function App() {
             </Dashboard>
           </ProtectedRoute>
         } ></Route>
-        {/* Website Configuration � admin only */}
+        {/* Website Configuration — admin only */}
         <Route path="/admin/config" element={
           <ProtectedRoute isAdmin={true}>
             <Dashboard activeTab={9}>
@@ -308,8 +264,6 @@ function App() {
             </Dashboard>
           </ProtectedRoute>
         } ></Route>
-
-
         {/* "More" tab of the admin bottom nav */}
         <Route path="/admin/more" element={
           <ProtectedRoute isAdmin={true}>
@@ -318,9 +272,7 @@ function App() {
             </Dashboard>
           </ProtectedRoute>
         } ></Route>
-
         <Route path="*" element={<NotFound />}></Route>
-
       </Routes>
       <Footer />
       {/* floating live chat messenger — hidden on /admin pages internally */}
@@ -328,5 +280,4 @@ function App() {
     </SiteConfigProvider>
   );
 }
-
 export default App;

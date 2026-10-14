@@ -40,7 +40,7 @@ const Sidebar = ({ activeTab, setToggleSidebar }) => {
         { icon: <GroupIcon />,       label: t('users'),        ref: '/admin/users',        id: 'users' },
         { icon: <ReviewsIcon />,     label: t('reviews'),      ref: '/admin/reviews',      id: 'reviews' },
         { icon: <ShoppingBagIcon />, label: t('store_orders'), ref: '/admin/store_orders', id: 'store_orders' },
-        { icon: <HomeIcon />,        label: t('homepage'),     ref: '/admin/homepage',     id: 'homepage' },
+        { icon: <HomeIcon />,        label: t('homepage'),     ref: '/admin/config',     id: 'homepage' },
         { icon: <ChatBubbleIcon />,  label: t('chat_inbox'),   ref: '/admin/chat',         id: 'chat_inbox' },
         { icon: <SettingsIcon />,    label: t('config'),       ref: '/admin/config',       id: 'config' },
         { icon: <AccountBoxIcon />,  label: t('my_profile'),   ref: '/account',            id: 'my_profile' },
