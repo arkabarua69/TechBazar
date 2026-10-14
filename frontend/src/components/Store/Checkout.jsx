@@ -96,7 +96,7 @@ const Checkout = () => {
     if (placedOrder) {
         return (
             <main className="w-full mt-4 md:mt-6 bg-cloud min-h-screen">
-                <MetaData title="Order Placed | TechBazar" />
+                <MetaData title="Order Placed" />
                 <div className="w-11/12 sm:w-10/12 lg:w-6/12 m-auto my-10">
                     <div className="surface rounded-lg p-8 text-center">
                         <div className="mx-auto w-14 h-14 rounded-full bg-primary-accent/10 flex items-center justify-center text-2xl text-primary-accent">✓</div>
@@ -141,11 +141,14 @@ const Checkout = () => {
     if (cartItems.length === 0) {
         return (
             <main className="w-full mt-4 md:mt-6 bg-cloud min-h-screen">
-                <MetaData title="Checkout | TechBazar" />
-                <div className="w-11/12 sm:w-6/12 m-auto my-16 text-center surface rounded-lg p-10">
-                    <h1 className="font-display text-xl font-semibold text-slate-900">Your cart is empty</h1>
-                    <p className="text-slate-500 mt-2 text-sm">Add products to your cart to continue.</p>
-                    <button onClick={() => navigate('/products')} className="btn-accent px-6 py-2.5 rounded-lg text-sm font-semibold mt-5">Browse Products</button>
+                <MetaData title="Checkout" />
+                <div className="w-11/12 sm:w-10/12 lg:w-6/12 m-auto my-10">
+                    <div className="surface rounded-lg p-8 text-center">
+                        <div className="mx-auto w-14 h-14 rounded-full bg-primary-accent/10 flex items-center justify-center text-2xl text-primary-accent">✓</div>
+                        <h1 className="font-display text-2xl font-semibold text-slate-900 mt-4">Your cart is empty</h1>
+                        <p className="text-slate-500 mt-2 text-sm">Add products to your cart to continue.</p>
+                        <button onClick={() => navigate('/products')} className="btn-accent px-6 py-2.5 rounded-lg text-sm font-semibold mt-5">Browse Products</button>
+                    </div>
                 </div>
             </main>
         );
@@ -153,7 +156,7 @@ const Checkout = () => {
 
     return (
         <main className="w-full mt-4 md:mt-6 bg-cloud min-h-screen pb-10">
-            <MetaData title="Checkout | TechBazar" />
+            <MetaData title="Checkout" />
 
             <div className="w-11/12 lg:w-10/12 xl:w-8/12 m-auto mt-4">
                 <h1 className="font-display text-2xl font-semibold text-slate-900">Checkout</h1>

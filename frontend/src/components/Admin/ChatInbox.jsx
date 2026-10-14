@@ -174,7 +174,7 @@ const ChatInbox = () => {
 
     return (
         <>
-            <MetaData title="Chat Inbox | TechBazar" />
+            <MetaData title="Chat Inbox" />
 
             <div className="flex items-center justify-between gap-3 flex-wrap">
                 <h1 className="text-lg sm:text-xl font-extrabold text-gray-900">Chat Inbox</h1>

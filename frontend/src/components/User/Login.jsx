@@ -31,7 +31,7 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const brandName = config.branding?.name || 'TechBazar';
+    const brandName = config.branding?.name || 'Store';
 
     const handleLogin = (e) => {
         e.preventDefault();

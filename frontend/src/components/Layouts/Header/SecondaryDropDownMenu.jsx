@@ -3,8 +3,11 @@ import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import LiveHelpIcon from '@mui/icons-material/LiveHelp';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import DownloadIcon from '@mui/icons-material/Download';
+import { useSiteConfig } from '../../../context/SiteConfigContext';
 
 const SecondaryDropDownMenu = () => {
+    const { config } = useSiteConfig();
+    const siteName = config?.branding?.name || 'Store';
 
     const navs = [
         {
@@ -13,7 +16,7 @@ const SecondaryDropDownMenu = () => {
             redirect: "/policy",
         },
         {
-            title: "Sell on TechBazar",
+            title: `Sell on ${siteName}`,
             icon: <BusinessCenterIcon sx={{ fontSize: "18px" }} />,
             redirect: "/policy",
         },

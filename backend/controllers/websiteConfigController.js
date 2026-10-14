@@ -1,6 +1,7 @@
 const WebsiteConfig = require('../models/websiteConfigModel');
 const ErrorHandler = require('../utils/errorHandler');
 const asyncErrorHandler = require('../middlewares/asyncErrorHandler');
+const { uploadToImgBB } = require('../utils/imgbb');
 
 // Get current website configuration (admin only)
 const getWebsiteConfig = asyncErrorHandler(async (req, res, next) => {
@@ -14,7 +15,7 @@ const getWebsiteConfig = asyncErrorHandler(async (req, res, next) => {
         const masked = { ...section };
         const encryptedFields = ['smtpPassword', 'sendgridApiKey', 'stripeSecretKey', 
                                'stripeWebhookSecret', 'paytmMerchantKey', 'cloudinaryApiKey',
-                               'cloudinaryApiSecret', 'businessKoroApiKey', 'otherApiKey1', 'otherApiKey2'];
+                               'cloudinaryApiSecret', 'otherApiKey1', 'otherApiKey2'];
         
         encryptedFields.forEach(field => {
             if (masked[field]) {
@@ -29,6 +30,14 @@ const getWebsiteConfig = asyncErrorHandler(async (req, res, next) => {
     if (configObj.payment) configObj.payment = maskSensitiveFields(configObj.payment);
     if (configObj.cloud) configObj.cloud = maskSensitiveFields(configObj.cloud);
     if (configObj.apiKeys) configObj.apiKeys = maskSensitiveFields(configObj.apiKeys);
+
+    // Mask ImgBB API key — never expose to frontend
+    if (configObj.imgbb && configObj.imgbb.apiKey) {
+        configObj.imgbb = {
+            ...configObj.imgbb,
+            apiKey: '••••••••••••••••••••',
+        };
+    }
     
     res.status(200).json({
         success: true,
@@ -51,7 +60,7 @@ const updateWebsiteConfig = asyncErrorHandler(async (req, res, next) => {
     // Only allow updates to known sections
     const allowedSections = [
         'general', 'branding', 'seo', 'email', 'payment', 'cloud',
-        'social', 'shipping', 'security', 'cache', 'apiKeys', 'features'
+        'social', 'shipping', 'security', 'cache', 'apiKeys', 'features', 'imgbb'
     ];
     
     for (const section of allowedSections) {
@@ -255,4 +264,74 @@ module.exports = {
     getPublicConfig,
     exportConfig,
     importConfig
+};
+
+// ─── ImgBB — Test API key ─────────────────────────────────────────────────────
+// POST /api/v1/admin/imgbb/test
+// Body: { apiKey: "..." } — if omitted, uses the stored/env key
+const testImgbbKey = asyncErrorHandler(async (req, res, next) => {
+    const { apiKey } = req.body;
+
+    // 1×1 transparent GIF — minimal payload to validate the key without wasting quota
+    const TINY_GIF_BASE64 =
+        'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+    try {
+        const data = await uploadToImgBB(TINY_GIF_BASE64, 'kiro-test', 60, apiKey || null);
+        res.status(200).json({
+            success: true,
+            message: 'ImgBB API key is valid',
+            sampleUrl: data.url,
+        });
+    } catch (err) {
+        return next(new ErrorHandler(`ImgBB key test failed: ${err.message}`, 400));
+    }
+});
+
+// ─── ImgBB — Generic image upload endpoint ───────────────────────────────────
+// POST /api/v1/admin/imgbb/upload
+// Body: { image: "<base64 or data URI>", name?: "...", expiration?: 600 }
+// Returns: { url, display_url, thumb_url, delete_url, id, width, height, size }
+const uploadImage = asyncErrorHandler(async (req, res, next) => {
+    const { image, name = '', expiration = null } = req.body;
+
+    if (!image) {
+        return next(new ErrorHandler('image field is required', 400));
+    }
+
+    // Validate size before uploading (base64 expands ~33% vs binary)
+    const approxBytes = Buffer.byteLength(image.replace(/^data:[^;]+;base64,/, ''), 'base64');
+    const MAX_BYTES = 32 * 1024 * 1024; // 32 MB ImgBB limit
+    if (approxBytes > MAX_BYTES) {
+        return next(new ErrorHandler('Image exceeds 32 MB limit', 400));
+    }
+
+    try {
+        const data = await uploadToImgBB(image, name, expiration);
+        res.status(200).json({
+            success: true,
+            id: data.id,
+            url: data.url,
+            display_url: data.display_url,
+            thumb_url: data.thumb?.url || '',
+            delete_url: data.delete_url || '',
+            width: data.width,
+            height: data.height,
+            size: data.size,
+        });
+    } catch (err) {
+        return next(new ErrorHandler(err.message, 500));
+    }
+});
+
+module.exports = {
+    getWebsiteConfig,
+    updateWebsiteConfig,
+    resetWebsiteConfig,
+    getConfigChangeLog,
+    getPublicConfig,
+    exportConfig,
+    importConfig,
+    testImgbbKey,
+    uploadImage,
 };

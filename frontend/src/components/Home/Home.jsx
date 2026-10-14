@@ -63,7 +63,7 @@ const Home = () => {
     }, [dispatch, error, enqueueSnackbar]);
 
     const productList = products || [];
-    const brandName = siteConfig.branding?.name || 'TechBazar';
+    const brandName = siteConfig.branding?.name || 'Store';
 
     return (
         <>

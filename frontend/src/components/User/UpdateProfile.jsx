@@ -71,7 +71,7 @@ const UpdateProfile = () => {
 
     return (
         <>
-            <MetaData title="Update Profile | TechBazar" />
+            <MetaData title="Update Profile" />
 
             {loading && <BackdropLoader />}
             <main className="w-full mt-4 sm:pt-6 sm:mt-0">

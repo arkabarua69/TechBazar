@@ -28,7 +28,7 @@ const OrderSuccess = ({ success }) => {
 
     return (
         <>
-            <MetaData title={`Payment ${success ? "Success" : "Failed"} | TechBazar`} />
+            <MetaData title={`Payment ${success ? "Success" : "Failed"}`} />
 
             <main className="w-full sm:w-11/12 mx-auto flex flex-col gap-4 px-3 sm:px-4 pb-10 mt-3 sm:mt-6">
 

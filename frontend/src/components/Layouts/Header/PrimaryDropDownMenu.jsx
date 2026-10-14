@@ -14,12 +14,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 import { logoutUser } from '../../../actions/userAction';
+import { useSiteConfig } from '../../../context/SiteConfigContext';
 
 const PrimaryDropDownMenu = ({ setTogglePrimaryDropDown, user }) => {
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { enqueueSnackbar } = useSnackbar();
+    const { config } = useSiteConfig();
+    const siteName = config?.branding?.name || 'Store';
 
     const { wishlistItems } = useSelector((state) => state.wishlist);
 
@@ -37,7 +40,7 @@ const PrimaryDropDownMenu = ({ setTogglePrimaryDropDown, user }) => {
             redirect: "/",
         },
         {
-            title: "TechBazar Plus Zone",
+            title: `${siteName} Plus Zone`,
             icon: <AddCircleIcon sx={{ fontSize: "18px" }} />,
             redirect: "/",
         },

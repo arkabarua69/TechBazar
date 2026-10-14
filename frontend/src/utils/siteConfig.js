@@ -4,9 +4,9 @@
 export const DEFAULT_SITE_CONFIG = {
     announcement: {
         desktop: [
-            '🚚 Cash on delivery nationwide',
-            '🛡️ 7-day replacement guarantee',
-            '📞 Hotline: 017XXXXXXXX',
+            'Cash on delivery nationwide',
+            '7-day replacement guarantee',
+            'Hotline: 017XXXXXXXX',
         ],
         mobile: 'Cash on delivery nationwide | Delivery charge payable in advance',
     },
@@ -31,10 +31,10 @@ export const DEFAULT_SITE_CONFIG = {
         },
     },
     trustBadges: [
-        { icon: '💵', title: 'Cash on Delivery', description: 'Pay once the product is in your hands' },
-        { icon: '⚡', title: 'Fast Delivery', description: '24 hours in Dhaka, 48–72 hours outside Dhaka' },
-        { icon: '✅', title: 'Genuine Products', description: '100% original, quality assured' },
-        { icon: '🎧', title: '24/7 Support', description: 'Call our hotline for any issue' },
+        { icon: 'AttachMoney',   title: 'Cash on Delivery', description: 'Pay once the product is in your hands' },
+        { icon: 'FlashOn',       title: 'Fast Delivery', description: '24 hours in Dhaka, 48–72 hours outside Dhaka' },
+        { icon: 'Verified',      title: 'Genuine Products', description: '100% original, quality assured' },
+        { icon: 'HeadsetMic',    title: '24/7 Support', description: 'Call our hotline for any issue' },
     ],
     flashSale: {
         enabled: true,
@@ -64,9 +64,9 @@ export const DEFAULT_SITE_CONFIG = {
         'Home',
     ],
     howToOrder: [
-        { icon: '🛒', title: 'Choose Your Product', description: "Click the 'Order Now' button." },
-        { icon: '📲', title: 'Pay the Delivery Charge', description: 'Tk 70 inside Dhaka, Tk 130 outside — send via bKash or Nagad.' },
-        { icon: '📦', title: 'Receive Your Product', description: 'Pay the remaining amount to the courier on delivery.' },
+        { icon: 'ShoppingCart', title: 'Choose Your Product', description: "Click the 'Order Now' button." },
+        { icon: 'Payments',     title: 'Pay the Delivery Charge', description: 'Tk 70 inside Dhaka, Tk 130 outside — send via bKash or Nagad.' },
+        { icon: 'Inventory2',   title: 'Receive Your Product', description: 'Pay the remaining amount to the courier on delivery.' },
     ],
     reviews: [
         { name: 'Rakib Hasan', district: 'Dhaka', rating: 5, comment: 'Received my order right on time and the quality is great. Cash on delivery made it feel trustworthy.' },
@@ -74,13 +74,13 @@ export const DEFAULT_SITE_CONFIG = {
         { name: 'Tanvir Ahmed', district: 'Sylhet', rating: 4, comment: 'The price is lower than other places and the product is original. Will order again, God willing.' },
     ],
     branding: {
-        name: 'TechBazar',
-        tagline: 'The best tech gadgets at affordable prices',
+        name: 'My Store',
+        tagline: 'The best products at affordable prices',
         logoUrl: '',
     },
     seo: {
-        titleTemplate: '%s | TechBazar',
-        description: 'TechBazar — smartwatches, earbuds & the latest tech gadgets. Affordable prices with cash on delivery nationwide.',
+        titleTemplate: '%s | My Store',
+        description: 'My Store — shop the latest products at affordable prices with cash on delivery nationwide.',
     },
     navigation: {
         tabs: [
@@ -127,9 +127,9 @@ export const DEFAULT_SITE_CONFIG = {
         ],
         faqs: [
             { q: 'What happens when I update my email address (or mobile number)?', a: "Your login email id (or mobile number) changes, likewise. You'll receive all your account related communication on your updated email address (or mobile number)." },
-            { q: 'When will my TechBazar account be updated with the new email address (or mobile number)?', a: 'It happens as soon as you confirm the verification code sent to your email (or mobile) and save the changes.' },
-            { q: 'What happens to my existing TechBazar account when I update my email address (or mobile number)?', a: "Updating your email address (or mobile number) doesn't invalidate your account. Your account remains fully functional. You'll continue seeing your Order history, saved information and personal details." },
-            { q: 'Does my Seller account get affected when I update my email address?', a: "TechBazar has a 'single sign-on' policy. Any changes will reflect in your Seller account also." },
+            { q: 'When will my account be updated with the new email address (or mobile number)?', a: 'It happens as soon as you confirm the verification code sent to your email (or mobile) and save the changes.' },
+            { q: 'What happens to my existing account when I update my email address (or mobile number)?', a: "Updating your email address (or mobile number) doesn't invalidate your account. Your account remains fully functional. You'll continue seeing your Order history, saved information and personal details." },
+            { q: 'Does my Seller account get affected when I update my email address?', a: "We have a 'single sign-on' policy. Any changes will reflect in your Seller account also." },
         ],
         footer: {
             columns: [
@@ -139,9 +139,9 @@ export const DEFAULT_SITE_CONFIG = {
                         { name: 'Contact Us', redirect: '/track', internal: true },
                         { name: 'About Us', redirect: '/policy', internal: true },
                         { name: 'Careers', redirect: '/policy', internal: true },
-                        { name: 'TechBazar Stories', redirect: '/policy', internal: true },
+                        { name: 'Our Stories', redirect: '/policy', internal: true },
                         { name: 'Press', redirect: '/policy', internal: true },
-                        { name: 'TechBazar Wholesale', redirect: '/policy', internal: true },
+                        { name: 'Wholesale', redirect: '/policy', internal: true },
                         { name: 'Corporate Information', redirect: '/policy', internal: true },
                     ],
                 },
@@ -175,19 +175,19 @@ export const DEFAULT_SITE_CONFIG = {
                 },
             ],
             company: {
-                name: 'TechBazar Internet Private Limited',
-                mailUs: 'Buildings Alyssa, Begonia &\nClove Embassy Tech Village,\nOuter Ring Road, Devarabeesanahalli Village,\nBengaluru, 560103,\nKarnataka, India',
-                registered: 'Buildings Alyssa, Begonia &\nClove Embassy Tech Village,\nOuter Ring Road, Devarabeesanahalli Village,\nBengaluru, 560103,\nKarnataka, India',
-                cin: 'U51109KA2012PTC066107',
-                telephone: '18002029898',
+                name: 'My Store Private Limited',
+                mailUs: '',
+                registered: '',
+                cin: '',
+                telephone: '',
             },
             shortcuts: [
-                { label: 'Sell On TechBazar', href: '/policy', icon: 'Work' },
+                { label: 'Sell On Our Store', href: '/policy', icon: 'Work' },
                 { label: 'Advertise', href: '/policy', icon: 'Stars' },
                 { label: 'Gift Cards', href: '/policy', icon: 'CardGiftcard' },
                 { label: 'Help Center', href: '/track', icon: 'Help' },
             ],
-            copyright: 'TechBazar.com',
+            copyright: 'MyStore.com',
             since: 2007,
         },
     },

@@ -8,7 +8,14 @@ import { useTranslation } from '../../i18n/LanguageContext';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import SaveIcon from '@mui/icons-material/Save';
+import CampaignIcon from '@mui/icons-material/Campaign';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import SettingsIcon from '@mui/icons-material/Settings';
+import PaletteIcon from '@mui/icons-material/Palette';
+import BrushIcon from '@mui/icons-material/Brush';
 import ThemeEditor from './ThemeEditor';
+import ImgBBUploader from './ImgBBUploader';
 import { useSiteConfig } from '../../context/SiteConfigContext';
 
 const clone = (obj) => JSON.parse(JSON.stringify(obj));
@@ -47,12 +54,12 @@ const SiteEditor = () => {
     // `labelKey`/`titleKey` resolve through the i18n catalog so they switch
     // between English and Bengali when the language toggle is used.
     const NAV_ITEMS = useMemo(() => [
-        { id: 'announcement', labelKey: 'announcement', icon: '📢', titleKey: 'announcement_editor' },
-        { id: 'hero', labelKey: 'hero_editor', icon: '🦸', titleKey: 'hero_editor' },
-        { id: 'trustBadges', labelKey: 'trust_badges', icon: '✅', titleKey: 'trust_badges' },
-        { id: 'settings', labelKey: 'settings', icon: '⚙️', titleKey: 'settings_editor' },
-        { id: 'branding', labelKey: 'branding', icon: '🎨', titleKey: 'branding_editor' },
-        { id: 'theme', labelKey: 'theme', icon: '🖌️', titleKey: 'theme_editor' },
+        { id: 'announcement', labelKey: 'announcement',  icon: CampaignIcon,     titleKey: 'announcement_editor' },
+        { id: 'hero',         labelKey: 'hero_editor',   icon: AutoAwesomeIcon,  titleKey: 'hero_editor' },
+        { id: 'trustBadges',  labelKey: 'trust_badges',  icon: VerifiedIcon,     titleKey: 'trust_badges' },
+        { id: 'settings',     labelKey: 'settings',      icon: SettingsIcon,     titleKey: 'settings_editor' },
+        { id: 'branding',     labelKey: 'branding',      icon: PaletteIcon,      titleKey: 'branding_editor' },
+        { id: 'theme',        labelKey: 'theme',          icon: BrushIcon,        titleKey: 'theme_editor' },
     ], []);
 
     const [config, setConfig] = useState(clone(DEFAULT_SITE_CONFIG));
@@ -252,7 +259,12 @@ const SiteEditor = () => {
                                 <Field label={t('label_subtitle')} textarea value={h.subtitle} onChange={(v) => setSection('hero', 'subtitle', v)} />
                             </div>
                             <div className="sm:col-span-2">
-                                <Field label={t('label_image')} value={h.image} onChange={(v) => setSection('hero', 'image', v)} />
+                                <ImgBBUploader
+                                    label={t('label_image')}
+                                    currentUrl={h.image ?? ''}
+                                    onUploaded={(url) => setSection('hero', 'image', url)}
+                                    previewClass="max-h-36 max-w-full object-cover rounded-lg w-full"
+                                />
                             </div>
                             <Field label={t('label_button_label')} value={h.buttonLabel} onChange={(v) => setSection('hero', 'buttonLabel', v)} />
                             <Field label={t('label_button_link')} value={h.buttonLink} onChange={(v) => setSection('hero', 'buttonLink', v)} />
@@ -266,7 +278,12 @@ const SiteEditor = () => {
                                     </p>
                                     <Field label={t('label_title')} value={h[group]?.title} onChange={(v) => setNested('hero', group, 'title', v)} />
                                     <Field label={t('label_subtitle')} value={h[group]?.subtitle} onChange={(v) => setNested('hero', group, 'subtitle', v)} />
-                                    <Field label={t('label_image')} value={h[group]?.image} onChange={(v) => setNested('hero', group, 'image', v)} />
+                                    <ImgBBUploader
+                                        label={t('label_image')}
+                                        currentUrl={h[group]?.image ?? ''}
+                                        onUploaded={(url) => setNested('hero', group, 'image', url)}
+                                        previewClass="max-h-24 max-w-full object-cover rounded-lg w-full"
+                                    />
                                     <Field label={t('label_button_link')} value={h[group]?.link} onChange={(v) => setNested('hero', group, 'link', v)} />
                                 </div>
                             ))}
@@ -291,7 +308,7 @@ const SiteEditor = () => {
                                 </div>
                             ))}
                         </div>
-                        <button onClick={() => addArrayItem('trustBadges', { icon: '✨', title: t('new_feature'), description: t('write_desc') })}
+                        <button onClick={() => addArrayItem('trustBadges', { icon: 'Star', title: t('new_feature'), description: t('write_desc') })}
                             className="text-sm self-start border border-dashed border-gray-400 rounded px-3 py-1.5 hover:bg-gray-50">{t('btn_add')} {t('trust_badges')}</button>
                     </div>
                 );
@@ -332,7 +349,7 @@ const SiteEditor = () => {
                                     </div>
                                 ))}
                             </div>
-                            <button onClick={() => addArrayItem('howToOrder', { icon: '📦', title: t('new_step'), description: t('write_desc') })}
+                            <button onClick={() => addArrayItem('howToOrder', { icon: 'Inventory2', title: t('new_step'), description: t('write_desc') })}
                                 className="text-sm self-start border border-dashed border-gray-400 rounded px-3 py-1.5 hover:bg-gray-50">{t('btn_add')} {t('new_step')}</button>
                         </div>
 
@@ -430,7 +447,12 @@ const SiteEditor = () => {
                                 <Field label={t('site_name')} value={b.name} onChange={(v) => setSection('branding', 'name', v)} />
                                 <Field label={t('tagline')} value={b.tagline} onChange={(v) => setSection('branding', 'tagline', v)} />
                                 <div className="sm:col-span-2">
-                                    <Field label={t('logo_url')} value={b.logoUrl} onChange={(v) => setSection('branding', 'logoUrl', v)} placeholder="https://…" />
+                                    <ImgBBUploader
+                                        label={t('logo_url')}
+                                        currentUrl={b.logoUrl ?? ''}
+                                        onUploaded={(url) => setSection('branding', 'logoUrl', url)}
+                                        previewClass="max-h-12 max-w-full object-contain"
+                                    />
                                 </div>
                             </div>
                             <p className="text-xs text-gray-500">{t('logo_hint')}</p>
@@ -571,7 +593,7 @@ const SiteEditor = () => {
 
     return (
         <>
-            <MetaData title="Homepage Editor | TechBazar" />
+            <MetaData title="Homepage Editor" />
             {(loading || saving) && <BackdropLoader />}
 
             {/* ===== header: hamburger/close + title + save ===== */}
@@ -640,7 +662,9 @@ const SiteEditor = () => {
                                             : 'text-gray-700 hover:bg-gray-100'
                                     }`}
                                 >
-                                    <span className="text-xl">{item.icon}</span>
+                                    <span className="flex items-center justify-center w-5 h-5 shrink-0">
+                                        {item.icon && <item.icon sx={{ fontSize: '18px' }} />}
+                                    </span>
                                     <span className="font-medium">{t(item.labelKey)}</span>
                                 </button>
                             ))}

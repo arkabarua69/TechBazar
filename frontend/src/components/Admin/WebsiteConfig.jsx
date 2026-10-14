@@ -3,6 +3,8 @@ import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import MetaData from '../Layouts/MetaData';
 import ThemeEditor from './ThemeEditor';
+import ImgBBSettings from './ImgBBSettings';
+import ImgBBUploader from './ImgBBUploader';
 import { DEFAULT_SITE_CONFIG } from '../../utils/siteConfig';
 import { useSiteConfig } from '../../context/SiteConfigContext';
 import {
@@ -31,6 +33,7 @@ import {
     Database,
     Trash2,
     RefreshCw,
+    Image,
 } from 'lucide-react';
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MASK_STRING = '••••••••••••••••••••';
@@ -41,11 +44,12 @@ const CATEGORIES = [
     { id: 'email',     label: 'Email / SMTP',   Icon: Mail,        count: 8  },
     { id: 'payment',   label: 'Payment',        Icon: CreditCard,  count: 8  },
     { id: 'cloud',     label: 'Cloud Storage',  Icon: Cloud,       count: 4  },
+    { id: 'imgbb',     label: 'ImgBB Settings', Icon: Image,       count: null },
     { id: 'social',    label: 'Social Media',   Icon: Share2,      count: 6  },
     { id: 'shipping',  label: 'Shipping',       Icon: Truck,       count: 5  },
     { id: 'security',  label: 'Security',       Icon: Shield,      count: 6  },
     { id: 'cache',     label: 'Cache',          Icon: Zap,         count: 4  },
-    { id: 'apiKeys',   label: 'API Keys',       Icon: Key,         count: 5  },
+    { id: 'apiKeys',   label: 'API Keys',       Icon: Key,         count: 2  },
     { id: 'features',  label: 'Features',       Icon: Sliders,     count: 7  },
     { id: 'database',  label: 'Database',       Icon: Database,    count: null },
     { id: 'homepage',  label: 'Homepage',       Icon: Layout,      count: null },
@@ -60,7 +64,6 @@ const SECRET_FIELDS = new Set([
     'payment.paytmMerchantKey',
     'cloud.cloudinaryApiKey',
     'cloud.cloudinaryApiSecret',
-    'apiKeys.businessKoroApiKey',
     'apiKeys.otherApiKey1',
     'apiKeys.otherApiKey2',
 ]);
@@ -260,6 +263,7 @@ const buildFieldIndex = (config, handlers) => {
     };
     // general
     add('general', 'siteName', 'Site Name', <TextField key="siteName" label="Site Name" value={config.general?.siteName} onChange={(v) => set('general', 'siteName', v)} />);
+    add('general', 'tagline', 'Tagline', <TextField key="tagline" label="Tagline" value={config.general?.tagline} onChange={(v) => set('general', 'tagline', v)} placeholder="e.g. Best prices, fast delivery" />);
     add('general', 'siteTitle', 'Site Title', <TextField key="siteTitle" label="Site Title" value={config.general?.siteTitle} onChange={(v) => set('general', 'siteTitle', v)} />);
     add('general', 'siteDescription', 'Site Description', <TextareaField key="siteDescription" label="Site Description" value={config.general?.siteDescription} onChange={(v) => set('general', 'siteDescription', v)} />);
     add('general', 'siteUrl', 'Site URL', <TextField key="siteUrl" label="Site URL" value={config.general?.siteUrl} onChange={(v) => set('general', 'siteUrl', v)} />);
@@ -334,9 +338,6 @@ const buildFieldIndex = (config, handlers) => {
     add('cache', 'redisEnabled', 'Enable Redis', <ToggleField key="redisEnabled" label="Enable Redis" description="Use Redis for distributed caching" value={config.cache?.redisEnabled} onChange={(v) => set('cache', 'redisEnabled', v)} />);
     add('cache', 'redisUrl', 'Redis URL', <TextField key="redisUrl" label="Redis URL" value={config.cache?.redisUrl} onChange={(v) => set('cache', 'redisUrl', v)} placeholder="redis://localhost:6379" />);
     // apiKeys
-    add('apiKeys', 'businessKoroApiKey', 'Business Koro API Key', <SecretField key="businessKoroApiKey" label="Business Koro API Key" section="apiKeys" field="businessKoroApiKey" value={config.apiKeys?.businessKoroApiKey} onSecretChange={onSecretChange} />);
-    add('apiKeys', 'businessKoroBaseUrl', 'Business Koro Base URL', <TextField key="businessKoroBaseUrl" label="Business Koro Base URL" value={config.apiKeys?.businessKoroBaseUrl} onChange={(v) => set('apiKeys', 'businessKoroBaseUrl', v)} />);
-    add('apiKeys', 'businessKoroDomain', 'Business Koro Domain', <TextField key="businessKoroDomain" label="Business Koro Domain" value={config.apiKeys?.businessKoroDomain} onChange={(v) => set('apiKeys', 'businessKoroDomain', v)} />);
     add('apiKeys', 'otherApiKey1', 'Custom API Key 1', <SecretField key="otherApiKey1" label="Custom API Key 1" section="apiKeys" field="otherApiKey1" value={config.apiKeys?.otherApiKey1} onSecretChange={onSecretChange} />);
     add('apiKeys', 'otherApiKey2', 'Custom API Key 2', <SecretField key="otherApiKey2" label="Custom API Key 2" section="apiKeys" field="otherApiKey2" value={config.apiKeys?.otherApiKey2} onSecretChange={onSecretChange} />);
     // features
@@ -523,6 +524,15 @@ const BrandingPanel = () => {
     const setBrand = (field, value) =>
         setBrandConfig((prev) => ({ ...prev, branding: { ...prev.branding, [field]: value } }));
 
+    // ── Auto-save a single branding field immediately to DB ───────────────────
+    const autoSaveBrandField = async (field, url) => {
+        await axios.put('/api/v1/admin/websiteconfig', {
+            config: { branding: { ...((brandConfig?.branding) || {}), [field]: url } }
+        });
+        // Also update local state so the next full save includes it
+        setBrand(field, url);
+    };
+
     // ── Save branding fields ───────────────────────────────────────────────────
     const saveBranding = async () => {
         if (!brandConfig) return;
@@ -584,30 +594,23 @@ const BrandingPanel = () => {
                 </div>
                 <div className="flex flex-col gap-4">
                     <div className="grid sm:grid-cols-2 gap-4">
-                        {/* Logo */}
-                        <div>
-                            <label className={labelCls}>Logo URL</label>
-                            <input type="text" value={b.logoUrl ?? ''} onChange={(e) => setBrand('logoUrl', e.target.value)}
-                                placeholder="https://example.com/logo.png"
-                                className={inputCls} />
-                            {b.logoUrl && (
-                                <div className="mt-2 p-2 border border-gray-100 rounded-xl bg-gray-50 flex items-center justify-center" style={{ minHeight: 60 }}>
-                                    <img src={b.logoUrl} alt="Logo preview" className="max-h-12 max-w-full object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-                                </div>
-                            )}
-                        </div>
-                        {/* Favicon */}
-                        <div>
-                            <label className={labelCls}>Favicon URL</label>
-                            <input type="text" value={b.faviconUrl ?? ''} onChange={(e) => setBrand('faviconUrl', e.target.value)}
-                                placeholder="https://example.com/favicon.ico"
-                                className={inputCls} />
-                            {b.faviconUrl && (
-                                <div className="mt-2 p-2 border border-gray-100 rounded-xl bg-gray-50 flex items-center justify-center" style={{ minHeight: 60 }}>
-                                    <img src={b.faviconUrl} alt="Favicon preview" className="max-h-8 max-w-full object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-                                </div>
-                            )}
-                        </div>
+                        {/* Logo — upload via ImgBB or paste URL */}
+                        <ImgBBUploader
+                            label="Logo"
+                            currentUrl={b.logoUrl ?? ''}
+                            onUploaded={(url) => setBrand('logoUrl', url)}
+                            onAutoSave={(url) => autoSaveBrandField('logoUrl', url)}
+                            previewClass="max-h-12 max-w-full object-contain"
+                        />
+                        {/* Favicon — upload via ImgBB or paste URL */}
+                        <ImgBBUploader
+                            label="Favicon"
+                            currentUrl={b.faviconUrl ?? ''}
+                            onUploaded={(url) => setBrand('faviconUrl', url)}
+                            onAutoSave={(url) => autoSaveBrandField('faviconUrl', url)}
+                            accept="image/*,.ico"
+                            previewClass="max-h-8 max-w-full object-contain"
+                        />
                     </div>
 
                     {/* Quick color fields */}
@@ -992,6 +995,24 @@ const HomepagePanel = () => {
             [section]: { ...prev[section], [group]: { ...prev[section]?.[group], [key]: value } },
         }));
 
+    // ── Auto-save a single image URL to siteconfig immediately ───────────────
+    // Merges just the changed field so other settings are not overwritten
+    const autoSaveHpImage = async (section, key, url) => {
+        setHpSection(section, key, url);
+        await axios.put('/api/v1/admin/siteconfig',
+            { [section]: { [key]: url } },
+            { headers: { 'Content-Type': 'application/json', Accept: 'application/json' } }
+        );
+    };
+
+    const autoSaveHpNested = async (section, group, key, url) => {
+        setHpNested(section, group, key, url);
+        await axios.put('/api/v1/admin/siteconfig',
+            { [section]: { [group]: { [key]: url } } },
+            { headers: { 'Content-Type': 'application/json', Accept: 'application/json' } }
+        );
+    };
+
     const setHpArrayItem = (arrayKey, index, field, value) =>
         setHpConfig((prev) => {
             const arr = JSON.parse(JSON.stringify(prev[arrayKey] || []));
@@ -1070,7 +1091,7 @@ const HomepagePanel = () => {
             {/* Save bar */}
             <div className="flex items-center justify-between gap-3 bg-white border border-gray-200 rounded-2xl shadow-sm px-5 py-3">
                 <div>
-                    <p className="text-sm font-semibold text-gray-800">Homepage &amp; Storefront Settings</p>
+                    <p className="text-sm font-semibold text-gray-800">Homepage Settings</p>
                     <p className="text-xs text-gray-400 mt-0.5">Changes apply to the landing page when you save.</p>
                 </div>
                 <div className="flex gap-2">
@@ -1120,7 +1141,13 @@ const HomepagePanel = () => {
                         <HomepageField label="Subtitle" textarea value={h.subtitle} onChange={(v) => setHpSection('hero', 'subtitle', v)} />
                     </div>
                     <div className="sm:col-span-2">
-                        <HomepageField label="Hero image URL" value={h.image} onChange={(v) => setHpSection('hero', 'image', v)} />
+                        <ImgBBUploader
+                            label="Hero Image"
+                            currentUrl={h.image ?? ''}
+                            onUploaded={(url) => setHpSection('hero', 'image', url)}
+                            onAutoSave={(url) => autoSaveHpImage('hero', 'image', url)}
+                            previewClass="max-h-40 max-w-full object-cover rounded-lg w-full"
+                        />
                     </div>
                     <HomepageField label="Button label" value={h.buttonLabel} onChange={(v) => setHpSection('hero', 'buttonLabel', v)} />
                     <HomepageField label="Button link" value={h.buttonLink} onChange={(v) => setHpSection('hero', 'buttonLink', v)} />
@@ -1131,7 +1158,13 @@ const HomepagePanel = () => {
                             <p className="text-xs font-semibold text-gray-500 uppercase">{gi === 0 ? 'Top Card' : 'Bottom Card'}</p>
                             <HomepageField label="Title" value={h[group]?.title} onChange={(v) => setHpNested('hero', group, 'title', v)} />
                             <HomepageField label="Subtitle" value={h[group]?.subtitle} onChange={(v) => setHpNested('hero', group, 'subtitle', v)} />
-                            <HomepageField label="Image URL" value={h[group]?.image} onChange={(v) => setHpNested('hero', group, 'image', v)} />
+                            <ImgBBUploader
+                                label="Card Image"
+                                currentUrl={h[group]?.image ?? ''}
+                                onUploaded={(url) => setHpNested('hero', group, 'image', url)}
+                                onAutoSave={(url) => autoSaveHpNested('hero', group, 'image', url)}
+                                previewClass="max-h-28 max-w-full object-cover rounded-lg w-full"
+                            />
                             <HomepageField label="Link" value={h[group]?.link} onChange={(v) => setHpNested('hero', group, 'link', v)} />
                         </div>
                     ))}
@@ -1265,18 +1298,6 @@ const HomepagePanel = () => {
                 </div>
             </Card>
 
-            {/* Branding */}
-            <Card>
-                <SectionHeading>Branding</SectionHeading>
-                <div className="grid sm:grid-cols-2 gap-3">
-                    <HomepageField label="Site Name" value={b.name} onChange={(v) => setHpSection('branding', 'name', v)} />
-                    <HomepageField label="Tagline" value={b.tagline} onChange={(v) => setHpSection('branding', 'tagline', v)} />
-                    <div className="sm:col-span-2">
-                        <HomepageField label="Logo URL" value={b.logoUrl} onChange={(v) => setHpSection('branding', 'logoUrl', v)} placeholder="https://..." />
-                    </div>
-                </div>
-            </Card>
-
             {/* SEO */}
             <Card>
                 <SectionHeading>SEO</SectionHeading>
@@ -1382,6 +1403,7 @@ const HomepagePanel = () => {
 // ─── Main Component ────────────────────────────────────────────────────────────
 const WebsiteConfig = () => {
     const { enqueueSnackbar } = useSnackbar();
+    const { reloadConfig } = useSiteConfig();
     const [config, setConfig] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -1458,6 +1480,25 @@ const WebsiteConfig = () => {
                 }
             });
             await axios.put('/api/v1/admin/websiteconfig', { config: payload });
+
+            // ── Sync site name & tagline to siteconfig so the whole UI updates instantly ──
+            // General > siteName is the source of truth for the brand name shown
+            // in the header, footer, page titles, login page, etc. Those all read
+            // from GET /api/v1/siteconfig (branding.name), so we mirror the value.
+            if (activeCategory === 'general' && payload.general?.siteName) {
+                try {
+                    await axios.put('/api/v1/admin/siteconfig', {
+                        branding: {
+                            name: payload.general.siteName,
+                            ...(payload.general.tagline !== undefined && { tagline: payload.general.tagline }),
+                        },
+                    }, { headers: { 'Content-Type': 'application/json', Accept: 'application/json' } });
+                    reloadConfig(); // refresh SiteConfigContext so header/footer update live
+                } catch (_) {
+                    // non-fatal — websiteconfig save already succeeded
+                }
+            }
+
             enqueueSnackbar('Configuration saved', { variant: 'success' });
             setPendingSecrets({});
         } catch (err) {
@@ -1494,6 +1535,9 @@ const WebsiteConfig = () => {
         }
         if (activeCategory === 'changelog') {
             return <ChangeLogPanel />;
+        }
+        if (activeCategory === 'imgbb') {
+            return <ImgBBSettings />;
         }
         const sectionFields = fieldIndex.filter((f) => f.sectionId === activeCategory);
         if (sectionFields.length === 0) return null;
@@ -1579,8 +1623,8 @@ const WebsiteConfig = () => {
                     {/* Save */}
                     <button
                         onClick={handleSave}
-                        disabled={saving || activeCategory === 'changelog' || activeCategory === 'homepage' || activeCategory === 'database' || activeCategory === 'branding'}
-                        title={activeCategory === 'homepage' ? 'Use the Homepage save button' : undefined}
+                        disabled={saving || activeCategory === 'changelog' || activeCategory === 'homepage' || activeCategory === 'database' || activeCategory === 'branding' || activeCategory === 'imgbb'}
+                        title={activeCategory === 'homepage' ? 'Use the Homepage save button' : activeCategory === 'imgbb' ? 'Use the ImgBB Settings save button' : undefined}
                         className="bg-[#E84B0F] hover:bg-[#C63E0A] disabled:opacity-50 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors"
                     >
                         {saving ? (

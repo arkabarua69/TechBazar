@@ -56,7 +56,7 @@ const UpdatePassword = () => {
 
     return (
         <>
-            <MetaData title="Password Update | TechBazar" />
+            <MetaData title="Password Update" />
 
             {loading && <BackdropLoader />}
             <main className="w-full mt-4 sm:pt-6 sm:mt-0">

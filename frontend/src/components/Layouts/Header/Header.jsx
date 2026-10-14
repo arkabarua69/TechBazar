@@ -2,6 +2,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import TrackChangesIcon from '@mui/icons-material/TrackChanges';
+import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import OffersIcon from '@mui/icons-material/LocalOffer';
 import Searchbar from './Searchbar';
@@ -19,15 +20,17 @@ const Header = () => {
   const [togglePrimaryDropDown, setTogglePrimaryDropDown] = useState(false);
   const { config } = useSiteConfig();
 
-  const brandName = config.branding?.name || 'TechBazar';
+  const brandName = config.branding?.name || 'Store';
   const logoUrl = config.branding?.logoUrl;
 
   const { pathname } = useLocation();
   const isAdmin = pathname.startsWith('/admin');
 
-  const wordmark = brandName === 'TechBazar'
-    ? (<span className="font-display font-extrabold text-xl tracking-tight whitespace-nowrap" style={{ color: 'var(--color-accent)' }}>Tech<span style={{ color: 'var(--color-text-primary)' }}>Bazar</span></span>)
-    : (<span className="font-display font-extrabold text-xl tracking-tight whitespace-nowrap" style={{ color: 'var(--color-accent)' }}>{brandName}</span>);
+  const wordmark = (
+    <span className="font-display font-extrabold text-xl tracking-tight whitespace-nowrap" style={{ color: 'var(--color-accent)' }}>
+      {brandName}
+    </span>
+  );
 
   if (isAdmin) return null;
 
@@ -73,6 +76,15 @@ const Header = () => {
               <div className="flex flex-col leading-none">
                 <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>Track</span>
                 <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>Your order</span>
+              </div>
+            </Link>
+
+            {/* Image Gallery */}
+            <Link to="/gallery" className="hidden lg:flex items-center gap-1.5 group">
+              <PhotoLibraryIcon sx={{ fontSize: '18px', color: 'var(--color-accent)' }} />
+              <div className="flex flex-col leading-none">
+                <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>Image</span>
+                <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>Gallery</span>
               </div>
             </Link>
 

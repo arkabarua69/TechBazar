@@ -33,7 +33,7 @@ const Footer = () => {
     const company = footer.company || {};
     const shortcuts = footer.shortcuts || [];
     const since = footer.since || 2007;
-    const brandName = config.branding?.name || 'TechBazar';
+    const brandName = config.branding?.name || 'Store';
 
     useEffect(() => {
         setAdminRoute(location.pathname.startsWith('/admin'));

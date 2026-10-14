@@ -11,8 +11,11 @@ import { clearErrors, registerUser } from '../../actions/userAction';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import MetaData from '../Layouts/MetaData';
 import FormSidebar from './FormSidebar';
+import { useSiteConfig } from '../../context/SiteConfigContext';
 
 const Register = () => {
+    const { config } = useSiteConfig();
+    const brandName = config?.branding?.name || 'Store';
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -30,7 +33,7 @@ const Register = () => {
 
     const { name, email, gender, password, cpassword } = user;
 
-    const [avatar, setAvatar] = useState();
+    const [avatar, setAvatar] = useState("");
     const [avatarPreview, setAvatarPreview] = useState("preview.png");
 
     const handleRegister = (e) => {
@@ -41,10 +44,6 @@ const Register = () => {
         }
         if (password !== cpassword) {
             enqueueSnackbar("Password Doesn't Match", { variant: "error" });
-            return;
-        }
-        if (!avatar) {
-            enqueueSnackbar("Select Avatar", { variant: "error" });
             return;
         }
 
@@ -88,7 +87,7 @@ const Register = () => {
 
     return (
         <>
-            <MetaData title="Register | TechBazar" />
+            <MetaData title="Register" />
 
             {loading && <BackdropLoader />}
             <main className="w-full mt-4 sm:pt-6 sm:mt-0">
@@ -108,7 +107,7 @@ const Register = () => {
 
                             <div className="text-center flex flex-col gap-2">
                                 <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900">Create your account</h2>
-                                <p className="text-sm text-slate-500">Sign up to start shopping with TechBazar</p>
+                                <p className="text-sm text-slate-500">Sign up to start shopping with {brandName}</p>
                             </div>
 
                             {/* <!-- personal info procedure container --> */}

@@ -4,28 +4,36 @@ const sendToken = require('../utils/sendToken');
 const ErrorHandler = require('../utils/errorHandler');
 const sendEmail = require('../utils/sendEmail');
 const crypto = require('crypto');
-const cloudinary = require('cloudinary');
+const { uploadToImgBBCompat } = require('../utils/imgbb');
 
 // Register User
 exports.registerUser = asyncErrorHandler(async (req, res, next) => {
 
-    const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
-        folder: "avatars",
-        width: 150,
-        crop: "scale",
-    });
-
     const { name, email, gender, password } = req.body;
+
+    // Default avatar (used when no avatar is provided or ImgBB upload fails)
+    let avatarData = {
+        public_id: "avatars/default_avatar",
+        url: "https://res.cloudinary.com/demosite/image/upload/v1/avatars/default_avatar.png",
+    };
+
+    // Upload avatar to ImgBB only if avatar data is provided
+    if (req.body.avatar && req.body.avatar.trim() !== "") {
+        try {
+            const result = await uploadToImgBBCompat(req.body.avatar, `avatar-${name}-${Date.now()}`);
+            avatarData = result;
+        } catch (imgbbErr) {
+            // ImgBB upload failed — continue with default avatar
+            console.warn("ImgBB avatar upload failed, using default avatar:", imgbbErr.message);
+        }
+    }
 
     const user = await User.create({
         name, 
         email,
         gender,
         password,
-        avatar: {
-            public_id: myCloud.public_id,
-            url: myCloud.secure_url,
-        },
+        avatar: avatarData,
     });
 
     sendToken(user, 201, res);
@@ -168,22 +176,14 @@ exports.updateProfile = asyncErrorHandler(async (req, res, next) => {
         email: req.body.email,
     }
 
-    if(req.body.avatar !== "") {
-        const user = await User.findById(req.user.id);
-
-        const imageId = user.avatar.public_id;
-
-        await cloudinary.v2.uploader.destroy(imageId);
-
-        const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
-            folder: "avatars",
-            width: 150,
-            crop: "scale",
-        });
-
-        newUserData.avatar = {
-            public_id: myCloud.public_id,
-            url: myCloud.secure_url,
+    if(req.body.avatar && req.body.avatar !== "") {
+        try {
+            // ImgBB free tier has no server-side delete — old avatar image is orphaned.
+            // Store delete_url on the user model if you want manual cleanup later.
+            const result = await uploadToImgBBCompat(req.body.avatar, `avatar-${req.user.id}-${Date.now()}`);
+            newUserData.avatar = result;
+        } catch (imgbbErr) {
+            console.warn("ImgBB avatar update failed, keeping existing avatar:", imgbbErr.message);
         }
     }
 

@@ -7,6 +7,7 @@ import MinCategory from '../Layouts/MinCategory';
 import MetaData from '../Layouts/MetaData';
 import { logoutUser } from '../../actions/userAction';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import { useSiteConfig } from '../../context/SiteConfigContext';
 import ShieldIcon from '@mui/icons-material/Shield';
 import FolderIcon from '@mui/icons-material/Folder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -19,7 +20,6 @@ import RateReviewIcon from '@mui/icons-material/RateReview';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { useSiteConfig } from '../../context/SiteConfigContext';
 import { DEFAULT_SITE_CONFIG } from '../../utils/siteConfig';
 
 const Account = () => {
@@ -34,6 +34,7 @@ const Account = () => {
     const { config } = useSiteConfig();
     const faqs = config.content?.faqs || DEFAULT_SITE_CONFIG.content.faqs;
     const faqsLength = faqs.length;
+    const brandName = config?.branding?.name || 'Store';
 
     useEffect(() => {
         if (isAuthenticated === false) {
@@ -95,7 +96,7 @@ const Account = () => {
 
     return (
         <>
-            <MetaData title="My Profile | TechBazar" />
+            <MetaData title="My Profile" />
 
             {loading ? <Loader /> :
                 <>
@@ -245,7 +246,7 @@ const Account = () => {
                                     <span className="text-primary-accent"><PowerSettingsNewIcon /></span>
                                     <div>
                                         <h3 className="font-display font-bold text-sm text-slate-900">Logout</h3>
-                                        <p className="text-xs text-slate-500">Sign out of your TechBazar account</p>
+                                        <p className="text-xs text-slate-500">Sign out of your {brandName} account</p>
                                     </div>
                                 </div>
                                 <button onClick={handleLogout} className="btn-ghost text-sm mt-auto">Logout</button>

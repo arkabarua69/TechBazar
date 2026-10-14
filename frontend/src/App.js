@@ -46,7 +46,9 @@ import TrackOrder from './components/Store/TrackOrder';
 import Policy from './components/Policy';
 import Wishlist from './components/Wishlist/Wishlist';
 import NotFound from './components/NotFound';
+import ImageGallery from './components/Gallery/ImageGallery';
 import { SiteConfigProvider } from './context/SiteConfigContext';
+import MobileTopBar from './components/Layouts/Header/MobileTopBar';
 function App() {
   const dispatch = useDispatch();
   const { pathname } = useLocation();
@@ -66,23 +68,31 @@ function App() {
     dispatch(loadUser());
     // getStripeApiKey();
   }, [dispatch]);
-  // keep page content clear of the fixed header (desktop only; header is
-  // hidden on mobile) — measure the real header height instead of guessing
+  // keep page content clear of fixed top bars:
+  //   desktop  → measure <header> height (AnnouncementBar + nav row)
+  //   mobile   → measure .mobile-topbar height (announcement ticker + logo/search row)
   useEffect(() => {
-    const header = document.querySelector('header');
-    if (!header) return undefined;
     const apply = () => {
-      document.body.style.paddingTop = header.offsetHeight ? `${header.offsetHeight}px` : '';
+      const isMobile = window.innerWidth < 768; // Tailwind md breakpoint
+      const el = isMobile
+        ? document.querySelector('.mobile-topbar')
+        : document.querySelector('header');
+      document.body.style.paddingTop = el && el.offsetHeight ? `${el.offsetHeight}px` : '';
     };
-    apply();
+    // slight delay so components have mounted and fonts/images loaded
+    const t = setTimeout(apply, 150);
     if (typeof ResizeObserver !== 'undefined') {
-      const ro = new ResizeObserver(apply);
-      ro.observe(header);
-      return () => { ro.disconnect(); document.body.style.paddingTop = ''; };
+      const roApply = () => apply();
+      const ro = new ResizeObserver(roApply);
+      const header = document.querySelector('header');
+      const mobileBar = document.querySelector('.mobile-topbar');
+      if (header) ro.observe(header);
+      if (mobileBar) ro.observe(mobileBar);
+      return () => { clearTimeout(t); ro.disconnect(); document.body.style.paddingTop = ''; };
     }
     window.addEventListener('resize', apply);
-    return () => { window.removeEventListener('resize', apply); document.body.style.paddingTop = ''; };
-  }, []);
+    return () => { clearTimeout(t); window.removeEventListener('resize', apply); document.body.style.paddingTop = ''; };
+  }, [pathname]);
   // always scroll to top on route/path change
   useEffect(() => {
     window.scrollTo({
@@ -101,6 +111,7 @@ function App() {
   return (
     <SiteConfigProvider>
       <Header />
+      <MobileTopBar />
       <BottomBar />
       {/* dedicated admin bottom bar (mobile only) — returns null off /admin */}
       <AdminBottomNav />
@@ -117,6 +128,7 @@ function App() {
         {/* guest order tracking (phone or order id) + static policy page */}
         <Route path="/track" element={<TrackOrder />} />
         <Route path="/policy" element={<Policy />} />
+        <Route path="/gallery" element={<ImageGallery />} />
         {/* order process */}
         <Route path="/shipping" element={
           <ProtectedRoute>

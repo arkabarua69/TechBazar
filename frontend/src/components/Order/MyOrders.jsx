@@ -105,7 +105,7 @@ const MyOrders = () => {
 
     return (
         <>
-            <MetaData title="My Orders | TechBazar" />
+            <MetaData title="My Orders" />
 
             {/* ── orders header band — full-bleed, content centered ── */}
             <section className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-100 border-b border-line">

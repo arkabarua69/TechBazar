@@ -198,7 +198,7 @@ const UpdateProduct = () => {
 
     return (
         <>
-            <MetaData title="Admin: Update Product | TechBazar" />
+            <MetaData title="Admin: Update Product" />
 
             {loading && <BackdropLoader />}
             {updateLoading && <BackdropLoader />}

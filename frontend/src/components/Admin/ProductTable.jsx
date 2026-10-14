@@ -210,7 +210,7 @@ const ProductTable = () => {
 
     return (
         <>
-            <MetaData title="Admin Products | TechBazar" />
+            <MetaData title="Admin Products" />
 
             {loading && <BackdropLoader />}
 

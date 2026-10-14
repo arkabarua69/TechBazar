@@ -20,7 +20,7 @@ const Cart = () => {
 
     return (
         <>
-            <MetaData title="Shopping Cart | TechBazar" />
+            <MetaData title="Shopping Cart" />
 
             {/* ── Page wrapper ── */}
             <div className="min-h-screen" style={{ backgroundColor: '#f0f2f5' }}>

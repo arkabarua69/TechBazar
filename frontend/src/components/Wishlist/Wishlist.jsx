@@ -10,7 +10,7 @@ const Wishlist = () => {
 
     return (
         <>
-            <MetaData title="Wishlist | TechBazar" />
+            <MetaData title="Wishlist" />
             <main className="w-full sm:w-11/12 mx-auto flex flex-col gap-4 px-3 sm:px-4 pb-10 mt-3 sm:mt-6">
 
                 <div className="flex gap-3.5">

@@ -95,7 +95,7 @@ const MainData = () => {
     const { users } = useSelector((state) => state.users);
     const { user } = useSelector((state) => state.user);
 
-    // store (Business Koro) orders — power the pipeline, revenue, trending & order list
+    // store orders — power the pipeline, revenue, trending & order list
     const [storeOrders, setStoreOrders] = useState([]);
     const [charges, setCharges] = useState(null); // delivery charges from /store/config
     const [manualOpen, setManualOpen] = useState(false);
@@ -189,7 +189,7 @@ const MainData = () => {
         { icon: AddShoppingCartIcon, label: '+ Manual Order', sub: 'Phone order', chip: 'bg-gray-100 text-black', onClick: openManual },
         { icon: BoltIcon, label: 'Verification Queue', sub: `${bn(metrics.pendingVerify)} TrxIDs pending`, chip: 'bg-amber-100 text-amber-700', onClick: () => navigate('/admin/store_orders?filter=verify') },
         { icon: WarningAmberIcon, label: 'Out of Stock', sub: `${bn(outOfStock)} products`, chip: 'bg-red-100 text-red-600', onClick: () => navigate('/admin/products') },
-        { icon: SyncIcon, label: 'Catalog Sync', sub: 'Business Koro', chip: 'bg-gray-100 text-black', onClick: syncCatalog },
+        { icon: SyncIcon, label: 'Catalog Sync', sub: 'Products', chip: 'bg-gray-100 text-black', onClick: syncCatalog },
         { icon: ReceiptLongIcon, label: 'Store Order', sub: `${bn(storeOrders.length)} items`, chip: 'bg-gray-100 text-black', onClick: () => navigate('/admin/store_orders') },
         { icon: ChatBubbleOutlineIcon, label: 'Live Chat', sub: 'Inbox', chip: 'bg-gray-100 text-black', onClick: () => navigate('/admin/chat') },
     ];
@@ -377,7 +377,7 @@ const MainData = () => {
 
     return (
         <>
-            <MetaData title="Admin Dashboard | TechBazar" />
+            <MetaData title="Admin Dashboard" />
             {syncing && <BackdropLoader />}
 
             {/* ═══ 1. header ═══ */}

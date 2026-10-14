@@ -7,8 +7,11 @@ import { useSnackbar } from 'notistack';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import MetaData from '../Layouts/MetaData';
 import FormSidebar from './FormSidebar';
+import { useSiteConfig } from '../../context/SiteConfigContext';
 
 const ForgotPassword = () => {
+    const { config } = useSiteConfig();
+    const brandName = config?.branding?.name || 'Store';
 
     const dispatch = useDispatch();
     const { enqueueSnackbar } = useSnackbar();
@@ -38,7 +41,7 @@ const ForgotPassword = () => {
 
     return (
         <>
-            <MetaData title="Forgot Password | TechBazar" />
+            <MetaData title="Forgot Password" />
 
             {loading && <BackdropLoader />}
             <main className="w-full mt-4 sm:pt-6 sm:mt-0">
@@ -77,7 +80,7 @@ const ForgotPassword = () => {
 
                                     {/* <!-- button container --> */}
                                     <div className="flex flex-col gap-3 mt-1">
-                                        <p className="text-xs text-slate-500 text-center sm:text-left">By continuing, you agree to TechBazar's <a href="/policy" className="text-primary-accent hover:underline font-medium"> Terms of Use</a> and <a href="/policy" className="text-primary-accent hover:underline font-medium"> Privacy Policy.</a></p>
+                                        <p className="text-xs text-slate-500 text-center sm:text-left">By continuing, you agree to {brandName}'s <a href="/policy" className="text-primary-accent hover:underline font-medium"> Terms of Use</a> and <a href="/policy" className="text-primary-accent hover:underline font-medium"> Privacy Policy.</a></p>
                                         <button type="submit" className="btn-accent w-full py-3 text-sm font-bold uppercase tracking-wide">Submit</button>
                                     </div>
                                     {/* <!-- button container --> */}
@@ -87,7 +90,7 @@ const ForgotPassword = () => {
                             {/* <!-- input container --> */}
 
                             <div className="text-center">
-                                <Link to="/register" className="font-medium text-sm text-primary-accent hover:underline block w-full text-center">New to TechBazar? Create an account</Link>
+                                <Link to="/register" className="font-medium text-sm text-primary-accent hover:underline block w-full text-center">New to {brandName}? Create an account</Link>
                             </div>
                         </div>
 

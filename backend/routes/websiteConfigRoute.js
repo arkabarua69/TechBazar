@@ -9,7 +9,9 @@ const {
     getConfigChangeLog,
     getPublicConfig,
     exportConfig,
-    importConfig
+    importConfig,
+    testImgbbKey,
+    uploadImage,
 } = require('../controllers/websiteConfigController');
 
 // Public route - get non-sensitive configuration
@@ -22,5 +24,9 @@ router.route('/admin/websiteconfig/reset').put(isAuthenticatedUser, authorizeRol
 router.route('/admin/websiteconfig/changelog').get(isAuthenticatedUser, authorizeRoles('admin'), getConfigChangeLog);
 router.route('/admin/websiteconfig/export').get(isAuthenticatedUser, authorizeRoles('admin'), exportConfig);
 router.route('/admin/websiteconfig/import').post(isAuthenticatedUser, authorizeRoles('admin'), importConfig);
+
+// ImgBB routes (admin only — key never exposed to public)
+router.route('/admin/imgbb/test').post(isAuthenticatedUser, authorizeRoles('admin'), testImgbbKey);
+router.route('/admin/imgbb/upload').post(isAuthenticatedUser, authorizeRoles('admin'), uploadImage);
 
 module.exports = router;

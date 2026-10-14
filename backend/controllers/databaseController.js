@@ -203,4 +203,159 @@ const dropCollections = asyncErrorHandler(async (req, res, next) => {
     });
 });
 
-module.exports = { getDatabaseStatus, testConnection, saveMongoUri, runSeed, dropCollections };
+// GET /api/v1/admin/database/collections
+// Returns list of all collections with per-collection document count and size
+const getCollections = asyncErrorHandler(async (req, res, next) => {
+    const db = mongoose.connection.db;
+    const cols = await db.listCollections().toArray();
+
+    const results = await Promise.all(
+        cols.map(async (col) => {
+            try {
+                const stats = await db.collection(col.name).stats();
+                return {
+                    name: col.name,
+                    count: stats.count ?? 0,
+                    size: stats.size ?? 0,
+                    storageSize: stats.storageSize ?? 0,
+                    avgObjSize: stats.avgObjSize ?? 0,
+                    indexes: stats.nindexes ?? 0,
+                };
+            } catch (_) {
+                return { name: col.name, count: 0, size: 0, storageSize: 0, avgObjSize: 0, indexes: 0 };
+            }
+        })
+    );
+
+    res.status(200).json({ success: true, collections: results });
+});
+
+// GET /api/v1/admin/database/collections/:name
+// Returns paginated documents + field list for a collection
+const getCollectionDocs = asyncErrorHandler(async (req, res, next) => {
+    const { name } = req.params;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const skip = (page - 1) * limit;
+    const search = req.query.search || '';
+
+    const db = mongoose.connection.db;
+
+    // Build a simple text filter: match _id (if valid ObjectId) or any string value via $where
+    let filter = {};
+    if (search) {
+        try {
+            const { ObjectId } = require('mongodb');
+            filter = { _id: new ObjectId(search) };
+        } catch (_) {
+            // not an ObjectId — do loose field search via $where (dev/admin use only)
+            filter = { $where: `JSON.stringify(this).toLowerCase().includes(${JSON.stringify(search.toLowerCase())})` };
+        }
+    }
+
+    const [docs, total] = await Promise.all([
+        db.collection(name).find(filter).skip(skip).limit(limit).toArray(),
+        db.collection(name).countDocuments(filter),
+    ]);
+
+    // Gather field names from first few docs
+    const fields = new Set();
+    docs.slice(0, 5).forEach(doc => Object.keys(doc).forEach(k => fields.add(k)));
+
+    res.status(200).json({
+        success: true,
+        collection: name,
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+        fields: Array.from(fields),
+        docs: docs.map(d => ({ ...d, _id: d._id.toString() })),
+    });
+});
+
+// PUT /api/v1/admin/database/collections/:name/:id
+// Update a document in a collection by its _id (admin only)
+const updateCollectionDoc = asyncErrorHandler(async (req, res, next) => {
+    const { name, id } = req.params;
+    const updates = req.body;
+
+    if (!updates || typeof updates !== 'object') {
+        return next(new ErrorHandler('Update body must be a JSON object', 400));
+    }
+
+    // Strip _id from updates (cannot overwrite _id)
+    delete updates._id;
+
+    const db = mongoose.connection.db;
+    const { ObjectId } = require('mongodb');
+
+    let docId;
+    try { docId = new ObjectId(id); } catch (_) {
+        return next(new ErrorHandler('Invalid document _id', 400));
+    }
+
+    const result = await db.collection(name).findOneAndUpdate(
+        { _id: docId },
+        { $set: updates },
+        { returnDocument: 'after' }
+    );
+
+    if (!result) {
+        return next(new ErrorHandler('Document not found', 404));
+    }
+
+    res.status(200).json({
+        success: true,
+        message: 'Document updated',
+        doc: { ...result, _id: result._id.toString() },
+    });
+});
+
+// DELETE /api/v1/admin/database/collections/:name/:id
+// Delete a single document from a collection
+const deleteCollectionDoc = asyncErrorHandler(async (req, res, next) => {
+    const { name, id } = req.params;
+    const db = mongoose.connection.db;
+    const { ObjectId } = require('mongodb');
+
+    let docId;
+    try { docId = new ObjectId(id); } catch (_) {
+        return next(new ErrorHandler('Invalid document _id', 400));
+    }
+
+    const result = await db.collection(name).deleteOne({ _id: docId });
+    if (result.deletedCount === 0) {
+        return next(new ErrorHandler('Document not found', 404));
+    }
+
+    res.status(200).json({ success: true, message: 'Document deleted' });
+});
+
+// POST /api/v1/admin/database/collections
+// Create a new empty collection
+const createCollection = asyncErrorHandler(async (req, res, next) => {
+    const { name } = req.body;
+    if (!name || !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+        return next(new ErrorHandler('Invalid collection name (letters, digits, underscores only, must not start with a digit)', 400));
+    }
+
+    const db = mongoose.connection.db;
+    const existing = await db.listCollections({ name }).toArray();
+    if (existing.length > 0) {
+        return next(new ErrorHandler(`Collection "${name}" already exists`, 409));
+    }
+
+    await db.createCollection(name);
+
+    res.status(201).json({
+        success: true,
+        message: `Collection "${name}" created successfully`,
+        name,
+    });
+});
+
+module.exports = {
+    getDatabaseStatus, testConnection, saveMongoUri, runSeed, dropCollections,
+    getCollections, getCollectionDocs, updateCollectionDoc, deleteCollectionDoc, createCollection,
+};

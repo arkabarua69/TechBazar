@@ -25,7 +25,7 @@ const OrderDetails = () => {
 
     return (
         <>
-            <MetaData title="Order Details | TechBazar" />
+            <MetaData title="Order Details" />
 
             <main className="w-full sm:w-11/12 mx-auto flex flex-col gap-4 px-3 sm:px-4 pb-10 mt-3 sm:mt-6">
                 {loading ? <Loader /> : (

@@ -1,4 +1,35 @@
-// "How to Order?" — 3 simple steps for Bangladeshi customers
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import PaymentsIcon from '@mui/icons-material/Payments';
+import Inventory2Icon from '@mui/icons-material/Inventory2';
+import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import StorefrontIcon from '@mui/icons-material/Storefront';
+
+// Map icon-key strings (stored in DB) to MUI icon components
+const ICON_MAP = {
+    ShoppingCart:   ShoppingCartIcon,
+    Payments:       PaymentsIcon,
+    Inventory2:     Inventory2Icon,
+    PhoneAndroid:   PhoneAndroidIcon,
+    LocalShipping:  LocalShippingIcon,
+    CheckCircle:    CheckCircleIcon,
+    Storefront:     StorefrontIcon,
+    // legacy emoji fallback keys
+    '🛒': ShoppingCartIcon,
+    '📲': PhoneAndroidIcon,
+    '📦': Inventory2Icon,
+};
+
+const StepIcon = ({ iconKey }) => {
+    const Icon = ICON_MAP[iconKey];
+    if (Icon) {
+        return <Icon sx={{ fontSize: '28px', color: 'var(--color-accent)' }} />;
+    }
+    return <span className="text-3xl">{iconKey}</span>;
+};
+
+// "How to Order?" — 3 simple steps
 const HowToOrder = ({ steps = [] }) => {
     if (!steps.length) return null;
 
@@ -11,13 +42,32 @@ const HowToOrder = ({ steps = [] }) => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {steps.map((step, i) => (
-                    <div key={i} className="relative bg-cloud border border-line rounded-xl p-5 flex flex-col items-center text-center gap-2">
-                        <span className="absolute -top-3 left-4 w-7 h-7 rounded-full bg-primary-accent text-white text-xs font-bold flex items-center justify-center shadow">
+                    <div
+                        key={i}
+                        className="relative bg-cloud border border-line rounded-xl p-5 flex flex-col items-center text-center gap-3"
+                    >
+                        {/* step number badge */}
+                        <span
+                            className="absolute -top-3 left-4 w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center shadow"
+                            style={{ backgroundColor: 'var(--color-accent)' }}
+                        >
                             {i + 1}
                         </span>
-                        <span className="text-3xl">{step.icon}</span>
-                        <p className="font-display font-semibold text-slate-900 text-sm sm:text-base">{step.title}</p>
-                        <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">{step.description}</p>
+
+                        {/* icon */}
+                        <div
+                            className="w-14 h-14 rounded-full flex items-center justify-center mt-1"
+                            style={{ backgroundColor: 'var(--color-bg)', border: '1.5px solid var(--color-border)' }}
+                        >
+                            <StepIcon iconKey={step.icon} />
+                        </div>
+
+                        <p className="font-display font-semibold text-slate-900 text-sm sm:text-base">
+                            {step.title}
+                        </p>
+                        <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+                            {step.description}
+                        </p>
                     </div>
                 ))}
             </div>

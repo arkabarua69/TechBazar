@@ -38,6 +38,7 @@ const DEFAULT_CONFIG = {
     // General settings
     general: {
         siteName: 'TechBazar',
+        tagline: '',
         siteTitle: 'TechBazar - Online Electronics Store',
         siteDescription: 'Best electronics and gadgets at affordable prices',
         siteUrl: 'http://localhost:3000',
@@ -140,11 +141,14 @@ const DEFAULT_CONFIG = {
         redisUrl: '',
     },
 
+    // ImgBB image hosting
+    imgbb: {
+        apiKey: '', // Will be encrypted
+        enabled: true,
+    },
+
     // API Keys (encrypted)
     apiKeys: {
-        businessKoroApiKey: '', // Will be encrypted
-        businessKoroBaseUrl: 'https://api.businesskoro.com/api/v1/storefront',
-        businessKoroDomain: '',
         otherApiKey1: '', // Will be encrypted
         otherApiKey2: '', // Will be encrypted
     },
@@ -170,6 +174,7 @@ const websiteConfigSchema = new mongoose.Schema({
     // General settings
     general: {
         siteName: { type: String, default: DEFAULT_CONFIG.general.siteName },
+        tagline: { type: String, default: DEFAULT_CONFIG.general.tagline },
         siteTitle: { type: String, default: DEFAULT_CONFIG.general.siteTitle },
         siteDescription: { type: String, default: DEFAULT_CONFIG.general.siteDescription },
         siteUrl: { type: String, default: DEFAULT_CONFIG.general.siteUrl },
@@ -311,16 +316,19 @@ const websiteConfigSchema = new mongoose.Schema({
         redisUrl: { type: String, default: DEFAULT_CONFIG.cache.redisUrl },
     },
 
+    // ImgBB image hosting (encrypted API key)
+    imgbb: {
+        apiKey: {
+            type: String,
+            default: DEFAULT_CONFIG.imgbb.apiKey,
+            set: encrypt,
+            get: decrypt,
+        },
+        enabled: { type: Boolean, default: DEFAULT_CONFIG.imgbb.enabled },
+    },
+
     // API Keys (encrypted fields)
     apiKeys: {
-        businessKoroApiKey: { 
-            type: String, 
-            default: DEFAULT_CONFIG.apiKeys.businessKoroApiKey,
-            set: encrypt,
-            get: decrypt
-        },
-        businessKoroBaseUrl: { type: String, default: DEFAULT_CONFIG.apiKeys.businessKoroBaseUrl },
-        businessKoroDomain: { type: String, default: DEFAULT_CONFIG.apiKeys.businessKoroDomain },
         otherApiKey1: { 
             type: String, 
             default: DEFAULT_CONFIG.apiKeys.otherApiKey1,

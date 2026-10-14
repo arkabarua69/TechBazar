@@ -101,7 +101,7 @@ const ReviewsTable = () => {
 
     return (
         <>
-            <MetaData title="Admin Reviews | TechBazar" />
+            <MetaData title="Admin Reviews" />
 
             {loading && <BackdropLoader />}
             <div className="flex justify-between items-center gap-2 sm:gap-12">

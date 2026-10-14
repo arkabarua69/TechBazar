@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-// All storefront/product form fields are optional — a product can be
+// All product form fields are optional — a product can be
 // created blank and filled in later (admin → Update Product).
 // Only `user` (set server-side from the authenticated admin) and the
 // reviews sub-document remain required.
@@ -37,25 +37,34 @@ const productSchema = new mongoose.Schema({
     },
     images: [
         {
-            public_id: {
-                type: String
+            public_id: { type: String },  // ImgBB image id
+            url: { type: String },         // ImgBB display_url (best quality)
+            // ImgBB-specific metadata (optional — stored for delete_url access)
+            imgbb: {
+                id:          { type: String },
+                url:         { type: String },
+                display_url: { type: String },
+                thumb_url:   { type: String },
+                delete_url:  { type: String },
+                title:       { type: String },
+                size:        { type: Number },
+                width:       { type: Number },
+                height:      { type: Number },
             },
-            url: {
-                type: String
-            }
         }
     ],
     brand: {
-        name: {
-            type: String
-        },
+        name: { type: String },
         logo: {
-            public_id: {
-                type: String,
+            public_id: { type: String },   // ImgBB image id
+            url:       { type: String },   // ImgBB display_url
+            imgbb: {
+                id:          { type: String },
+                url:         { type: String },
+                display_url: { type: String },
+                thumb_url:   { type: String },
+                delete_url:  { type: String },
             },
-            url: {
-                type: String,
-            }
         }
     },
     category: {
@@ -70,7 +79,7 @@ const productSchema = new mongoose.Schema({
         type: Number,
         default: 1
     },
-    // optional storefront fields (admin-editable, shown on product page)
+    // optional product fields (admin-editable, shown on product page)
     colors: [String],
     inTheBox: [String],
     ratings: {
@@ -107,28 +116,6 @@ const productSchema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         ref: "User",
         required: true
-    },
-    // ── Business Koro storefront fields (never sent to the client) ──
-    bkId: {
-        type: String,
-        index: true,
-    },
-    bkVariants: {
-        type: Array,
-        select: false,
-    },
-    bkCostPrice: {
-        type: Number,
-        select: false,
-    },
-    source: {
-        type: String,
-        default: "local",
-    },
-    // optional shop association — products without a shop are displayed
-    // on all shop pages alongside shop-specific products
-    shop: {
-        type: String,
     },
     // admin-selected: shown first in the homepage "Featured" section
     featured: {

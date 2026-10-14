@@ -6,18 +6,20 @@ import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import StarBorderOutlinedIcon from '@mui/icons-material/StarBorder';
 import ChatBubbleOutlineOutlinedIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
-import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import { logoutUser } from '../../actions/userAction';
 import MetaData from '../Layouts/MetaData';
+import { useSiteConfig } from '../../context/SiteConfigContext';
 // "More" tab of the admin bottom nav — everything not in the 4 main tabs,
 // presented as a native settings-style list.
 const More = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { user } = useSelector((state) => state.user);
+    const { config } = useSiteConfig();
+    const siteName = config?.branding?.name || 'Admin';
     const sections = [
         {
             title: 'Account',
@@ -27,11 +29,10 @@ const More = () => {
             ],
         },
         {
-            title: 'Business',
+            title: 'Settings',
             items: [
                 { label: 'Cash on Delivery Orders', desc: 'Regular paid orders', icon: ReceiptLongOutlinedIcon, to: '/admin/orders' },
                 { label: 'Add Product', desc: 'Create a new listing', icon: AddBoxOutlinedIcon, to: '/admin/new_product' },
-                { label: 'Storefront Settings', desc: 'bKash / Nagad · delivery charge · banner', icon: HomeOutlinedIcon, to: '/admin/config' },
                 { label: 'Website Config', desc: 'API keys, SMTP, theme, SEO & more', icon: SettingsOutlinedIcon, to: '/admin/config' },
             ],
         },
@@ -46,7 +47,7 @@ const More = () => {
     ];
     return (
         <>
-            <MetaData title='More | TechBazar Admin' />
+            <MetaData title="More | Admin" />
             <div className="pb-4">
                 <h2 className="text-xl font-extrabold text-gray-900 mb-1">More</h2>
                 <p className="text-xs text-gray-500 mb-4">Account, settings &amp; management</p>
@@ -90,7 +91,7 @@ const More = () => {
                         </div>
                     </div>
                 ))}
-                <p className="text-center text-[11px] text-gray-400">TechBazar Admin &copy; 2026</p>
+                <p className="text-center text-[11px] text-gray-400">{siteName} Admin &copy; {new Date().getFullYear()}</p>
             </div>
         </>
     );

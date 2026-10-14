@@ -17,6 +17,7 @@ import LanguageToggle from '../LanguageToggle';
 import './Sidebar.css';
 import { useSnackbar } from 'notistack';
 import { logoutUser } from '../../../actions/userAction';
+import { useSiteConfig } from '../../../context/SiteConfigContext';
 
 const Sidebar = ({ activeTab, setToggleSidebar }) => {
     const dispatch = useDispatch();
@@ -24,6 +25,8 @@ const Sidebar = ({ activeTab, setToggleSidebar }) => {
     const { enqueueSnackbar } = useSnackbar();
     const { t } = useTranslation();
     const { user } = useSelector((state) => state.user);
+    const { config } = useSiteConfig();
+    const siteName = config?.branding?.name || 'Admin';
 
     const handleLogout = () => {
         dispatch(logoutUser());
@@ -130,7 +133,7 @@ const Sidebar = ({ activeTab, setToggleSidebar }) => {
                 className="mx-4 mb-6 mt-6 p-3 rounded-2xl text-center"
                 style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
             >
-                <h5 className="font-semibold text-xs text-white">{t('admin_title')}</h5>
+                <h5 className="font-semibold text-xs text-white">{siteName} Admin</h5>
                 <span className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
                     © {new Date().getFullYear()} · {t('all_rights')}
                 </span>

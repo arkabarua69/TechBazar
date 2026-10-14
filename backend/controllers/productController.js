@@ -2,7 +2,7 @@ const Product = require('../models/productModel');
 const asyncErrorHandler = require('../middlewares/asyncErrorHandler');
 const SearchFeatures = require('../utils/searchFeatures');
 const ErrorHandler = require('../utils/errorHandler');
-const cloudinary = require('cloudinary');
+const { uploadToImgBBCompat } = require('../utils/imgbb');
 
 // Get All Products
 exports.getAllProducts = asyncErrorHandler(async (req, res, next) => {
@@ -79,26 +79,15 @@ exports.createProduct = asyncErrorHandler(async (req, res, next) => {
     const imagesLink = [];
 
     for (let i = 0; i < images.length; i++) {
-        const result = await cloudinary.v2.uploader.upload(images[i], {
-            folder: "products",
-        });
-
-        imagesLink.push({
-            public_id: result.public_id,
-            url: result.secure_url,
-        });
+        const result = await uploadToImgBBCompat(images[i], `product-${Date.now()}-${i}`);
+        imagesLink.push(result);
     }
 
     // brand logo is optional — skip the upload when not provided
     let brandLogo = { public_id: "", url: "" };
     if (req.body.logo) {
-        const result = await cloudinary.v2.uploader.upload(req.body.logo, {
-            folder: "brands",
-        });
-        brandLogo = {
-            public_id: result.public_id,
-            url: result.secure_url,
-        };
+        const result = await uploadToImgBBCompat(req.body.logo, `brand-logo-${Date.now()}`);
+        brandLogo = result;
     }
 
     req.body.brand = {
@@ -138,38 +127,31 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
         } else {
             images = req.body.images;
         }
-        for (let i = 0; i < product.images.length; i++) {
-            await cloudinary.v2.uploader.destroy(product.images[i].public_id);
-        }
+        // ImgBB free tier has no server-side delete API; old images are simply orphaned.
+        // To support deletion, store delete_url and call it manually or via a cron job.
 
         const imagesLink = [];
 
         for (let i = 0; i < images.length; i++) {
-            const result = await cloudinary.v2.uploader.upload(images[i], {
-                folder: "products",
-            });
-
-            imagesLink.push({
-                public_id: result.public_id,
-                url: result.secure_url,
-            });
+            const result = await uploadToImgBBCompat(images[i], `product-${req.params.id}-${i}`);
+            imagesLink.push(result);
         }
         req.body.images = imagesLink;
     }
 
-    if (req.body.logo.length > 0) {
-        await cloudinary.v2.uploader.destroy(product.brand.logo.public_id);
-        const result = await cloudinary.v2.uploader.upload(req.body.logo, {
-            folder: "brands",
-        });
-        const brandLogo = {
-            public_id: result.public_id,
-            url: result.secure_url,
-        };
-
+    if (req.body.logo && req.body.logo.length > 0) {
+        const result = await uploadToImgBBCompat(req.body.logo, `brand-logo-${req.params.id}`);
         req.body.brand = {
             name: req.body.brandname,
-            logo: brandLogo
+            logo: result,
+        };
+    } else {
+        // Keep existing brand name if provided but logo was not re-uploaded
+        if (req.body.brandname) {
+            req.body.brand = {
+                name: req.body.brandname,
+                logo: product.brand.logo,
+            };
         }
     }
 
@@ -201,9 +183,10 @@ exports.deleteProduct = asyncErrorHandler(async (req, res, next) => {
         return next(new ErrorHandler("Product Not Found", 404));
     }
 
-    for (let i = 0; i < product.images.length; i++) {
-        await cloudinary.v2.uploader.destroy(product.images[i].public_id);
-    }
+    // ImgBB free tier does not expose a server-side delete API.
+    // Images are soft-deleted on ImgBB's side (they expire or can be removed
+    // via the delete_url stored in imgbb.delete_url on each image object).
+    // If you need programmatic deletion, call product.images[i].imgbb.delete_url via HTTP GET.
 
     await product.deleteOne();
 

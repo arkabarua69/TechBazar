@@ -18,6 +18,7 @@ import {
     SEARCH_FOCUS_EVENT,
     LAST_SEEN_KEY,
 } from '../../utils/adminHelpers';
+import { useSiteConfig } from '../../context/SiteConfigContext';
 
 const STATUS_STYLES = {
     PENDING_APPROVAL: 'bg-yellow-100 text-yellow-800',
@@ -142,7 +143,7 @@ const StoreOrders = () => {
         try {
             const { data } = await axios.put(`/api/v1/admin/store/orders/${id}/${action}`, {}, { headers: { Accept: 'application/json' } });
             enqueueSnackbar(action === 'approve'
-                ? `Forwarded to Business Koro (order ${data.order?.bkOrderId || ''})`
+                ? `Order ${data.order?.orderId || ''} approved`
                 : 'Order cancelled', { variant: 'success' });
             fetchOrders();
         } catch (err) {
@@ -225,7 +226,7 @@ const StoreOrders = () => {
 
     return (
         <>
-            <MetaData title="Store Orders | TechBazar" />
+            <MetaData title="Store Orders" />
             {(loading || syncing) && <BackdropLoader />}
 
             <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -237,7 +238,7 @@ const StoreOrders = () => {
             </div>
 
             <p className="text-sm text-gray-500 mt-1">
-                Guest orders wait here until you approve them — approving forwards the order to the Business Koro API.
+                Guest orders wait here until you review and approve or cancel them.
             </p>
 
             {/* search — one-tap lookup by name / phone / TrxID */}

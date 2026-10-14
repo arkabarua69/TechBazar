@@ -155,7 +155,7 @@ const NewProduct = () => {
 
     return (
         <>
-            <MetaData title="Admin: New Product | TechBazar" />
+            <MetaData title="Admin: New Product" />
 
             {loading && <BackdropLoader />}
             <h1 className="text-lg sm:text-xl font-extrabold text-gray-900">Add New Product</h1>

@@ -25,10 +25,6 @@ services:
         value: "01700000000"
       - key: PAYMENT_NAGAD_NUMBER
         value: "01700000000"
-      - key: BUSINESS_KORO_BASE_URL
-        value: https://api.businesskoro.com/api/v1/storefront
-      - key: BUSINESS_KORO_API_KEY
-        value: ""
       - key: CLOUDINARY_NAME
         value: store
       - key: CLOUDINARY_API_KEY
