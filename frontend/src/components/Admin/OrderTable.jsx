@@ -9,8 +9,19 @@ import Actions from './Actions';
 import { formatDate } from '../../utils/functions';
 import MetaData from '../Layouts/MetaData';
 import BackdropLoader from '../Layouts/BackdropLoader';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import { shortOrderId } from '../../utils/adminHelpers';
 
-const OrderTable = () => {
+const statusPill = (status) => {
+    switch (status) {
+        case 'Delivered': return 'bg-green-100 text-green-700';
+        case 'Shipped':   return 'bg-yellow-100 text-yellow-800';
+        case 'Processing':return 'bg-blue-100 text-blue-700';
+        default:          return 'bg-purple-100 text-purple-700';
+    }
+};
+
+const OrderTable = ({ embedded = false } = {}) => {
 
     const dispatch = useDispatch();
     const { enqueueSnackbar } = useSnackbar();
@@ -123,22 +134,77 @@ const OrderTable = () => {
 
     return (
         <>
-            <MetaData title="Admin Orders" />
+            {!embedded && <MetaData title="Admin Orders" />}
 
             {loading && <BackdropLoader />}
 
-            <h1 className="text-lg sm:text-xl font-extrabold text-gray-900">Orders</h1>
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm w-full overflow-x-auto" style={{ height: 'min(470px, 60vh)' }}>
+            {!embedded && <h1 className="text-lg sm:text-xl font-extrabold text-gray-900">Orders</h1>}
 
+            {/* ===== MOBILE: card list (no horizontal scroll) ===== */}
+            <div className="sm:hidden flex flex-col gap-3">
+                {rows.length === 0 && !loading && (
+                    <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-8 text-center text-gray-400 text-sm">
+                        No online orders yet.
+                    </div>
+                )}
+                {rows.map((o) => (
+                    <article key={o.id} className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden ring-1 ring-black/[0.02]">
+                        <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 border-b border-gray-100">
+                            <span className="w-8 h-8 rounded-xl bg-gray-900 text-white flex items-center justify-center shrink-0">
+                                <ReceiptLongIcon sx={{ fontSize: '17px' }} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-sm font-bold text-gray-900 truncate">#{shortOrderId(o.id)}</p>
+                                <p className="text-[11px] text-gray-400">{o.orderOn}</p>
+                            </div>
+                            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${statusPill(o.status)}`}>
+                                {o.status}
+                            </span>
+                        </div>
+                        <div className="flex items-center justify-between gap-3 px-3 py-3">
+                            <div>
+                                <p className="text-base font-extrabold text-gray-900">Tk {o.amount.toLocaleString()}</p>
+                                <p className="text-[11px] text-gray-500">{o.itemsQty} item{o.itemsQty === 1 ? '' : 's'}</p>
+                            </div>
+                            <Actions editRoute={"order"} deleteHandler={deleteOrderHandler} id={o.id} />
+                        </div>
+                    </article>
+                ))}
+            </div>
+
+            {/* ===== DESKTOP: table ===== */}
+            <div className="hidden sm:block bg-white rounded-2xl border border-gray-200/80 shadow-sm w-full overflow-hidden" style={{ height: 'min(560px, 68vh)' }}>
                 <DataGrid
                     rows={rows}
                     columns={columns}
                     pageSize={10}
+                    rowsPerPageOptions={[10, 25, 50]}
                     disableSelectIconOnClick
+                    disableRowSelectionOnClick
                     columnVisibilityModel={isMobile ? { itemsQty: false, orderOn: false } : {}}
                     sx={{
                         boxShadow: 0,
                         border: 0,
+                        '& .MuiDataGrid-columnHeaders': {
+                            backgroundColor: '#fafafa',
+                            borderBottom: '1px solid #f0f0f0',
+                        },
+                        '& .MuiDataGrid-columnHeaderTitle': {
+                            fontWeight: 700,
+                            fontSize: '0.72rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.03em',
+                            color: '#6b7280',
+                        },
+                        '& .MuiDataGrid-cell': {
+                            borderBottom: '1px solid #f5f5f5',
+                        },
+                        '& .MuiDataGrid-row:hover': {
+                            backgroundColor: '#fff7f2',
+                        },
+                        '& .MuiDataGrid-footerContainer': {
+                            borderTop: '1px solid #f0f0f0',
+                        },
                     }}
                 />
             </div>

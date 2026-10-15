@@ -243,14 +243,16 @@ const ColorField = ({ label, value, onChange }) => {
     );
 };
 // ─── Section Renderer ─────────────────────────────────────────────────────────
-const SectionHeading = ({ children }) => (
-    <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-800 mb-4 pb-2.5 border-b border-gray-100">
-        <span className="w-1 h-4 rounded-full bg-[#E84B0F]" />
-        {children}
-    </h3>
+const SectionHeading = ({ children, icon }) => (
+    <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-gray-100">
+        <span className="w-7 h-7 rounded-lg bg-[#E84B0F] text-white flex items-center justify-center shrink-0 shadow-sm shadow-[#E84B0F]/30">
+            {icon || <span className="w-2.5 h-2.5 rounded-[3px] bg-white" />}
+        </span>
+        <h3 className="text-sm font-bold text-gray-900 tracking-tight">{children}</h3>
+    </div>
 );
 const Card = ({ children, className = '' }) => (
-    <div className={`bg-white border border-gray-200/80 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5 ${className}`}>
+    <div className={`bg-white border border-gray-200/80 rounded-2xl shadow-sm hover:shadow-md hover:border-[#E84B0F]/25 transition-all duration-200 p-4 sm:p-5 ${className}`}>
         {children}
     </div>
 );
@@ -1152,29 +1154,49 @@ const HomepagePanel = () => {
 
             {/* Hero */}
             <Card>
-                <SectionHeading>Hero Section</SectionHeading>
-                <div className="grid sm:grid-cols-2 gap-3">
-                    <HomepageField label="Badge" value={h.badge} onChange={(v) => setHpSection('hero', 'badge', v)} />
-                    <HomepageField label="Title" value={h.title} onChange={(v) => setHpSection('hero', 'title', v)} />
-                    <div className="sm:col-span-2">
-                        <HomepageField label="Subtitle" textarea value={h.subtitle} onChange={(v) => setHpSection('hero', 'subtitle', v)} />
+                <SectionHeading icon={<Layout size={14} />}>Hero Section</SectionHeading>
+
+                {/* Copy: badge, title, subtitle */}
+                <div className="rounded-xl bg-gray-50 border border-gray-100 p-3 flex flex-col gap-3">
+                    <p className="text-[11px] font-bold text-[#E84B0F] uppercase tracking-wider flex items-center gap-1.5">
+                        <Eye size={12} /> Hero copy
+                    </p>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                        <HomepageField label="Badge" value={h.badge} onChange={(v) => setHpSection('hero', 'badge', v)} />
+                        <HomepageField label="Title" value={h.title} onChange={(v) => setHpSection('hero', 'title', v)} />
+                        <div className="sm:col-span-2">
+                            <HomepageField label="Subtitle" textarea value={h.subtitle} onChange={(v) => setHpSection('hero', 'subtitle', v)} />
+                        </div>
                     </div>
-                    <div className="sm:col-span-2">
-                        <ImgBBUploader
-                            label="Hero Image"
-                            currentUrl={h.image ?? ''}
-                            onUploaded={(url) => setHpSection('hero', 'image', url)}
-                            onAutoSave={(url) => autoSaveHpImage('hero', 'image', url)}
-                            previewClass="max-h-40 max-w-full object-cover rounded-lg w-full"
-                        />
-                    </div>
+                </div>
+
+                {/* Image */}
+                <div className="rounded-xl bg-gray-50 border border-dashed border-gray-300 p-3 mt-3">
+                    <p className="text-[11px] font-bold text-[#E84B0F] uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                        <Image size={12} /> Hero image
+                    </p>
+                    <ImgBBUploader
+                        label="Hero Image"
+                        currentUrl={h.image ?? ''}
+                        onUploaded={(url) => setHpSection('hero', 'image', url)}
+                        onAutoSave={(url) => autoSaveHpImage('hero', 'image', url)}
+                        previewClass="max-h-44 max-w-full object-cover rounded-lg w-full shadow-sm"
+                    />
+                </div>
+
+                {/* CTA */}
+                <div className="grid sm:grid-cols-2 gap-3 mt-3">
                     <HomepageField label="Button label" value={h.buttonLabel} onChange={(v) => setHpSection('hero', 'buttonLabel', v)} />
                     <HomepageField label="Button link" value={h.buttonLink} onChange={(v) => setHpSection('hero', 'buttonLink', v)} />
                 </div>
-                <div className="grid sm:grid-cols-2 gap-3 border-t mt-4 pt-4">
+
+                {/* Side cards */}
+                <div className="grid sm:grid-cols-2 gap-3 border-t border-gray-100 mt-4 pt-4">
                     {['sideTop', 'sideBottom'].map((group, gi) => (
-                        <div key={group} className="flex flex-col gap-3 bg-gray-50 rounded-xl p-3">
-                            <p className="text-xs font-semibold text-gray-500 uppercase">{gi === 0 ? 'Top Card' : 'Bottom Card'}</p>
+                        <div key={group} className="flex flex-col gap-3 bg-gray-50 rounded-xl p-3 border border-gray-100">
+                            <p className="text-[11px] font-bold text-[#E84B0F] uppercase tracking-wider flex items-center gap-1.5">
+                                <Image size={12} /> {gi === 0 ? 'Side Card · Top' : 'Side Card · Bottom'}
+                            </p>
                             <HomepageField label="Title" value={h[group]?.title} onChange={(v) => setHpNested('hero', group, 'title', v)} />
                             <HomepageField label="Subtitle" value={h[group]?.subtitle} onChange={(v) => setHpNested('hero', group, 'subtitle', v)} />
                             <ImgBBUploader
@@ -1182,7 +1204,7 @@ const HomepagePanel = () => {
                                 currentUrl={h[group]?.image ?? ''}
                                 onUploaded={(url) => setHpNested('hero', group, 'image', url)}
                                 onAutoSave={(url) => autoSaveHpNested('hero', group, 'image', url)}
-                                previewClass="max-h-28 max-w-full object-cover rounded-lg w-full"
+                                previewClass="max-h-28 max-w-full object-cover rounded-lg w-full shadow-sm"
                             />
                             <HomepageField label="Link" value={h[group]?.link} onChange={(v) => setHpNested('hero', group, 'link', v)} />
                         </div>
@@ -1571,6 +1593,10 @@ const WebsiteConfig = () => {
             </>
         );
     }
+    // ── Shared save-button state (used by the top bar + the mobile sticky bar) ──
+    const saveDisabled = saving || ['changelog', 'homepage', 'database', 'branding', 'imgbb'].includes(activeCategory);
+    const saveTitle = activeCategory === 'homepage' ? 'Use the Homepage save button'
+        : activeCategory === 'imgbb' ? 'Use the ImgBB Settings save button' : undefined;
     // ── Main render ───────────────────────────────────────────────────────────────
     return (
         <>
@@ -1609,12 +1635,12 @@ const WebsiteConfig = () => {
                             </button>
                         )}
                     </div>
-                    {/* Save */}
+                    {/* Save (desktop) */}
                     <button
                         onClick={handleSave}
-                        disabled={saving || activeCategory === 'changelog' || activeCategory === 'homepage' || activeCategory === 'database' || activeCategory === 'branding' || activeCategory === 'imgbb'}
-                        title={activeCategory === 'homepage' ? 'Use the Homepage save button' : activeCategory === 'imgbb' ? 'Use the ImgBB Settings save button' : undefined}
-                        className="bg-[#E84B0F] hover:bg-[#C63E0A] disabled:opacity-50 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors"
+                        disabled={saveDisabled}
+                        title={saveTitle}
+                        className="hidden sm:flex bg-[#E84B0F] hover:bg-[#C63E0A] disabled:opacity-50 text-white px-4 py-2 rounded-xl text-sm font-semibold items-center gap-2 transition-colors"
                     >
                         {saving ? (
                             <Loader2 size={15} className="animate-spin" />
@@ -1623,33 +1649,35 @@ const WebsiteConfig = () => {
                         )}
                         {saving ? 'Saving…' : 'Save Changes'}
                     </button>
-                    {/* Reset */}
+                    {/* Reset (desktop) */}
                     <button
                         onClick={() => setShowResetModal(true)}
                         disabled={saving}
-                        className="border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-50 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors"
+                        className="hidden sm:flex border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-50 px-4 py-2 rounded-xl text-sm font-semibold items-center gap-2 transition-colors"
                     >
                         <RotateCcw size={15} />
                         Reset to Defaults
                     </button>
                 </div>
             </div>
-            {/* ── Mobile: horizontal category pills ────────────────────────────── */}
-            <div className="flex gap-2 overflow-x-auto pb-2 mb-4 lg:hidden">
-                {CATEGORIES.map(({ id, label, Icon }) => (
-                    <button
-                        key={id}
-                        onClick={() => { setActiveCategory(id); setSearchQuery(''); }}
-                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors border ${
-                            activeCategory === id && !isSearching
-                                ? 'bg-orange-50 text-[#E84B0F] border-orange-200'
-                                : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
-                        }`}
-                    >
-                        <Icon size={13} />
-                        {label}
-                    </button>
-                ))}
+            {/* ── Mobile: horizontal category tab bar ──────────────────────────── */}
+            <div className="lg:hidden -mx-0.5 mb-4 -mt-1">
+                <div className="flex gap-2 overflow-x-auto bg-white border border-gray-200/80 rounded-2xl p-2 shadow-sm">
+                    {CATEGORIES.map(({ id, label, Icon }) => (
+                        <button
+                            key={id}
+                            onClick={() => { setActiveCategory(id); setSearchQuery(''); }}
+                            className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-colors border shrink-0 ${
+                                activeCategory === id && !isSearching
+                                    ? 'bg-[#E84B0F] text-white border-[#E84B0F] shadow-sm shadow-[#E84B0F]/30'
+                                    : 'bg-white text-gray-500 border-gray-200 hover:bg-orange-50 hover:text-[#E84B0F]'
+                            }`}
+                        >
+                            <Icon size={14} />
+                            {label}
+                        </button>
+                    ))}
+                </div>
             </div>
             {/* ── Two-column layout ─────────────────────────────────────────────── */}
             <div className="flex gap-5 items-start">
@@ -1685,8 +1713,34 @@ const WebsiteConfig = () => {
                     ))}
                 </aside>
                 {/* ── Content area ──────────────────────────────────────────────── */}
-                <div className="flex-1 min-w-0 flex flex-col gap-4">
+                <div className="flex-1 min-w-0 flex flex-col gap-4 pb-16 sm:pb-0">
                     {isSearching ? renderSearchResults() : renderCategoryContent()}
+                </div>
+            </div>
+
+            {/* ── Mobile: sticky action bar (sits above the bottom nav) ────────── */}
+            <div
+                className="sm:hidden fixed left-0 right-0 z-30 bg-white/95 backdrop-blur border-t border-gray-200 px-3 py-2.5 shadow-[0_-4px_16px_rgba(15,23,42,0.05)]"
+                style={{ bottom: 'calc(52px + env(safe-area-inset-bottom))' }}
+            >
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setShowResetModal(true)}
+                        disabled={saving}
+                        className="flex-1 flex items-center justify-center gap-1.5 border border-gray-300 text-gray-600 rounded-xl text-sm font-semibold py-2.5 disabled:opacity-50 active:scale-95 transition"
+                    >
+                        <RotateCcw size={15} />
+                        Reset
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        disabled={saveDisabled}
+                        title={saveTitle}
+                        className="flex-[2] flex items-center justify-center gap-1.5 bg-[#E84B0F] text-white rounded-xl text-sm font-bold py-2.5 disabled:opacity-50 active:scale-95 transition"
+                    >
+                        {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+                        {saving ? 'Saving…' : 'Save Changes'}
+                    </button>
                 </div>
             </div>
         </>

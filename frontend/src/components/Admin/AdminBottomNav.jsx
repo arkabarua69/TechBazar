@@ -22,7 +22,7 @@ const AdminBottomNav = () => {
 
     const items = [
         { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard, match: (p) => p === '/admin/dashboard' || p === '/admin' },
-        { label: 'Orders', href: '/admin/store_orders', icon: ShoppingBag, match: (p) => p.startsWith('/admin/store_orders') || p.startsWith('/admin/orders'), badge: ordersBadge },
+        { label: 'Orders', href: '/admin/orders', icon: ShoppingBag, match: (p) => p.startsWith('/admin/orders') || p.startsWith('/admin/order'), badge: ordersBadge },
         { label: 'Products', href: '/admin/products', icon: Tag, match: (p) => p.startsWith('/admin/products') || p.startsWith('/admin/add_product') },
         { label: 'Settings', href: '/admin/homepage', icon: Settings, match: (p) => p.startsWith('/admin/homepage') },
         { label: 'More', href: '/admin/more', icon: MoreHorizontal, match: (p) => p.startsWith('/admin/more') },

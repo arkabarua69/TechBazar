@@ -27,7 +27,7 @@ import MyOrders from './components/Order/MyOrders';
 import OrderDetails from './components/Order/OrderDetails';
 import Dashboard from './components/Admin/Dashboard';
 import MainData from './components/Admin/MainData';
-import OrderTable from './components/Admin/OrderTable';
+import Orders from './components/Admin/Orders';
 import UpdateOrder from './components/Admin/UpdateOrder';
 import ProductTable from './components/Admin/ProductTable';
 import NewProduct from './components/Admin/NewProduct';
@@ -35,7 +35,6 @@ import UpdateProduct from './components/Admin/UpdateProduct';
 import UserTable from './components/Admin/UserTable';
 import UpdateUser from './components/Admin/UpdateUser';
 import ReviewsTable from './components/Admin/ReviewsTable';
-import StoreOrders from './components/Admin/StoreOrders';
 import ChatInbox from './components/Admin/ChatInbox';
 import CategoryManager from './components/Admin/CategoryManager';
 import WebsiteConfig from './components/Admin/WebsiteConfig';
@@ -178,7 +177,7 @@ function App() {
           <ProtectedRoute isAdmin={true}><Dashboard activeTab={0}><MainData /></Dashboard></ProtectedRoute>
         } />
         <Route path="/admin/orders" element={
-          <ProtectedRoute isAdmin={true}><Dashboard activeTab={1}><OrderTable /></Dashboard></ProtectedRoute>
+          <ProtectedRoute isAdmin={true}><Dashboard activeTab={1}><Orders /></Dashboard></ProtectedRoute>
         } />
         <Route path="/admin/order/:id" element={
           <ProtectedRoute isAdmin={true}><Dashboard activeTab={1}><UpdateOrder /></Dashboard></ProtectedRoute>
@@ -201,9 +200,7 @@ function App() {
         <Route path="/admin/reviews" element={
           <ProtectedRoute isAdmin={true}><Dashboard activeTab={5}><ReviewsTable /></Dashboard></ProtectedRoute>
         } />
-        <Route path="/admin/store_orders" element={
-          <ProtectedRoute isAdmin={true}><Dashboard activeTab={6}><StoreOrders /></Dashboard></ProtectedRoute>
-        } />
+        <Route path="/admin/store_orders" element={<Navigate to="/admin/orders" replace />} />
         <Route path="/admin/homepage" element={<Navigate to="/admin/config" replace />} />
         <Route path="/admin/chat" element={
           <ProtectedRoute isAdmin={true}><Dashboard activeTab={7}><ChatInbox /></Dashboard></ProtectedRoute>

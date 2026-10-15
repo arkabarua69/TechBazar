@@ -180,19 +180,19 @@ const MainData = () => {
     ];
 
     const metricCards = [
-        { key: 'verify', dot: 'bg-amber-500', label: 'Pending Verification', value: bn(metrics.pendingVerify), sub: 'TrxID verification pending', to: '/admin/store_orders?filter=verify' },
-        { key: 'confirmed', dot: 'bg-blue-500', label: 'Confirmed / Processing', value: bn(metrics.processing), sub: 'Awaiting courier booking', to: '/admin/store_orders?filter=confirmed' },
-        { key: 'shipped', dot: 'bg-violet-500', label: 'In Transit / Shipped', value: bn(metrics.shipped), sub: 'Delivery in progress', to: '/admin/store_orders?filter=shipped' },
-        { key: 'today', dot: 'bg-green-500', label: "Today's Delivered & Cash", value: `Tk ${bn(metrics.cashToday.toLocaleString())}`, sub: `${bn(metrics.deliveredToday)} orders delivered`, to: '/admin/store_orders?filter=delivered' },
+        { key: 'verify', dot: 'bg-amber-500', label: 'Pending Verification', value: bn(metrics.pendingVerify), sub: 'TrxID verification pending', to: '/admin/orders?filter=verify' },
+        { key: 'confirmed', dot: 'bg-blue-500', label: 'Confirmed / Processing', value: bn(metrics.processing), sub: 'Awaiting courier booking', to: '/admin/orders?filter=confirmed' },
+        { key: 'shipped', dot: 'bg-violet-500', label: 'In Transit / Shipped', value: bn(metrics.shipped), sub: 'Delivery in progress', to: '/admin/orders?filter=shipped' },
+        { key: 'today', dot: 'bg-green-500', label: "Today's Delivered & Cash", value: `Tk ${bn(metrics.cashToday.toLocaleString())}`, sub: `${bn(metrics.deliveredToday)} orders delivered`, to: '/admin/orders?filter=delivered' },
     ];
 
     // ===== quick action tiles =====
     const quickActions = [
         { icon: AddShoppingCartIcon, label: '+ Manual Order', sub: 'Phone order', chip: 'bg-gray-100 text-black', onClick: openManual },
-        { icon: BoltIcon, label: 'Verification Queue', sub: `${bn(metrics.pendingVerify)} TrxIDs pending`, chip: 'bg-amber-100 text-amber-700', onClick: () => navigate('/admin/store_orders?filter=verify') },
+        { icon: BoltIcon, label: 'Verification Queue', sub: `${bn(metrics.pendingVerify)} TrxIDs pending`, chip: 'bg-amber-100 text-amber-700', onClick: () => navigate('/admin/orders?filter=verify') },
         { icon: WarningAmberIcon, label: 'Out of Stock', sub: `${bn(outOfStock)} products`, chip: 'bg-red-100 text-red-600', onClick: () => navigate('/admin/products') },
         { icon: SyncIcon, label: 'Catalog Sync', sub: 'Products', chip: 'bg-gray-100 text-black', onClick: syncCatalog },
-        { icon: ReceiptLongIcon, label: 'Store Order', sub: `${bn(storeOrders.length)} items`, chip: 'bg-gray-100 text-black', onClick: () => navigate('/admin/store_orders') },
+        { icon: ReceiptLongIcon, label: 'Store Order', sub: `${bn(storeOrders.length)} items`, chip: 'bg-gray-100 text-black', onClick: () => navigate('/admin/orders') },
         { icon: ChatBubbleOutlineIcon, label: 'Live Chat', sub: 'Inbox', chip: 'bg-gray-100 text-black', onClick: () => navigate('/admin/chat') },
     ];
 
@@ -519,7 +519,7 @@ const MainData = () => {
                             <p className="text-[11px] text-gray-400">{bn(storeOrders.length)} total orders</p>
                         </div>
                         <button
-                            onClick={() => navigate('/admin/store_orders')}
+                            onClick={() => navigate('/admin/orders')}
                             className="text-xs font-bold text-black shrink-0 hover:underline"
                         >
                             <span className="inline-flex items-center gap-0.5">View all<ArrowForwardIcon sx={{ fontSize: '14px' }} /></span>
@@ -534,7 +534,7 @@ const MainData = () => {
                             return (
                                 <button
                                     key={o._id}
-                                    onClick={() => navigate('/admin/store_orders')}
+                                    onClick={() => navigate('/admin/orders')}
                                     className="w-full flex items-center gap-3 px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 active:bg-gray-100 transition-colors text-left"
                                 >
                                     <span className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 text-gray-700 flex items-center justify-center text-xs font-bold shrink-0">

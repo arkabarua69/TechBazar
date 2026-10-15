@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import EqualizerIcon from '@mui/icons-material/Equalizer';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import InventoryIcon from '@mui/icons-material/Inventory';
@@ -22,9 +22,10 @@ import { useSnackbar } from 'notistack';
 import { logoutUser } from '../../../actions/userAction';
 import { useSiteConfig } from '../../../context/SiteConfigContext';
 
-const Sidebar = ({ activeTab, setToggleSidebar }) => {
+const Sidebar = ({ setToggleSidebar }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { pathname } = useLocation();
     const { enqueueSnackbar } = useSnackbar();
     const { t } = useTranslation();
     const { user } = useSelector((state) => state.user);
@@ -44,7 +45,6 @@ const Sidebar = ({ activeTab, setToggleSidebar }) => {
         { icon: <AddBoxIcon />,      label: t('add_product'),  ref: '/admin/new_product',  id: 'add_product' },
         { icon: <GroupIcon />,       label: t('users'),        ref: '/admin/users',        id: 'users' },
         { icon: <ReviewsIcon />,     label: t('reviews'),      ref: '/admin/reviews',      id: 'reviews' },
-        { icon: <ShoppingBagIcon />, label: t('store_orders'), ref: '/admin/store_orders', id: 'store_orders' },
         { icon: <ChatBubbleIcon />,  label: t('chat_inbox'),   ref: '/admin/chat',         id: 'chat_inbox' },
         { icon: <CategoryIcon />,    label: t('categories'),   ref: '/admin/categories',   id: 'categories' },
         { icon: <SettingsIcon />,    label: t('config'),       ref: '/admin/config',       id: 'config' },
@@ -52,6 +52,23 @@ const Sidebar = ({ activeTab, setToggleSidebar }) => {
         { icon: <AccountBoxIcon />,  label: t('my_profile'),   ref: '/account',            id: 'my_profile' },
         { icon: <LogoutIcon />,      label: t('logout'),                                   id: 'logout' },
     ];
+
+    // Path-based highlight so the menu stays correct even if entries are added
+    // or removed (e.g. the Orders pages were merged into a single page).
+    const itemActive = (id) => {
+        if (id === 'dashboard')  return pathname === '/admin' || pathname === '/admin/dashboard';
+        if (id === 'orders')     return pathname.startsWith('/admin/orders') || pathname.startsWith('/admin/order/') || pathname.startsWith('/admin/store_orders');
+        if (id === 'products')   return pathname.startsWith('/admin/product') && !pathname.startsWith('/admin/products/new');
+        if (id === 'add_product')return pathname.startsWith('/admin/new_product');
+        if (id === 'users')      return pathname.startsWith('/admin/user');
+        if (id === 'reviews')    return pathname.startsWith('/admin/reviews');
+        if (id === 'chat_inbox') return pathname.startsWith('/admin/chat');
+        if (id === 'categories') return pathname.startsWith('/admin/categories');
+        if (id === 'config')     return pathname.startsWith('/admin/config') || pathname.startsWith('/admin/homepage');
+        if (id === 'database')   return pathname.startsWith('/admin/database');
+        if (id === 'my_profile') return pathname.startsWith('/account');
+        return false;
+    };
 
     return (
         <aside
@@ -93,7 +110,7 @@ const Sidebar = ({ activeTab, setToggleSidebar }) => {
 
             {/* Nav items */}
             <nav className="flex flex-col gap-0.5 px-3 py-2">
-                {navMenu.map((item, index) => {
+                {navMenu.map((item) => {
                     const { icon, label, ref, id } = item;
 
                     if (id === 'logout') {
@@ -112,7 +129,7 @@ const Sidebar = ({ activeTab, setToggleSidebar }) => {
                         );
                     }
 
-                    const isActive = activeTab === index;
+                    const isActive = itemActive(id);
                     return (
                         <Link
                             key={id}

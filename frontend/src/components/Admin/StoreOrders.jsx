@@ -96,7 +96,7 @@ const waLink = (phone, text) => {
     return `https://wa.me/${intl}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
 };
 
-const StoreOrders = () => {
+const StoreOrders = ({ embedded = false } = {}) => {
 
     const { enqueueSnackbar } = useSnackbar();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -232,20 +232,29 @@ const StoreOrders = () => {
 
     return (
         <>
-            <MetaData title="Store Orders" />
+            {!embedded && <MetaData title="Store Orders" />}
             {(loading || syncing) && <BackdropLoader />}
 
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-                <h1 className="text-lg sm:text-xl font-extrabold text-gray-900">Store Orders</h1>
-                <div className="flex gap-2">
-                    <button onClick={fetchOrders} className="text-sm font-semibold border border-gray-300 bg-white rounded-full px-4 py-1.5 hover:bg-gray-100">Refresh</button>
-                    <button onClick={syncCatalog} className="text-sm font-semibold bg-black text-white rounded-full px-4 py-1.5 hover:bg-gray-800">Sync catalogue</button>
-                </div>
-            </div>
+            {!embedded ? (
+                <>
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                        <h1 className="text-lg sm:text-xl font-extrabold text-gray-900">Store Orders</h1>
+                        <div className="flex gap-2">
+                            <button onClick={fetchOrders} className="text-sm font-semibold border border-gray-300 bg-white rounded-full px-4 py-1.5 hover:bg-gray-100">Refresh</button>
+                            <button onClick={syncCatalog} className="text-sm font-semibold bg-black text-white rounded-full px-4 py-1.5 hover:bg-gray-800">Sync catalogue</button>
+                        </div>
+                    </div>
 
-            <p className="text-sm text-gray-500 mt-1">
-                Guest orders wait here until you review and approve or cancel them.
-            </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                        Guest orders wait here until you review and approve or cancel them.
+                    </p>
+                </>
+            ) : (
+                <div className="flex justify-end gap-2">
+                    <button onClick={fetchOrders} className="text-xs sm:text-sm font-semibold border border-gray-300 bg-white rounded-full px-3.5 py-1.5 hover:bg-gray-100 active:scale-95 transition">Refresh</button>
+                    <button onClick={syncCatalog} className="text-xs sm:text-sm font-semibold bg-black text-white rounded-full px-3.5 py-1.5 hover:bg-gray-800 active:scale-95 transition">Sync catalogue</button>
+                </div>
+            )}
 
             {/* search — one-tap lookup by name / phone / TrxID */}
             <div className="relative">

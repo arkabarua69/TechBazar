@@ -81,7 +81,7 @@ const AdminAppBar = ({ onMenu }) => {
     }, []);
 
     const openSearch = () => {
-        navigate('/admin/store_orders');
+        navigate('/admin/orders');
         // let the orders page mount first, then focus its search box
         setTimeout(() => window.dispatchEvent(new Event(SEARCH_FOCUS_EVENT)), 250);
     };
@@ -94,11 +94,11 @@ const AdminAppBar = ({ onMenu }) => {
         } catch (e) { /* ignore */ }
         setUnseen(0);
         emitOrdersAlert({ unseen: 0, pendingVerify });
-        navigate('/admin/store_orders?filter=verify');
+        navigate('/admin/orders?filter=verify');
     };
 
     // hide the bell while the orders page itself is open (badge shows inline there)
-    const onOrdersPage = location.pathname.startsWith('/admin/store_orders');
+    const onOrdersPage = location.pathname.startsWith('/admin/orders') || location.pathname.startsWith('/admin/store_orders');
 
     return (
         <div
