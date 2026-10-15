@@ -9,6 +9,7 @@ import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import SettingsIcon from '@mui/icons-material/Settings';
+import CategoryIcon from '@mui/icons-material/Category';
 import StorageIcon from '@mui/icons-material/Storage';
 import CloseIcon from '@mui/icons-material/Close';
 import CopyrightIcon from '@mui/icons-material/Copyright';
@@ -45,6 +46,7 @@ const Sidebar = ({ activeTab, setToggleSidebar }) => {
         { icon: <ReviewsIcon />,     label: t('reviews'),      ref: '/admin/reviews',      id: 'reviews' },
         { icon: <ShoppingBagIcon />, label: t('store_orders'), ref: '/admin/store_orders', id: 'store_orders' },
         { icon: <ChatBubbleIcon />,  label: t('chat_inbox'),   ref: '/admin/chat',         id: 'chat_inbox' },
+        { icon: <CategoryIcon />,    label: t('categories'),   ref: '/admin/categories',   id: 'categories' },
         { icon: <SettingsIcon />,    label: t('config'),       ref: '/admin/config',       id: 'config' },
         { icon: <StorageIcon />,     label: 'Database',        ref: '/admin/database',     id: 'database' },
         { icon: <AccountBoxIcon />,  label: t('my_profile'),   ref: '/account',            id: 'my_profile' },

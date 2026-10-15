@@ -7,6 +7,8 @@ import MetaData from '../Layouts/MetaData';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RemoveShoppingCartIcon from '@mui/icons-material/RemoveShoppingCart';
 import CheckIcon from '@mui/icons-material/Check';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import PaymentsIcon from '@mui/icons-material/Payments';
 import { emptyCart } from '../../actions/cartAction';
 
 const DIVISIONS = [
@@ -246,24 +248,58 @@ const Checkout = () => {
                                 ))}
                             </div>
 
-                            <div className="mt-4 rounded-lg bg-cloud border border-line p-4 text-sm text-slate-600">
-                                <p>
-                                    Send <span className="font-semibold text-slate-900">Tk {deliveryCharge}</span> (delivery charge) to{' '}
-                                    <span className="font-semibold text-slate-900">
-                                        {method === 'bKash' ? (config.payment.bKashNumber || '—') : (config.payment.nagadNumber || '—')}
-                                    </span>{' '}
-                                    using <span className="font-medium">{method}</span>, then paste the Transaction ID below.
-                                </p>
-                                <button
-                                    type="button"
-                                    onClick={() => copyNumber(
-                                        method === 'bKash' ? config.payment.bKashNumber : config.payment.nagadNumber,
-                                        method
-                                    )}
-                                    className="btn-copy mt-3"
-                                >
-                                    {copied === method ? <><CheckIcon sx={{ fontSize: '14px', verticalAlign: 'middle', marginRight: '3px' }} />Copied</> : `Copy ${method} number`}
-                                </button>
+                            {/* step-by-step advance payment guide */}
+                            <div className="mt-4 overflow-hidden rounded-xl border border-primary-accent/25 bg-gradient-to-br from-primary-accent/[0.08] to-primary-accent/[0.02]">
+                                <div className="flex items-center gap-3 px-4 pt-4">
+                                    <span className="w-9 h-9 rounded-xl bg-primary-accent text-white flex items-center justify-center shrink-0 shadow-sm">
+                                        <PaymentsIcon sx={{ fontSize: '18px' }} />
+                                    </span>
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-bold text-slate-900">Pay the advance via {method}</p>
+                                        <p className="text-xs text-slate-500">Delivery charge only — the product price is Cash on Delivery.</p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-3 grid grid-cols-2 border-y border-line bg-white/70">
+                                    <div className="px-4 py-3">
+                                        <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Amount to send</p>
+                                        <p className="text-xl font-extrabold text-slate-900 leading-tight">Tk {deliveryCharge}</p>
+                                    </div>
+                                    <div className="px-4 py-3 border-l border-line flex items-center justify-between gap-2">
+                                        <div className="min-w-0">
+                                            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{method} number</p>
+                                            <p className="text-base font-bold text-slate-900 truncate">
+                                                {(method === 'bKash' ? config.payment.bKashNumber : config.payment.nagadNumber) || '—'}
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => copyNumber(
+                                                method === 'bKash' ? config.payment.bKashNumber : config.payment.nagadNumber,
+                                                method
+                                            )}
+                                            className="btn-copy shrink-0"
+                                            aria-label={`Copy ${method} number`}
+                                        >
+                                            {copied === method
+                                                ? <><CheckIcon sx={{ fontSize: '14px', verticalAlign: 'middle', marginRight: '3px' }} />Copied</>
+                                                : <><ContentCopyIcon sx={{ fontSize: '14px', verticalAlign: 'middle', marginRight: '3px' }} />Copy</>}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <ol className="px-4 py-3 flex flex-col gap-2">
+                                    {[
+                                        `Open ${method} and choose "Send Money".`,
+                                        `Send Tk ${deliveryCharge} to the number shown above.`,
+                                        'Copy the Transaction ID (TrxID) from the confirmation message and paste it below.',
+                                    ].map((step, i) => (
+                                        <li key={i} className="flex items-start gap-2.5 text-xs text-slate-600">
+                                            <span className="mt-px w-5 h-5 rounded-full bg-primary-accent/10 text-primary-accent text-[11px] font-bold flex items-center justify-center shrink-0">{i + 1}</span>
+                                            <span className="leading-relaxed">{step}</span>
+                                        </li>
+                                    ))}
+                                </ol>
                             </div>
 
                             <div className="flex flex-col gap-1 mt-4">

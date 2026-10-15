@@ -37,6 +37,7 @@ import UpdateUser from './components/Admin/UpdateUser';
 import ReviewsTable from './components/Admin/ReviewsTable';
 import StoreOrders from './components/Admin/StoreOrders';
 import ChatInbox from './components/Admin/ChatInbox';
+import CategoryManager from './components/Admin/CategoryManager';
 import WebsiteConfig from './components/Admin/WebsiteConfig';
 import DatabaseManager from './components/Admin/DatabaseManager';
 import More from './components/Admin/More';
@@ -205,7 +206,10 @@ function App() {
         } />
         <Route path="/admin/homepage" element={<Navigate to="/admin/config" replace />} />
         <Route path="/admin/chat" element={
-          <ProtectedRoute isAdmin={true}><Dashboard activeTab={8}><ChatInbox /></Dashboard></ProtectedRoute>
+          <ProtectedRoute isAdmin={true}><Dashboard activeTab={7}><ChatInbox /></Dashboard></ProtectedRoute>
+        } />
+        <Route path="/admin/categories" element={
+          <ProtectedRoute isAdmin={true}><Dashboard activeTab={8}><CategoryManager /></Dashboard></ProtectedRoute>
         } />
         <Route path="/admin/config" element={
           <ProtectedRoute isAdmin={true}><Dashboard activeTab={9}><WebsiteConfig /></Dashboard></ProtectedRoute>

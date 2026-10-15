@@ -974,7 +974,6 @@ const HomepagePanel = () => {
     const [hpConfig, setHpConfig] = useState(null);
     const [hpLoading, setHpLoading] = useState(true);
     const [hpSaving, setHpSaving] = useState(false);
-    const [newCategory, setNewCategory] = useState('');
 
     useEffect(() => {
         setHpLoading(true);
@@ -1267,35 +1266,6 @@ const HomepagePanel = () => {
                     <HomepageField label="Delivery — Outside Dhaka (Tk)" type="number" value={(hpConfig.delivery || {}).outsideDhaka} onChange={(v) => setHpSection('delivery', 'outsideDhaka', v)} />
                     <HomepageField label="Hotline" value={(hpConfig.support || {}).hotline} onChange={(v) => setHpSection('support', 'hotline', v)} placeholder="017XXXXXXXX" />
                     <HomepageField label="WhatsApp" value={(hpConfig.support || {}).whatsapp} onChange={(v) => setHpSection('support', 'whatsapp', v)} placeholder="88017XXXXXXXXX" />
-                </div>
-            </Card>
-
-            {/* Categories */}
-            <Card>
-                <SectionHeading>Product Categories</SectionHeading>
-                <div className="flex flex-col gap-2">
-                    {(hpConfig.categories || []).map((cat, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                            <input value={cat}
-                                onChange={(e) => setHpConfig((prev) => {
-                                    const cats = [...(prev.categories || [])];
-                                    cats[i] = e.target.value;
-                                    return { ...prev, categories: cats };
-                                })}
-                                placeholder="Category name"
-                                className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-orange-400" />
-                            <button onClick={() => setHpConfig((prev) => ({ ...prev, categories: (prev.categories || []).filter((_, idx) => idx !== i) }))}
-                                className="text-xs text-red-500 hover:underline shrink-0">Remove</button>
-                        </div>
-                    ))}
-                </div>
-                <div className="flex gap-2 mt-2">
-                    <input value={newCategory} onChange={(e) => setNewCategory(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (newCategory.trim()) { setHpConfig((prev) => ({ ...prev, categories: [...(prev.categories || []), newCategory.trim()] })); setNewCategory(''); } } }}
-                        placeholder="New category name"
-                        className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-orange-400" />
-                    <button onClick={() => { if (newCategory.trim()) { setHpConfig((prev) => ({ ...prev, categories: [...(prev.categories || []), newCategory.trim()] })); setNewCategory(''); } }}
-                        className="border border-dashed border-gray-400 rounded-xl px-3 py-1.5 text-sm hover:bg-gray-50">+ Add</button>
                 </div>
             </Card>
 
