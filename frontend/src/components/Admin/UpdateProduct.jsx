@@ -7,7 +7,8 @@ import { useSnackbar } from 'notistack';
 import { useNavigate, useParams } from 'react-router-dom';
 import { REMOVE_PRODUCT_DETAILS, UPDATE_PRODUCT_RESET } from '../../constants/productConstants';
 import { clearErrors, getProductDetails, updateProduct } from '../../actions/productAction';
-import ImageIcon from '@mui/icons-material/Image';
+import ImgBBUploader from './ImgBBUploader';
+import MultiImageUploader from './MultiImageUploader';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import { useCategories } from '../../utils/useCategories';
 import MetaData from '../Layouts/MetaData';
@@ -42,11 +43,7 @@ const UpdateProduct = () => {
     const [warranty, setWarranty] = useState(0);
     const [brand, setBrand] = useState("");
     const [images, setImages] = useState([]);
-    const [oldImages, setOldImages] = useState([]);
-    const [imagesPreview, setImagesPreview] = useState([]);
-
     const [logo, setLogo] = useState("");
-    const [logoPreview, setLogoPreview] = useState("");
 
     const handleSpecsChange = (e) => {
         setSpecsInput({ ...specsInput, [e.target.name]: e.target.value });
@@ -72,41 +69,7 @@ const UpdateProduct = () => {
         setSpecs(specs.filter((s, i) => i !== index))
     }
 
-    const handleLogoChange = (e) => {
-        const reader = new FileReader();
-
-        setLogo("");
-        setLogoPreview("");
-
-        reader.onload = () => {
-            if (reader.readyState === 2) {
-                setLogoPreview(reader.result);
-                setLogo(reader.result);
-            }
-        };
-
-        reader.readAsDataURL(e.target.files[0]);
-    }
-
-    const handleProductImageChange = (e) => {
-        const files = Array.from(e.target.files);
-
-        setImages([]);
-        setImagesPreview([]);
-        setOldImages([]);
-
-        files.forEach((file) => {
-            const reader = new FileReader();
-
-            reader.onload = () => {
-                if (reader.readyState === 2) {
-                    setImagesPreview((oldData) => [...oldData, reader.result]);
-                    setImages((oldData) => [...oldData, reader.result]);
-                }
-            }
-            reader.readAsDataURL(file);
-        });
-    }
+    const handleLogoUploaded = (url) => setLogo(url || '');
 
     const newProductSubmitHandler = (e) => {
         e.preventDefault();
@@ -133,9 +96,9 @@ const UpdateProduct = () => {
         formData.set("brandname", brand);
         formData.set("logo", logo);
 
-        images.forEach((image) => {
-            formData.append("images", image);
-        });
+        // Send the full (existing + new) hosted-URL list so the backend can
+        // preserve unchanged images and honour removals.
+        formData.set("images", JSON.stringify(images));
 
         highlights.forEach((h) => {
             formData.append("highlights", h);
@@ -177,8 +140,9 @@ const UpdateProduct = () => {
             setSpecs(product.specifications);
             setColors(product.colors?.join(", ") || "");
             setInTheBox(product.inTheBox?.join(", ") || "");
-            setOldImages(product.images);
-            setLogoPreview(product.brand.logo.url);
+            // Existing images (hosted URLs) pre-filled so they're kept unless removed.
+            setImages((product.images || []).map((img) => img.url).filter(Boolean));
+            setLogo(product.brand?.logo?.url || "");
         }
         if (error) {
             enqueueSnackbar(error, { variant: "error" });
@@ -347,7 +311,7 @@ const UpdateProduct = () => {
                     </div>
 
                     <h2 className="font-semibold text-gray-900">Brand Details</h2>
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:gap-4 items-stretch sm:items-center">
+                    <div className="flex flex-col gap-3">
                         <TextField
                             label="Brand"
                             type="text"
@@ -358,21 +322,12 @@ const UpdateProduct = () => {
                             value={brand}
                             onChange={(e) => setBrand(e.target.value)}
                         />
-                        <div className="w-24 h-10 flex items-center justify-center border rounded-lg">
-                            {!logoPreview ? <ImageIcon /> :
-                                <img draggable="false" src={logoPreview} alt="Brand Logo" className="w-full h-full object-contain" />
-                            }
-                        </div>
-                        <label className="rounded bg-gray-400 text-center cursor-pointer text-white py-2 px-2.5 shadow hover:shadow-lg w-full sm:w-auto">
-                            <input
-                                type="file"
-                                name="logo"
-                                accept="image/*"
-                                onChange={handleLogoChange}
-                                className="hidden"
-                            />
-                            Choose Logo
-                        </label>
+                        <ImgBBUploader
+                            label="Brand Logo"
+                            currentUrl={logo}
+                            onUploaded={handleLogoUploaded}
+                            previewClass="max-h-16 max-w-full object-contain"
+                        />
                     </div>
 
                 </div>
@@ -399,25 +354,7 @@ const UpdateProduct = () => {
                     </div>
 
                     <h2 className="font-semibold text-gray-900">Product Images</h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 h-32 border border-gray-200 rounded-xl overflow-y-auto p-2">
-                        {oldImages && oldImages.map((image, i) => (
-                            <img draggable="false" src={image.url} alt="Product" key={i} className="w-full h-24 object-contain bg-gray-50 rounded-lg border" />
-                        ))}
-                        {imagesPreview.map((image, i) => (
-                            <img draggable="false" src={image} alt="Product" key={i} className="w-full h-24 object-contain bg-gray-50 rounded-lg border" />
-                        ))}
-                    </div>
-                    <label className="rounded-xl font-semibold bg-gray-100 border border-gray-200 text-center cursor-pointer text-gray-800 p-2.5 shadow-sm hover:shadow my-2">
-                        <input
-                            type="file"
-                            name="images"
-                            accept="image/*"
-                            multiple
-                            onChange={handleProductImageChange}
-                            className="hidden"
-                        />
-                        Choose Files
-                    </label>
+                    <MultiImageUploader label="Product Images" value={images} onChange={setImages} max={8} />
 
                     <div className="flex justify-end">
                         <input form="mainform" type="submit" className="bg-black w-full sm:w-1/3 p-3 text-white font-semibold rounded-xl shadow hover:shadow-lg cursor-pointer active:scale-[0.98] transition" value="Update" />

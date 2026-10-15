@@ -4,6 +4,41 @@ const SearchFeatures = require('../utils/searchFeatures');
 const ErrorHandler = require('../utils/errorHandler');
 const { uploadToImgBBCompat } = require('../utils/imgbb');
 
+// An image value may arrive as:
+//   • an already-hosted http(s) URL (uploaded client-side via the ImgBB uploader
+//     or pasted by the admin)  → store as-is, no re-upload
+//   • a base64 data URI / raw base64 (legacy picker flow) → upload to ImgBB
+const isHostedUrl = (value) =>
+    typeof value === 'string' && /^https?:\/\//i.test(value.trim());
+
+const resolveImage = async (value, name) => {
+    if (isHostedUrl(value)) {
+        return { public_id: '', url: value.trim() };
+    }
+    return uploadToImgBBCompat(value, name);
+};
+
+// `images` may arrive as a real array, a JSON array string, or a single string
+// (legacy clients). Returns an array of raw values, or undefined when absent.
+const normalizeImages = (raw) => {
+    if (raw === undefined || raw === null) return undefined;
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw === 'string') {
+        const t = raw.trim();
+        if (!t) return [];
+        if (t.startsWith('[')) {
+            try {
+                const parsed = JSON.parse(t);
+                return Array.isArray(parsed) ? parsed : [t];
+            } catch {
+                return [t];
+            }
+        }
+        return [t];
+    }
+    return [];
+};
+
 // Get All Products (public, paginated + filtered)
 exports.getAllProducts = asyncErrorHandler(async (req, res, next) => {
     const resultPerPage = 12;
@@ -60,22 +95,19 @@ exports.getAdminProducts = asyncErrorHandler(async (req, res, next) => {
 
 // Create Product — ADMIN
 exports.createProduct = asyncErrorHandler(async (req, res, next) => {
-    let images = [];
-    if (typeof req.body.images === "string") {
-        images.push(req.body.images);
-    } else {
-        images = req.body.images || [];
-    }
+    const images = normalizeImages(req.body.images) || [];
 
     const imagesLink = [];
     for (let i = 0; i < images.length; i++) {
-        const result = await uploadToImgBBCompat(images[i], `product-${Date.now()}-${i}`);
+        const value = String(images[i] || '').trim();
+        if (!value) continue;
+        const result = await resolveImage(value, `product-${Date.now()}-${i}`);
         imagesLink.push(result);
     }
 
     let brandLogo = { public_id: "", url: "" };
     if (req.body.logo) {
-        const result = await uploadToImgBBCompat(req.body.logo, `brand-logo-${Date.now()}`);
+        const result = await resolveImage(req.body.logo, `brand-logo-${Date.now()}`);
         brandLogo = result;
     }
 
@@ -108,23 +140,20 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
     }
 
     if (req.body.images !== undefined) {
-        let images = [];
-        if (typeof req.body.images === "string") {
-            images.push(req.body.images);
-        } else {
-            images = req.body.images;
-        }
+        const images = normalizeImages(req.body.images) || [];
 
         const imagesLink = [];
         for (let i = 0; i < images.length; i++) {
-            const result = await uploadToImgBBCompat(images[i], `product-${req.params.id}-${i}`);
+            const value = String(images[i] || '').trim();
+            if (!value) continue;
+            const result = await resolveImage(value, `product-${req.params.id}-${i}`);
             imagesLink.push(result);
         }
         req.body.images = imagesLink;
     }
 
     if (req.body.logo && req.body.logo.length > 0) {
-        const result = await uploadToImgBBCompat(req.body.logo, `brand-logo-${req.params.id}`);
+        const result = await resolveImage(req.body.logo, `brand-logo-${req.params.id}`);
         req.body.brand = {
             name: req.body.brandname,
             logo: result,

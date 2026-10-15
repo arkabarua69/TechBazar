@@ -7,8 +7,9 @@ import { useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
 import { NEW_PRODUCT_RESET } from '../../constants/productConstants';
 import { createProduct, clearErrors } from '../../actions/productAction';
-import ImageIcon from '@mui/icons-material/Image';
 import { useCategories } from '../../utils/useCategories';
+import ImgBBUploader from './ImgBBUploader';
+import MultiImageUploader from './MultiImageUploader';
 import MetaData from '../Layouts/MetaData';
 import BackdropLoader from '../Layouts/BackdropLoader';
 
@@ -40,10 +41,8 @@ const NewProduct = () => {
     const [warranty, setWarranty] = useState(0);
     const [brand, setBrand] = useState("");
     const [images, setImages] = useState([]);
-    const [imagesPreview, setImagesPreview] = useState([]);
 
     const [logo, setLogo] = useState("");
-    const [logoPreview, setLogoPreview] = useState("");
 
     const handleSpecsChange = (e) => {
         setSpecsInput({ ...specsInput, [e.target.name]: e.target.value });
@@ -69,37 +68,7 @@ const NewProduct = () => {
         setSpecs(specs.filter((s, i) => i !== index))
     }
 
-    const handleLogoChange = (e) => {
-        const reader = new FileReader();
-
-        reader.onload = () => {
-            if (reader.readyState === 2) {
-                setLogoPreview(reader.result);
-                setLogo(reader.result);
-            }
-        };
-
-        reader.readAsDataURL(e.target.files[0]);
-    }
-
-    const handleProductImageChange = (e) => {
-        const files = Array.from(e.target.files);
-
-        setImages([]);
-        setImagesPreview([]);
-
-        files.forEach((file) => {
-            const reader = new FileReader();
-
-            reader.onload = () => {
-                if (reader.readyState === 2) {
-                    setImagesPreview((oldImages) => [...oldImages, reader.result]);
-                    setImages((oldImages) => [...oldImages, reader.result]);
-                }
-            }
-            reader.readAsDataURL(file);
-        });
-    }
+    const handleLogoUploaded = (url) => setLogo(url || '');
 
     const newProductSubmitHandler = (e) => {
         e.preventDefault();
@@ -116,9 +85,7 @@ const NewProduct = () => {
         formData.set("brandname", brand);
         formData.set("logo", logo);
 
-        images.forEach((image) => {
-            formData.append("images", image);
-        });
+        formData.set("images", JSON.stringify(images));
 
         highlights.forEach((h) => {
             formData.append("highlights", h);
@@ -296,7 +263,7 @@ const NewProduct = () => {
                     </div>
 
                     <h2 className="font-semibold text-gray-900">Brand Details</h2>
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:gap-4 items-stretch sm:items-center">
+                    <div className="flex flex-col gap-3">
                         <TextField
                             label="Brand"
                             type="text"
@@ -306,21 +273,12 @@ const NewProduct = () => {
                             value={brand}
                             onChange={(e) => setBrand(e.target.value)}
                         />
-                        <div className="w-24 h-10 flex items-center justify-center border rounded-lg">
-                            {!logoPreview ? <ImageIcon /> :
-                                <img draggable="false" src={logoPreview} alt="Brand Logo" className="w-full h-full object-contain" />
-                            }
-                        </div>
-                        <label className="rounded bg-gray-400 text-center cursor-pointer text-white py-2 px-2.5 shadow hover:shadow-lg w-full sm:w-auto">
-                            <input
-                                type="file"
-                                name="logo"
-                                accept="image/*"
-                                onChange={handleLogoChange}
-                                className="hidden"
-                            />
-                            Choose Logo
-                        </label>
+                        <ImgBBUploader
+                            label="Brand Logo"
+                            currentUrl={logo}
+                            onUploaded={handleLogoUploaded}
+                            previewClass="max-h-16 max-w-full object-contain"
+                        />
                     </div>
 
                 </div>
@@ -347,22 +305,7 @@ const NewProduct = () => {
                     </div>
 
                     <h2 className="font-semibold text-gray-900">Product Images</h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 h-32 border border-gray-200 rounded-xl overflow-y-auto p-2">
-                        {imagesPreview.map((image, i) => (
-                            <img draggable="false" src={image} alt="Product" key={i} className="w-full h-24 object-contain bg-gray-50 rounded-lg border" />
-                        ))}
-                    </div>
-                    <label className="rounded-xl font-semibold bg-gray-100 border border-gray-200 text-center cursor-pointer text-gray-800 p-2.5 shadow-sm hover:shadow my-2">
-                        <input
-                            type="file"
-                            name="images"
-                            accept="image/*"
-                            multiple
-                            onChange={handleProductImageChange}
-                            className="hidden"
-                        />
-                        Choose Files
-                    </label>
+                    <MultiImageUploader label="Product Images" value={images} onChange={setImages} max={8} />
 
                     <div className="flex justify-end">
                         <input form="mainform" type="submit" className="bg-black w-full sm:w-1/3 p-3 text-white font-semibold rounded-xl shadow hover:shadow-lg cursor-pointer active:scale-[0.98] transition" value="Submit" />
