@@ -5,8 +5,8 @@
  * Returns the full ImgBB response `data` object so callers can pick the URL
  * variant they need (url, display_url, thumb.url, delete_url, etc.).
  *
- * The API key is read from the database (websiteconfig.imgbb.apiKey) first;
- * if not configured there it falls back to the IMGBB_API_KEY env variable.
+ * The API key is stored ONLY in the database (websiteconfig.imgbb.apiKey) and
+ * is managed from Admin → Config → ImgBB Settings. It is never taken from env.
  *
  * Usage:
  *   const { uploadToImgBB } = require('../utils/imgbb');
@@ -33,25 +33,34 @@ const sanitizeKey = (value) => {
 
 /**
  * Resolve the active ImgBB API key.
- * Prefers the DB-stored key (so admins can change it without redeploying).
- * Falls back to the env variable as a safety net. The key is never logged.
+ * The key lives ONLY in the database (websiteconfig.imgbb.apiKey) and is managed
+ * from Admin → Config → ImgBB Settings. It is never read from environment
+ * variables. The key is never logged.
  */
 async function resolveApiKey() {
     // Lazy-require to avoid circular dependency issues at module load time
     try {
         const WebsiteConfig = require('../models/websiteConfigModel');
         const cfg = await WebsiteConfig.getCurrentConfig();
-        const dbKey = sanitizeKey(cfg?.imgbb?.apiKey);
-        if (dbKey) return dbKey;
+        return sanitizeKey(cfg?.imgbb?.apiKey);
     } catch (_) {
-        // DB might not be available during startup — fall through
+        // DB might not be available during startup
+        return null;
     }
-    return sanitizeKey(process.env.IMGBB_API_KEY);
 }
 
 // Map raw ImgBB errors to clear, actionable messages for the admin.
 const friendlyError = (raw, statusCode) => {
     const message = String(raw || '').trim();
+    if (/forbidden/i.test(message)) {
+        return (
+            'ImgBB refused the request ("You have been forbidden to use this website"). ' +
+            'This is an ImgBB-side block on the account that owns the key (for example an ' +
+            'unconfirmed email or a flagged/banned account) — not a problem with this website. ' +
+            'Sign in at imgbb.com, confirm your account, generate a fresh API key, and save it in ' +
+            'Admin → Config → ImgBB Settings. If it still fails, create a new ImgBB account.'
+        );
+    }
     if (/invalid api v1 key/i.test(message) || /invalid.*key/i.test(message)) {
         return (
             'The configured ImgBB API key is invalid or not activated. ' +
@@ -85,7 +94,7 @@ async function uploadToImgBB(imageData, name = '', expiration = null, apiKeyOver
     if (!apiKey) {
         throw new Error(
             'ImgBB API key is not configured. ' +
-            'Set IMGBB_API_KEY in config.env or add one in Admin → Config → ImgBB Settings.'
+            'Add one in Admin → Config → ImgBB Settings.'
         );
     }
 
