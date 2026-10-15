@@ -33,4 +33,11 @@ export const categoryImage = (name) => {
     return CATEGORY_ICON_MAP[key] || DEFAULT_CATEGORY_IMAGE;
 };
 
+// Resolve an image using an admin-provided override map first (keyed by the
+// exact category name), then falling back to the built-in keyword image.
+export const resolveCategoryImage = (name, images) => {
+    const custom = images && typeof images === 'object' ? images[name] : '';
+    return custom || categoryImage(name);
+};
+
 export default categoryImage;

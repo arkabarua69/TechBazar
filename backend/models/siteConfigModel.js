@@ -85,6 +85,9 @@ const DEFAULT_CONFIG = {
         whatsapp: '8801700000000',
     },
     categories: ['Electronics','Mobiles','Laptops','Fashion','Appliances','Home'],
+    // Optional custom image per category — { "Mobiles": "https://…" }.
+    // When empty, the storefront falls back to the built-in keyword image.
+    categoryImages: {},
     howToOrder: [
         { icon: 'ShoppingCart', title: 'Choose Your Product',     description: "Click the 'Order Now' button." },
         { icon: 'Payments',     title: 'Pay the Delivery Charge', description: 'Tk 70 inside Dhaka, Tk 130 outside — send via bKash or Nagad.' },
@@ -248,6 +251,8 @@ const siteConfigSchema = new mongoose.Schema({
         whatsapp: { type: String, default: DEFAULT_CONFIG.support.whatsapp },
     },
     categories: { type: [String], default: DEFAULT_CONFIG.categories },
+    // name → image URL map (Mixed keeps an arbitrary key set clean & simple)
+    categoryImages: { type: mongoose.Schema.Types.Mixed, default: () => ({ ...DEFAULT_CONFIG.categoryImages }) },
     branding: {
         name:       { type: String, default: DEFAULT_CONFIG.branding.name },
         tagline:    { type: String, default: DEFAULT_CONFIG.branding.tagline },

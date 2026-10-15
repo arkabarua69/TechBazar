@@ -63,6 +63,7 @@ export const DEFAULT_SITE_CONFIG = {
         'Appliances',
         'Home',
     ],
+    categoryImages: {},
     howToOrder: [
         { icon: 'ShoppingCart', title: 'Choose Your Product', description: "Click the 'Order Now' button." },
         { icon: 'Payments',     title: 'Pay the Delivery Charge', description: 'Tk 70 inside Dhaka, Tk 130 outside — send via bKash or Nagad.' },

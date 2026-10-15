@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useSiteConfig } from '../../context/SiteConfigContext';
-import { categoryImage } from '../../utils/categoryIcons';
+import { resolveCategoryImage } from '../../utils/categoryIcons';
 
 const norm = (c) => String(typeof c === 'string' ? c : c?.name || '').trim();
 
@@ -11,6 +11,7 @@ const CategoryShowcase = ({ categories }) => {
         ? categories
         : (Array.isArray(config.categories) ? config.categories : []);
     const list = source.map(norm).filter(Boolean);
+    const imageMap = config.categoryImages || {};
 
     if (!list.length) return null;
 
@@ -42,7 +43,7 @@ const CategoryShowcase = ({ categories }) => {
                             >
                                 <img
                                     draggable="false"
-                                    src={categoryImage(name)}
+                                    src={resolveCategoryImage(name, imageMap)}
                                     alt={name}
                                     className="w-10 h-10 sm:w-11 sm:h-11 object-contain"
                                 />

@@ -63,6 +63,17 @@ const updateSiteConfig = async (req, res) => {
                 body.categories.map((c) => String(c).trim()).filter(Boolean)
             )].slice(0, 30);
         }
+        // category image map — { "Mobiles": "https://…" }. The client always
+        // sends the full map, so we replace it (clearing an image removes it).
+        if (body.categoryImages && typeof body.categoryImages === 'object' && !Array.isArray(body.categoryImages)) {
+            const clean = {};
+            Object.entries(body.categoryImages).slice(0, 60).forEach(([k, v]) => {
+                const key = String(k).trim().slice(0, 60);
+                const url = String(v || '').trim().slice(0, 500);
+                if (key && url) clean[key] = url;
+            });
+            update.categoryImages = clean;
+        }
         if (Array.isArray(body.trustBadges)) update.trustBadges = body.trustBadges;
         if (Array.isArray(body.howToOrder)) update.howToOrder = body.howToOrder;
         if (Array.isArray(body.reviews)) update.reviews = body.reviews;
