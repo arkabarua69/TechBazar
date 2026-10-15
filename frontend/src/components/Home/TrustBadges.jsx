@@ -17,11 +17,6 @@ const ICON_MAP = {
     Security:      SecurityIcon,
     Star:          StarIcon,
     CheckCircle:   CheckCircleIcon,
-    // legacy emoji fallback keys
-    '💵': AttachMoneyIcon,
-    '⚡': FlashOnIcon,
-    '✅': VerifiedIcon,
-    '🎧': HeadsetMicIcon,
 };
 
 const BadgeIcon = ({ iconKey }) => {

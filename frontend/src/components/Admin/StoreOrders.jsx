@@ -9,6 +9,13 @@ import BottomSheet from './BottomSheet';
 import PhoneIcon from '@mui/icons-material/Phone';
 import ChatIcon from '@mui/icons-material/Chat';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import SearchIcon from '@mui/icons-material/Search';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+import CheckIcon from '@mui/icons-material/Check';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import {
     bn,
     shortOrderId,
@@ -54,7 +61,7 @@ const FULFILMENT_OPTIONS = ['PLACED', 'CONFIRMED', 'SHIPPED', 'DELIVERED'];
 // queue filters (chips)
 const FILTERS = [
     { id: 'all', label: 'All' },
-    { id: 'verify', label: '⚠ Verify TrxID' },
+    { id: 'verify', label: 'Verify TrxID' },
     { id: 'pending', label: 'Pending approval' },
     { id: 'confirmed', label: 'Confirmed' },
     { id: 'shipped', label: 'Shipped' },
@@ -130,7 +137,7 @@ const StoreOrders = () => {
         fetchOrders();
     }, [fetchOrders]);
 
-    // the app bar's 🔍 icon dispatches this after navigating here
+    // the app bar's search icon dispatches this after navigating here
     useEffect(() => {
         const focus = () => searchRef.current?.focus();
         window.addEventListener(SEARCH_FOCUS_EVENT, focus);
@@ -167,7 +174,7 @@ const StoreOrders = () => {
         }
     };
 
-    // Pending ➔ Confirmed ➔ Shipped ➔ Delivered + TrxID verification
+    // Pending -> Confirmed -> Shipped -> Delivered + TrxID verification
     const updateStatus = async (id, body, successMsg) => {
         setBusyId(id);
         try {
@@ -242,7 +249,7 @@ const StoreOrders = () => {
 
             {/* search — one-tap lookup by name / phone / TrxID */}
             <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 flex items-center"><SearchIcon sx={{ fontSize: '18px' }} /></span>
                 <input
                     ref={searchRef}
                     type="text"
@@ -312,7 +319,7 @@ const StoreOrders = () => {
                                 </div>
 
                                 <p className="text-xs text-gray-600 mt-2 flex items-start gap-1">
-                                    <span className="text-gray-400">📍</span>
+                                    <span className="text-gray-400 mt-0.5"><LocationOnIcon sx={{ fontSize: '14px' }} /></span>
                                     <span className="line-clamp-2">{order.customer?.address}{order.customer?.area ? `, ${order.customer.area}` : ''}, {order.customer?.district}, {order.customer?.division}</span>
                                 </p>
 
@@ -325,13 +332,17 @@ const StoreOrders = () => {
                                             onClick={(e) => { e.stopPropagation(); doCopy(order.payment?.transactionId); }}
                                             className="ml-auto text-[11px] font-medium bg-white border rounded px-2 py-1 text-gray-600 active:bg-gray-100"
                                         >
-                                            ⧉ Copy
+                                            <ContentCopyIcon sx={{ fontSize: '12px', verticalAlign: 'middle', marginRight: '3px' }} />Copy
                                         </button>
                                     </div>
                                     <div className="flex items-center justify-between mt-1.5 text-[11px] gap-2">
                                         <span className="text-gray-600">Advance (delivery): <b>Tk {bn(order.delivery?.charge)}</b></span>
                                         <span className={order.payment?.verified ? 'text-green-600 font-semibold' : 'text-amber-600 font-semibold'}>
-                                            {order.payment?.verified ? '✓ Verified' : '⚠ TrxID pending verification'}
+                                            {order.payment?.verified ? (
+                                                <span className="inline-flex items-center gap-1"><CheckIcon sx={{ fontSize: '13px' }} /> Verified</span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1"><WarningAmberIcon sx={{ fontSize: '13px' }} /> TrxID pending verification</span>
+                                            )}
                                         </span>
                                     </div>
                                     <p className="text-[11px] text-gray-600 mt-0.5">
@@ -375,7 +386,7 @@ const StoreOrders = () => {
                                     disabled={busy}
                                     className="flex-1 text-xs font-semibold bg-black text-white rounded-lg py-2 active:bg-gray-800 disabled:opacity-50"
                                 >
-                                    Status ▸
+                                    <span className="inline-flex items-center gap-0.5">Status<ChevronRightIcon sx={{ fontSize: '14px' }} /></span>
                                 </button>
                             </div>
                         </article>
@@ -525,7 +536,7 @@ const StoreOrders = () => {
 
                         <div className="rounded-xl bg-gray-50 p-3 text-sm space-y-1">
                             <p className="font-semibold text-gray-900">{sheetOrder.customer?.name}</p>
-                            <a href={`tel:${sheetOrder.customer?.phone}`} className="block text-black font-medium">📞 {sheetOrder.customer?.phone}</a>
+                            <a href={`tel:${sheetOrder.customer?.phone}`} className="text-black font-medium flex items-center gap-1"><PhoneIcon sx={{ fontSize: '15px' }} />{sheetOrder.customer?.phone}</a>
                             <p className="text-gray-600">
                                 {sheetOrder.customer?.address}{sheetOrder.customer?.area ? `, ${sheetOrder.customer.area}` : ''},
                                 {' '}{sheetOrder.customer?.district}, {sheetOrder.customer?.division}
@@ -539,7 +550,7 @@ const StoreOrders = () => {
                                 <button
                                     onClick={() => doCopy(sheetOrder.payment?.transactionId)}
                                     className="ml-auto text-xs bg-white border rounded px-2 py-1"
-                                >⧉ Copy</button>
+                                ><ContentCopyIcon sx={{ fontSize: '12px', verticalAlign: 'middle', marginRight: '3px' }} />Copy</button>
                             </div>
                             <p className="text-xs text-gray-600">
                                 Advance (delivery): <b>Tk {bn(sheetOrder.delivery?.charge)}</b> · {zoneLabel(sheetOrder)}
@@ -550,7 +561,11 @@ const StoreOrders = () => {
                             <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
                                 sheetOrder.payment?.verified ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-800'
                             }`}>
-                                {sheetOrder.payment?.verified ? '✓ TrxID verified' : '⚠ TrxID pending'}
+                                {sheetOrder.payment?.verified ? (
+                                    <span className="inline-flex items-center gap-1"><CheckIcon sx={{ fontSize: '13px' }} /> TrxID verified</span>
+                                ) : (
+                                    <span className="inline-flex items-center gap-1"><WarningAmberIcon sx={{ fontSize: '13px' }} /> TrxID pending</span>
+                                )}
                             </span>
                         </div>
 
@@ -569,7 +584,7 @@ const StoreOrders = () => {
                                 onClick={() => setSheet({ id: sheetOrder._id, mode: 'actions' })}
                                 className="bg-black text-white rounded-xl py-2.5 text-sm font-semibold active:bg-gray-800"
                             >
-                                Update status ▸
+                                <span className="inline-flex items-center justify-center gap-0.5">Update status<ChevronRightIcon sx={{ fontSize: '14px' }} /></span>
                             </button>
                             <a
                                 href={waLink(sheetOrder.customer?.phone, `Inquiry about your order #${shortOrderId(sheetOrder._id)}`)}
@@ -577,7 +592,8 @@ const StoreOrders = () => {
                                 rel="noreferrer"
                                 className="bg-green-50 text-green-700 border border-green-200 rounded-xl py-2.5 text-sm font-semibold text-center active:bg-green-100"
                             >
-                                💬 WhatsApp
+                                <WhatsAppIcon sx={{ fontSize: '16px' }} />
+                                WhatsApp
                             </a>
                         </div>
                     </div>
@@ -613,7 +629,7 @@ const StoreOrders = () => {
                                         <span className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
                                             current ? 'bg-black text-white' : done ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
                                         }`}>
-                                            {done && !current ? '✓' : bn(idx + 1)}
+                                            {done && !current ? <CheckIcon sx={{ fontSize: '14px' }} /> : bn(idx + 1)}
                                         </span>
                                         {STEPPER_LABELS[key]}
                                         {current && <span className="ml-auto text-xs">current</span>}
@@ -624,7 +640,7 @@ const StoreOrders = () => {
 
                         {/* TrxID verification toggle */}
                         <button
-                            onClick={() => updateStatus(sheetOrder._id, { paymentVerified: !sheetOrder.payment?.verified }, sheetOrder.payment?.verified ? 'TrxID unverified' : 'TrxID verified ✓')}
+                            onClick={() => updateStatus(sheetOrder._id, { paymentVerified: !sheetOrder.payment?.verified }, sheetOrder.payment?.verified ? 'TrxID unverified' : 'TrxID verified')}
                             disabled={busyId === sheetOrder._id}
                             className={`w-full rounded-xl border px-3 py-3 text-sm font-semibold disabled:opacity-50 ${
                                 sheetOrder.payment?.verified
@@ -632,7 +648,11 @@ const StoreOrders = () => {
                                     : 'border-amber-200 bg-amber-50 text-amber-700'
                             }`}
                         >
-                            {sheetOrder.payment?.verified ? '✓ TrxID verified — tap to undo' : '⚠ Verify TrxID (advance payment)'}
+                            {sheetOrder.payment?.verified ? (
+                                <span className="inline-flex items-center gap-1"><CheckIcon sx={{ fontSize: '15px' }} /> TrxID verified — tap to undo</span>
+                            ) : (
+                                <span className="inline-flex items-center gap-1"><WarningAmberIcon sx={{ fontSize: '15px' }} /> Verify TrxID (advance payment)</span>
+                            )}
                         </button>
 
                         <div className="grid grid-cols-2 gap-2">

@@ -6,6 +6,7 @@ import { useSnackbar } from 'notistack';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import MetaData from '../Layouts/MetaData';
 import { useSiteConfig } from '../../context/SiteConfigContext';
+import PersonIcon from '@mui/icons-material/Person';
 
 const Register = () => {
     const { config } = useSiteConfig();
@@ -157,7 +158,7 @@ const Register = () => {
                                     style={{ borderColor: 'var(--color-border)' }}>
                                     {avatarPreview
                                         ? <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover rounded-full" />
-                                        : <span className="text-xl">👤</span>}
+                                        : <PersonIcon sx={{ fontSize: '22px', color: 'var(--color-text-muted)' }} />}
                                 </div>
                                 <span className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
                                     {avatarPreview ? 'Change photo' : 'Add profile photo (optional)'}

@@ -6,6 +6,7 @@ import { useSnackbar } from 'notistack';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import MetaData from '../Layouts/MetaData';
 import { useSiteConfig } from '../../context/SiteConfigContext';
+import AppleIcon from '@mui/icons-material/Apple';
 
 // Social login icon buttons (UI only — OAuth integration separate)
 const SocialBtn = ({ children, label }) => (
@@ -141,7 +142,7 @@ const Login = () => {
                         <div className="flex items-center justify-center gap-4">
                             <SocialBtn label="Google">G</SocialBtn>
                             <SocialBtn label="Facebook">f</SocialBtn>
-                            <SocialBtn label="Apple">🍎</SocialBtn>
+                            <SocialBtn label="Apple"><AppleIcon sx={{ fontSize: '18px' }} /></SocialBtn>
                         </div>
 
                     </div>

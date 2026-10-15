@@ -5,6 +5,7 @@ import Loader from '../Layouts/Loader';
 import { useSnackbar } from 'notistack';
 import OrderItem from './OrderItem';
 import SearchIcon from '@mui/icons-material/Search';
+import Inventory2Icon from '@mui/icons-material/Inventory2';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import MetaData from '../Layouts/MetaData';
 
@@ -143,7 +144,7 @@ const MyOrders = () => {
                 {loading ? <Loader /> : (
                     filteredOrders.length === 0 ? (
                         <div className="surface flex flex-col items-center justify-center gap-3 p-10 text-center">
-                            <span className="text-5xl">📦</span>
+                            <Inventory2Icon sx={{ fontSize: '3rem', color: 'var(--color-text-muted)' }} />
                             <h3 className="font-bold text-lg" style={{ color: 'var(--color-text-primary)' }}>No orders found</h3>
                             <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                                 {status || +orderTime !== 0 ? 'Try clearing the filters' : "You haven't placed any orders yet"}

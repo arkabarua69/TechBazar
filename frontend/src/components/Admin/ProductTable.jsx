@@ -12,6 +12,8 @@ import Actions from './Actions';
 import MetaData from '../Layouts/MetaData';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import BottomSheet from './BottomSheet';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { shortOrderId } from '../../utils/adminHelpers';
 
 const ProductTable = () => {
@@ -44,7 +46,7 @@ const ProductTable = () => {
         dispatch(deleteProduct(id));
     }
 
-    // ★ Featured on/off — admin picks which products the homepage shows first
+    // Featured on/off — admin picks which products the homepage shows first
     const [togglingId, setTogglingId] = useState(null);
     const toggleFeaturedHandler = async (id) => {
         setTogglingId(id);
@@ -167,7 +169,9 @@ const ProductTable = () => {
                                 ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
                                 : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                         }`}>
-                        {params.row.featured ? "★ Featured" : "☆ Feature"}
+                        {params.row.featured
+                            ? <span className="inline-flex items-center gap-1"><StarIcon sx={{ fontSize: '14px' }} /> Featured</span>
+                            : <span className="inline-flex items-center gap-1"><StarBorderIcon sx={{ fontSize: '14px' }} /> Feature</span>}
                     </button>
                 );
             },
@@ -298,7 +302,9 @@ const ProductTable = () => {
                                         : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                                 }`}
                             >
-                                {product.featured ? "★ Featured" : "☆ Feature"}
+                                {product.featured
+                                    ? <span className="inline-flex items-center gap-1"><StarIcon sx={{ fontSize: '14px' }} /> Featured</span>
+                                    : <span className="inline-flex items-center gap-1"><StarBorderIcon sx={{ fontSize: '14px' }} /> Feature</span>}
                             </button>
                             <Actions
                                 editRoute={"product"}

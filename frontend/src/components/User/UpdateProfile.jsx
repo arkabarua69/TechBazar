@@ -6,6 +6,7 @@ import { UPDATE_PROFILE_RESET } from '../../constants/userConstants';
 import { useSnackbar } from 'notistack';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import MetaData from '../Layouts/MetaData';
+import PersonIcon from '@mui/icons-material/Person';
 
 const UpdateProfile = () => {
     const dispatch = useDispatch();
@@ -79,7 +80,7 @@ const UpdateProfile = () => {
                                     style={{ borderColor: 'var(--color-accent)' }}>
                                     {avatarPreview
                                         ? <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
-                                        : <span className="text-2xl">👤</span>}
+                                        : <PersonIcon sx={{ fontSize: '28px', color: 'var(--color-accent)' }} />}
                                 </div>
                                 <span className="text-sm font-medium" style={{ color: 'var(--color-accent)' }}>Change photo</span>
                                 <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />

@@ -258,7 +258,7 @@ const ChatWidget = () => {
                         <>
                             <div ref={bodyRef} className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-2 bg-cloud">
                                 <div className="self-center text-xxs text-slate-400 bg-white border border-line rounded-full px-3 py-1">
-                                    Welcome to Support ✦ Type your question
+                                    Welcome to Support · Type your question
                                 </div>
                                 {messages.map((msg) => (
                                     <div

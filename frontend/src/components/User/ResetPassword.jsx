@@ -6,6 +6,7 @@ import { useSnackbar } from 'notistack';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import MetaData from '../Layouts/MetaData';
 import { useSiteConfig } from '../../context/SiteConfigContext';
+import LockIcon from '@mui/icons-material/Lock';
 
 const ResetPassword = () => {
     const { config } = useSiteConfig();
@@ -51,7 +52,7 @@ const ResetPassword = () => {
                 <div className="w-full max-w-sm mx-auto">
                     <div className="auth-card p-7 sm:p-8">
                         <div className="text-center mb-6">
-                            <span className="text-4xl">🔒</span>
+                            <LockIcon sx={{ fontSize: '2.5rem', color: 'var(--color-accent)' }} />
                             <h1 className="text-2xl font-bold mt-2" style={{ color: '#E84B0F' }}>Reset Password</h1>
                             <p className="text-gray-500 text-sm mt-1">Create a new secure password</p>
                         </div>

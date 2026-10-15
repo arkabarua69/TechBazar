@@ -23,7 +23,7 @@ const TAB_ICONS = {
 };
 
 // App-style fixed bottom bar (mobile only):
-// 🏠 Home · 🔍 Shop · ☰ Menu (centre, opens sidebar drawer) · 🛒 Cart · 📦 Orders
+// Home · Shop · Menu (centre, opens sidebar drawer) · Cart · Orders
 const BottomBar = () => {
     const location = useLocation();
     const path = location.pathname;
@@ -41,7 +41,7 @@ const BottomBar = () => {
     const isCart = (t) => t.key === 'cart' || t.href === '/cart';
     const isActive = (t) => (t.href === '/' ? path === '/' : path.startsWith(t.href));
 
-    // ≤4 tabs: centre ☰ menu keeps the app-style 5-slot bar
+    // ≤4 tabs: centre Menu keeps the app-style 5-slot bar
     const withMenu = tabs.length <= 4
         ? [...tabs.slice(0, 2), 'MENU', ...tabs.slice(2)]
         : ['MENU', ...tabs];
@@ -53,7 +53,7 @@ const BottomBar = () => {
             <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 pb-[env(safe-area-inset-bottom)]" style={{ backgroundColor: 'var(--color-header)', borderTop: '1px solid var(--color-border)' }}>
                 <ul className="grid" style={{ gridTemplateColumns: `repeat(${withMenu.length}, minmax(0, 1fr))` }}>
                     {withMenu.map((item, i) => {
-                        // ── centre ☰ Menu — highlighted circle ──
+                        // ── centre Menu — highlighted circle ──
                         if (item === 'MENU') {
                             return (
                                 <li key="menu" className="relative">

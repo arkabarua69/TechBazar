@@ -1,6 +1,7 @@
 import Pagination from '@mui/material/Pagination';
 import Slider from '@mui/material/Slider';
 import SearchIcon from '@mui/icons-material/Search';
+import Inventory2Icon from '@mui/icons-material/Inventory2';
 import StarIcon from '@mui/icons-material/Star';
 import FavoriteIcon from '@mui/icons-material/FavoriteBorder';
 import GridViewIcon from '@mui/icons-material/GridView';
@@ -55,7 +56,7 @@ const CheckRow = ({ label, checked, onChange }) => (
     </label>
 );
 
-/* ─── Star rating row (reference: 4★ & above style) ─── */
+/* ─── Star rating row (reference: 4-star & above style) ─── */
 const RatingRow = ({ value, active, onClick }) => (
     <button
         onClick={onClick}
@@ -113,7 +114,7 @@ const PhoenixCard = ({ product }) => {
                 <div className="w-full aspect-[4/3] flex items-center justify-center p-4 bg-white">
                     {image
                         ? <img src={image} alt={name} draggable="false" className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
-                        : <div className="w-full h-full bg-gray-100 rounded flex items-center justify-center text-3xl">📦</div>
+                        : <div className="w-full h-full bg-gray-100 rounded flex items-center justify-center"><Inventory2Icon sx={{ fontSize: '2rem', color: '#9ca3af' }} /></div>
                     }
                 </div>
 
@@ -500,7 +501,7 @@ const Products = () => {
                                 className="flex flex-col items-center justify-center gap-3 p-12 rounded-xl text-center"
                                 style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
                             >
-                                <span className="text-5xl">🔍</span>
+                                <SearchIcon sx={{ fontSize: '3rem', color: 'var(--color-text-muted)' }} />
                                 <h2 className="font-bold text-lg" style={{ color: 'var(--color-text-primary)' }}>No products found</h2>
                                 <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Try a different search or clear the filters.</p>
                                 <button

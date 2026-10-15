@@ -7,7 +7,7 @@ import { alertPulse, emitOrdersAlert, SEARCH_FOCUS_EVENT, LAST_SEEN_KEY } from '
 const POLL_MS = 30000;
 
 // Native-app top bar for the admin panel (mobile only):
-// [≡ menu]  [avatar•Admin]        [🔍 search] [🔔 bell + red badge]
+// [menu]  [avatar·Admin]        [search] [bell + red badge]
 // Polls store-orders every 30s → badge + beep + vibration when a NEW order
 // arrives (never re-beeps for orders already on screen).
 // Monochrome: black round buttons, black avatar.
@@ -123,7 +123,7 @@ const AdminAppBar = ({ onMenu }) => {
                 </div>
                 <div className="leading-tight min-w-0">
                     <p className="text-sm font-bold text-white truncate">Admin</p>
-                    <p className="text-[10px] text-green-400 font-medium">● live</p>
+                    <p className="text-[10px] text-green-400 font-medium flex items-center gap-1"><span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400" />live</p>
                 </div>
             </div>
 

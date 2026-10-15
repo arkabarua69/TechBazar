@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
 import MetaData from './Layouts/MetaData';
 
 const NotFound = () => (
@@ -21,10 +22,10 @@ const NotFound = () => (
                     404
                 </span>
                 <span
-                    className="absolute inset-0 flex items-center justify-center text-5xl sm:text-7xl"
+                    className="absolute inset-0 flex items-center justify-center"
                     aria-hidden="true"
                 >
-                    😕
+                    <SentimentDissatisfiedIcon sx={{ fontSize: { xs: '3rem', sm: '4.5rem' }, color: 'var(--color-text-muted)' }} />
                 </span>
             </div>
 

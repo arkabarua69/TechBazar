@@ -11,6 +11,7 @@ import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import SettingsIcon from '@mui/icons-material/Settings';
 import StorageIcon from '@mui/icons-material/Storage';
 import CloseIcon from '@mui/icons-material/Close';
+import CopyrightIcon from '@mui/icons-material/Copyright';
 import Avatar from '@mui/material/Avatar';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from '../../../i18n/LanguageContext';
@@ -137,7 +138,7 @@ const Sidebar = ({ activeTab, setToggleSidebar }) => {
             >
                 <h5 className="font-semibold text-xs text-white">{siteName} Admin</h5>
                 <span className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                    © {new Date().getFullYear()} · {t('all_rights')}
+                    <CopyrightIcon sx={{ fontSize: '11px', verticalAlign: 'middle', marginRight: '3px' }} />{new Date().getFullYear()} · {t('all_rights')}
                 </span>
             </div>
         </aside>

@@ -1,3 +1,5 @@
+import CelebrationIcon from '@mui/icons-material/Celebration';
+
 const PriceSidebar = ({ cartItems, onCheckout }) => {
     const mrpTotal = cartItems.reduce((s, i) => s + i.cuttedPrice * i.quantity, 0);
     const priceTotal = cartItems.reduce((s, i) => s + i.price * i.quantity, 0);
@@ -47,7 +49,7 @@ const PriceSidebar = ({ cartItems, onCheckout }) => {
 
                     {discount > 0 && (
                         <p className="text-xs font-semibold" style={{ color: 'var(--color-success)' }}>
-                            You save Tk {discount.toLocaleString()} on this order 🎉
+                            You save Tk {discount.toLocaleString()} on this order <CelebrationIcon sx={{ fontSize: '14px', verticalAlign: 'middle', color: 'var(--color-warning)' }} />
                         </p>
                     )}
 

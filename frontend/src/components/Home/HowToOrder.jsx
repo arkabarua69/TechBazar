@@ -15,10 +15,6 @@ const ICON_MAP = {
     LocalShipping:  LocalShippingIcon,
     CheckCircle:    CheckCircleIcon,
     Storefront:     StorefrontIcon,
-    // legacy emoji fallback keys
-    '🛒': ShoppingCartIcon,
-    '📲': PhoneAndroidIcon,
-    '📦': Inventory2Icon,
 };
 
 const StepIcon = ({ iconKey }) => {

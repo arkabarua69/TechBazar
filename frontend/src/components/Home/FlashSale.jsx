@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -53,7 +55,8 @@ const FlashSale = ({ flashSale = {}, products = [] }) => {
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
                         <div className="flex flex-col gap-1 min-w-0">
                             <span className="w-fit inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest bg-red-600 text-white rounded-full px-3 py-1">
-                                🔥 Flash Sale
+                                <LocalFireDepartmentIcon sx={{ fontSize: '14px' }} />
+                                Flash Sale
                             </span>
                             <h2 className="font-display font-extrabold text-lg sm:text-2xl leading-tight mt-1.5 text-slate-900">
                                 {flashSale.title || 'Deal of the Day'}
@@ -80,7 +83,10 @@ const FlashSale = ({ flashSale = {}, products = [] }) => {
                     </div>
 
                     {flashSale.note && (
-                        <p className="text-[11px] text-slate-500 mt-3">⏳ {flashSale.note}</p>
+                        <p className="text-[11px] text-slate-500 mt-3 inline-flex items-center gap-1">
+                            <HourglassEmptyIcon sx={{ fontSize: '13px' }} />
+                            {flashSale.note}
+                        </p>
                     )}
 
                     {/* limited stock gadgets */}

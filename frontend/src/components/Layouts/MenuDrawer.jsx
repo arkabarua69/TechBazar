@@ -20,7 +20,7 @@ const DEFAULT_CATEGORIES = [
     'Appliances', 'Furniture', 'Beauty,Toys & more', 'Grocery',
 ];
 
-// App-style sidebar drawer opened by the centre ☰ button of the mobile
+// App-style sidebar drawer opened by the centre Menu button of the mobile
 // bottom bar: search + account + orders + categories + hotline/WhatsApp + policy
 const MenuDrawer = ({ open, onClose }) => {
     const dispatch = useDispatch();

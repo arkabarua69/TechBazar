@@ -5,7 +5,7 @@ import SectionHeader from './SectionHeader';
 const Reviews = ({ reviews = [] }) => {
     if (!reviews.length) return null;
 
-    const initials = (name = '') => name.trim().slice(0, 1) || '★';
+    const initials = (name = '') => name.trim().slice(0, 1) || '?';
 
     return (
         <section>

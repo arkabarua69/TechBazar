@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import MetaData from '../Layouts/MetaData';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 const OrderSuccess = ({ success }) => {
     const navigate = useNavigate();
@@ -25,12 +27,14 @@ const OrderSuccess = ({ success }) => {
                 <div className="surface max-w-md w-full p-8 sm:p-12 text-center flex flex-col items-center gap-5">
                     {/* Status icon */}
                     <div
-                        className="w-20 h-20 rounded-full flex items-center justify-center text-4xl"
+                        className="w-20 h-20 rounded-full flex items-center justify-center"
                         style={{
                             backgroundColor: success ? 'rgba(22,163,74,0.1)' : 'rgba(239,68,68,0.1)',
                         }}
                     >
-                        {success ? '✓' : '✗'}
+                        {success
+                            ? <CheckCircleIcon sx={{ fontSize: '3rem', color: 'var(--color-success)' }} />
+                            : <CancelIcon sx={{ fontSize: '3rem', color: 'var(--color-danger)' }} />}
                     </div>
 
                     <div className="flex flex-col gap-2">

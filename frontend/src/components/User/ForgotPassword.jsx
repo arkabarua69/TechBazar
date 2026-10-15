@@ -6,6 +6,8 @@ import { useSnackbar } from 'notistack';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import MetaData from '../Layouts/MetaData';
 import { useSiteConfig } from '../../context/SiteConfigContext';
+import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
 
 const ForgotPassword = () => {
     const { config } = useSiteConfig();
@@ -42,7 +44,7 @@ const ForgotPassword = () => {
                     <div className="auth-card p-7 sm:p-8">
                         {sent ? (
                             <div className="text-center flex flex-col gap-4 py-4">
-                                <span className="text-5xl">📧</span>
+                                <MarkEmailReadIcon sx={{ fontSize: '3rem', color: 'var(--color-accent)' }} />
                                 <h2 className="text-xl font-bold" style={{ color: '#E84B0F' }}>Check your email</h2>
                                 <p className="text-sm text-gray-500 leading-relaxed">
                                     We've sent a password reset link to your email. Please check your inbox and spam folder.
@@ -54,7 +56,7 @@ const ForgotPassword = () => {
                         ) : (
                             <>
                                 <div className="text-center mb-6">
-                                    <span className="text-4xl">🔑</span>
+                                    <VpnKeyIcon sx={{ fontSize: '2.5rem', color: 'var(--color-accent)' }} />
                                     <h1 className="text-2xl font-bold mt-2" style={{ color: '#E84B0F' }}>Forgot Password?</h1>
                                     <p className="text-gray-500 text-sm mt-1">Enter your email to get a reset link</p>
                                 </div>

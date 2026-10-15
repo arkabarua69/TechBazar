@@ -10,6 +10,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
+import Inventory2Icon from '@mui/icons-material/Inventory2';
 
 const statusColor = (s) => {
     if (s === 'Delivered') return { bg: '#dcfce7', text: '#16a34a' };
@@ -126,7 +127,7 @@ const OrderDetails = () => {
                         </div>
                     ) : !loading && (
                         <div className="surface flex flex-col items-center justify-center gap-3 p-12 text-center">
-                            <span className="text-5xl">📦</span>
+                            <Inventory2Icon sx={{ fontSize: '3rem', color: 'var(--color-text-muted)' }} />
                             <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Order not found</p>
                             <Link to="/orders" className="btn-accent text-sm">Back to Orders</Link>
                         </div>

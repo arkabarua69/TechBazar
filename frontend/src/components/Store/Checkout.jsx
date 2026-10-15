@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import MetaData from '../Layouts/MetaData';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RemoveShoppingCartIcon from '@mui/icons-material/RemoveShoppingCart';
+import CheckIcon from '@mui/icons-material/Check';
 import { emptyCart } from '../../actions/cartAction';
 
 const DIVISIONS = [
@@ -99,7 +102,7 @@ const Checkout = () => {
                 <MetaData title="Order Placed" />
                 <div className="w-11/12 sm:w-10/12 lg:w-6/12 m-auto my-10">
                     <div className="surface rounded-lg p-8 text-center">
-                        <div className="mx-auto w-14 h-14 rounded-full bg-primary-accent/10 flex items-center justify-center text-2xl text-primary-accent">✓</div>
+                        <div className="mx-auto w-14 h-14 rounded-full bg-primary-accent/10 flex items-center justify-center text-primary-accent"><CheckCircleIcon sx={{ fontSize: '2rem' }} /></div>
                         <h1 className="font-display text-2xl font-semibold text-slate-900 mt-4">Thank you! Your order has been placed.</h1>
                         <p className="text-slate-500 mt-2">
                             Our team will verify your payment and forward your order to the store shortly.
@@ -144,7 +147,7 @@ const Checkout = () => {
                 <MetaData title="Checkout" />
                 <div className="w-11/12 sm:w-10/12 lg:w-6/12 m-auto my-10">
                     <div className="surface rounded-lg p-8 text-center">
-                        <div className="mx-auto w-14 h-14 rounded-full bg-primary-accent/10 flex items-center justify-center text-2xl text-primary-accent">✓</div>
+                        <div className="mx-auto w-14 h-14 rounded-full bg-primary-accent/10 flex items-center justify-center text-primary-accent"><RemoveShoppingCartIcon sx={{ fontSize: '2rem' }} /></div>
                         <h1 className="font-display text-2xl font-semibold text-slate-900 mt-4">Your cart is empty</h1>
                         <p className="text-slate-500 mt-2 text-sm">Add products to your cart to continue.</p>
                         <button onClick={() => navigate('/products')} className="btn-accent px-6 py-2.5 rounded-lg text-sm font-semibold mt-5">Browse Products</button>
@@ -259,7 +262,7 @@ const Checkout = () => {
                                     )}
                                     className="btn-copy mt-3"
                                 >
-                                    {copied === method ? '✓ Copied' : `Copy ${method} number`}
+                                    {copied === method ? <><CheckIcon sx={{ fontSize: '14px', verticalAlign: 'middle', marginRight: '3px' }} />Copied</> : `Copy ${method} number`}
                                 </button>
                             </div>
 

@@ -185,7 +185,7 @@ const TrackOrder = () => {
                                     <span>Total</span><span>Tk {group.summary.grandTotal.toLocaleString()}</span>
                                 </div>
                                 <p className="text-[10px] text-slate-400 pt-1">
-                                    Payment: {group.payment.method} {group.payment.verified ? '✓ Verified' : '(verifying)'} — Cash on Delivery
+                                    Payment: {group.payment.method} {group.payment.verified ? <><CheckCircleIcon sx={{ fontSize: '11px', verticalAlign: 'middle' }} /> Verified</> : '(verifying)'} — Cash on Delivery
                                 </p>
                             </div>
                         </section>

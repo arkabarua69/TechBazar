@@ -69,7 +69,7 @@ export const alertPulse = () => {
     } catch (e) { /* ignore */ }
 };
 
-// Shared event names (AppBar ↔ BottomNav ↔ pages, no redux/context plumbing)
+// Shared event names (AppBar, BottomNav, pages — no redux/context plumbing)
 export const ORDERS_ALERT_EVENT = 'tb:orders-alert'; // detail: { unseen, pendingVerify }
 export const emitOrdersAlert = (detail) => {
     try {

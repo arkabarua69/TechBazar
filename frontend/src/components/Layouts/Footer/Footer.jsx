@@ -5,6 +5,9 @@ import StarsIcon from '@mui/icons-material/Stars';
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import HelpIcon from '@mui/icons-material/Help';
 import PhoneIcon from '@mui/icons-material/Phone';
+import AppleIcon from '@mui/icons-material/Apple';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import CopyrightIcon from '@mui/icons-material/Copyright';
 import paymentMethods from '../../../assets/images/payment-methods.svg';
 import { useLocation } from 'react-router-dom';
 import { useSiteConfig } from '../../../context/SiteConfigContext';
@@ -85,12 +88,12 @@ const Footer = () => {
                             <a href="https://apps.apple.com" target="_blank" rel="noreferrer"
                                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-medium transition-opacity hover:opacity-90"
                                style={{ borderColor: 'rgba(255,255,255,0.18)', color: 'var(--color-footer-text)' }}>
-                                🍎 App Store
+                                <AppleIcon sx={{ fontSize: '15px' }} /> App Store
                             </a>
                             <a href="https://play.google.com" target="_blank" rel="noreferrer"
                                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-medium transition-opacity hover:opacity-90"
                                style={{ borderColor: 'rgba(255,255,255,0.18)', color: 'var(--color-footer-text)' }}>
-                                ▶ Play
+                                <PlayArrowIcon sx={{ fontSize: '15px' }} /> Play
                             </a>
                         </div>
                     </div>
@@ -113,7 +116,8 @@ const Footer = () => {
 
             {/* ── Copyright bar ── */}
             <div className="border-t text-center py-4 text-xs" style={{ borderColor: 'rgba(255,255,255,0.07)', color: 'var(--color-footer-text)', opacity: 0.5 }}>
-                © {since}–{new Date().getFullYear()} All rights reserved · {company.name || brandName}
+                <CopyrightIcon sx={{ fontSize: '13px', verticalAlign: 'middle', marginRight: '4px' }} />
+                {since}–{new Date().getFullYear()} All rights reserved · {company.name || brandName}
             </div>
         </footer>
     );

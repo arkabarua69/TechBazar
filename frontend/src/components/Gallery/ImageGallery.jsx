@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import MetaData from '../Layouts/MetaData';
 import { useSnackbar } from 'notistack';
 
@@ -127,7 +128,7 @@ const Lightbox = ({ image, onClose, onPrev, onNext, hasPrev, hasNext }) => {
                         rel="noreferrer"
                         className="text-xs text-white/60 hover:text-white underline transition-colors"
                     >
-                        Open full size ↗
+                        Open full size <OpenInNewIcon sx={{ fontSize: '12px', verticalAlign: 'middle' }} />
                     </a>
                     {image.source === 'product' && image.sourceId && (
                         <Link

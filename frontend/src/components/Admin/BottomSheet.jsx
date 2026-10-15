@@ -1,7 +1,7 @@
 import CloseIcon from '@mui/icons-material/Close';
 
 // Native-app style bottom sheet: slides up from the bottom, no page refresh,
-// no browser popup. Tap the backdrop or ✕ to dismiss.
+// no browser popup. Tap the backdrop or the close button to dismiss.
 const BottomSheet = ({ open, onClose, title, children }) => {
     if (!open) return null;
 

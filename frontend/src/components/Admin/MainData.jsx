@@ -18,6 +18,8 @@ import Inventory2Icon from '@mui/icons-material/Inventory2';
 import GroupsIcon from '@mui/icons-material/Groups';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import BoltIcon from '@mui/icons-material/Bolt';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import SyncIcon from '@mui/icons-material/Sync';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
@@ -393,7 +395,7 @@ const MainData = () => {
                         onClick={refreshAll}
                         className="text-xs sm:text-sm font-semibold border border-gray-300 bg-white rounded-full px-4 py-2 text-gray-700 hover:bg-gray-100 active:scale-95 transition"
                     >
-                        🔄                         Refresh
+                        <RefreshIcon sx={{ fontSize: '16px', verticalAlign: 'middle', marginRight: '5px' }} />Refresh
                     </button>
                     <button
                         onClick={openManual}
@@ -496,7 +498,7 @@ const MainData = () => {
                                     {it.image ? (
                                         <img src={it.image} alt="" className="w-10 h-10 rounded-xl object-contain border bg-white shrink-0" />
                                     ) : (
-                                        <span className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">📦</span>
+                                        <span className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0"><Inventory2Icon sx={{ fontSize: '20px', color: '#9ca3af' }} /></span>
                                     )}
                                     <div className="min-w-0 flex-1">
                                         <p className="text-sm font-semibold text-gray-900 truncate">{it.name}</p>
@@ -520,7 +522,7 @@ const MainData = () => {
                             onClick={() => navigate('/admin/store_orders')}
                             className="text-xs font-bold text-black shrink-0 hover:underline"
                         >
-                            View all →
+                            <span className="inline-flex items-center gap-0.5">View all<ArrowForwardIcon sx={{ fontSize: '14px' }} /></span>
                         </button>
                     </div>
                     <div>

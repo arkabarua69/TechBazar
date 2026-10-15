@@ -139,14 +139,14 @@ const ImgBBUploader = ({
             setPreview('');
             if (fileInputRef.current) fileInputRef.current.value = '';
             if (onUploaded) onUploaded(hostedUrl);
-            enqueueSnackbar('Uploaded to ImgBB ✓', { variant: 'success' });
+            enqueueSnackbar('Uploaded to ImgBB', { variant: 'success' });
 
             // ── Immediately persist URL to DB ─────────────────────────
             if (onAutoSave) {
                 setAutoSaving(true);
                 try {
                     await onAutoSave(hostedUrl);
-                    enqueueSnackbar(`${label} saved to database ✓`, { variant: 'success' });
+                    enqueueSnackbar(`${label} saved to database`, { variant: 'success' });
                 } catch {
                     enqueueSnackbar('Uploaded but DB save failed — click Save manually', { variant: 'warning' });
                 } finally {

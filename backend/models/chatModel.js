@@ -17,7 +17,7 @@ const chatConversationSchema = new mongoose.Schema({
     // preview shown in the admin inbox list
     lastMessage: { type: String, default: '' },
     lastMessageAt: { type: Date, default: Date.now, index: true },
-    // unread counters: visitor ➔ admin, admin ➔ visitor
+    // unread counters: visitor -> admin, admin -> visitor
     unreadAdmin: { type: Number, default: 0 },
     unreadVisitor: { type: Number, default: 0 },
 }, { timestamps: true });

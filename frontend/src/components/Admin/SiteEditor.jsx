@@ -393,7 +393,7 @@ const SiteEditor = () => {
                                                     value={review.rating || 5}
                                                     onChange={(e) => setArrayItem('reviews', i, 'rating', Number(e.target.value))}
                                                     className="border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:border-black">
-                                                    {[5, 4, 3, 2, 1].map((r) => <option key={r} value={r}>{r} ★</option>)}
+                                                    {[5, 4, 3, 2, 1].map((r) => <option key={r} value={r}>{r} Star{r > 1 ? 's' : ''}</option>)}
                                                 </select>
                                             </div>
                                         </div>
@@ -594,7 +594,7 @@ const SiteEditor = () => {
                 return (
                     <div className="flex flex-col gap-4">
                         <div>
-                            <h2 className="font-bold text-sm text-gray-900">🖌️ Theme &amp; Visual Customisation</h2>
+                            <h2 className="font-bold text-sm text-gray-900"><BrushIcon sx={{ fontSize: '16px', verticalAlign: 'middle', marginRight: '5px' }} />Theme &amp; Visual Customisation</h2>
                             <p className="text-xs text-gray-500 mt-0.5">
                                 All changes preview <strong>instantly</strong>. Click <strong>Save</strong> to apply site-wide permanently.
                             </p>

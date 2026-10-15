@@ -2,7 +2,7 @@ import SectionHeader from './SectionHeader';
 import ProductCard from './ProductCard';
 import SkeletonGrid from './SkeletonGrid';
 
-// Featured products: admin picks (★) first, then best rated / most reviewed
+// Featured products: admin picks (star) first, then best rated / most reviewed
 const FeaturedProducts = ({ products = [], loading }) => {
     const withImage = products.filter((p) => p && p.images && p.images[0]);
     const adminPicks = withImage.filter((p) => p.featured);
