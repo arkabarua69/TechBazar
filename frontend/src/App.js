@@ -80,19 +80,32 @@ function App() {
         : document.querySelector('header');
       document.body.style.paddingTop = el && el.offsetHeight ? `${el.offsetHeight}px` : '';
     };
-    // slight delay so components have mounted and fonts/images loaded
-    const t = setTimeout(apply, 150);
+    // run immediately, then again after a short delay for fonts/images
+    apply();
+    const t = setTimeout(apply, 300);
+    const t2 = setTimeout(apply, 800);
+
     if (typeof ResizeObserver !== 'undefined') {
-      const roApply = () => apply();
-      const ro = new ResizeObserver(roApply);
-      const header = document.querySelector('header');
-      const mobileBar = document.querySelector('.mobile-topbar');
-      if (header) ro.observe(header);
-      if (mobileBar) ro.observe(mobileBar);
-      return () => { clearTimeout(t); ro.disconnect(); document.body.style.paddingTop = ''; };
+      const ro = new ResizeObserver(apply);
+      // observe both — whichever is visible will have a non-zero offsetHeight
+      const waitAndObserve = () => {
+        const header = document.querySelector('header');
+        const mobileBar = document.querySelector('.mobile-topbar');
+        if (header) ro.observe(header);
+        if (mobileBar) ro.observe(mobileBar);
+      };
+      waitAndObserve();
+      setTimeout(waitAndObserve, 300);
+      window.addEventListener('resize', apply);
+      return () => {
+        clearTimeout(t); clearTimeout(t2);
+        ro.disconnect();
+        window.removeEventListener('resize', apply);
+        document.body.style.paddingTop = '';
+      };
     }
     window.addEventListener('resize', apply);
-    return () => { clearTimeout(t); window.removeEventListener('resize', apply); document.body.style.paddingTop = ''; };
+    return () => { clearTimeout(t); clearTimeout(t2); window.removeEventListener('resize', apply); document.body.style.paddingTop = ''; };
   }, [pathname]);
   // always scroll to top on route/path change
   useEffect(() => {

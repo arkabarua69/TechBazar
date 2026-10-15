@@ -35,13 +35,13 @@ const Header = () => {
   if (isAdmin) return null;
 
   return (
-    <header className="fixed top-0 w-full z-10" style={{ backgroundColor: 'var(--color-header)', borderBottom: '1px solid var(--color-border)' }}>
+    <header className="hidden md:block fixed top-0 w-full z-10" style={{ backgroundColor: 'var(--color-header)', borderBottom: '1px solid var(--color-border)' }}>
 
       {/* ── Top micro-bar: announce strip ── */}
       <AnnouncementBar />
 
       {/* ── Main navbar row ── */}
-      <div className="hidden md:block w-full" style={{ backgroundColor: 'var(--color-header)' }}>
+      <div className="w-full" style={{ backgroundColor: 'var(--color-header)' }}>
         <div className="max-w-7xl mx-auto px-4 lg:px-6 py-3 flex items-center gap-4">
 
           {/* Logo */}
