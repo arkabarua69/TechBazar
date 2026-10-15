@@ -172,7 +172,7 @@ const ChatWidget = () => {
             <button
                 onClick={toggle}
                 aria-label={open ? 'Close live chat' : 'Open live chat'}
-                className="fixed right-4 bottom-[86px] md:bottom-6 z-50 w-14 h-14 rounded-full bg-primary-blue text-white shadow-[0_8px_24px_rgba(59,130,246,0.45)] flex items-center justify-center transition active:scale-95 hover:bg-blue-700"
+                className="fixed right-4 bottom-[86px] md:bottom-6 z-50 w-14 h-14 rounded-full bg-primary-accent text-white shadow-[0_8px_24px_rgba(232,75,15,0.40)] flex items-center justify-center transition active:scale-95 hover:bg-primary-hover"
             >
                 {open ? <CloseIcon /> : <ChatIcon />}
                 {!open && unread > 0 && (
@@ -193,7 +193,7 @@ const ChatWidget = () => {
                         </span>
                         <div className="flex flex-col leading-tight">
                             <span className="font-semibold text-sm">Live Support</span>
-                            <span className="text-xs text-blue-100 flex items-center gap-1">
+                            <span className="text-xs text-white/85 flex items-center gap-1">
                                 <span className="w-2 h-2 rounded-full bg-green-400 inline-block" />
                                 We are online now
                             </span>
@@ -205,7 +205,7 @@ const ChatWidget = () => {
 
                     {/* hybrid dual option: in-app chat + WhatsApp */}
                     <div className="flex gap-2 px-3 py-2 bg-cloud border-b border-line">
-                        <span className="flex-1 flex items-center justify-center gap-1 text-xs font-semibold text-primary-blue bg-blue-50 border border-blue-100 rounded-lg py-1.5">
+                        <span className="flex-1 flex items-center justify-center gap-1 text-xs font-semibold text-primary-accent bg-primary-light border border-line rounded-lg py-1.5">
                             <SupportAgentIcon sx={{ fontSize: '15px' }} /> In-app Chat
                         </span>
                         {waHref && (
@@ -244,7 +244,7 @@ const ChatWidget = () => {
                             <button
                                 type="submit"
                                 disabled={starting || !(name || '').trim()}
-                                className="bg-primary-blue text-white font-medium rounded-lg py-2.5 text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="bg-primary-blue text-white font-medium rounded-lg py-2.5 text-sm hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {starting ? 'Starting...' : 'Start Chat'}
                             </button>
@@ -270,7 +270,7 @@ const ChatWidget = () => {
                                         }`}
                                     >
                                         <p className="whitespace-pre-wrap">{msg.message}</p>
-                                        <span className={`block text-xxs mt-1 text-right ${msg.sender === 'visitor' ? 'text-blue-100' : 'text-slate-400'}`}>
+                                        <span className={`block text-xxs mt-1 text-right ${msg.sender === 'visitor' ? 'text-white/75' : 'text-slate-400'}`}>
                                             {timeOf(msg.createdAt)}
                                         </span>
                                     </div>
@@ -289,7 +289,7 @@ const ChatWidget = () => {
                                     type="submit"
                                     disabled={sending || !(text || '').trim()}
                                     aria-label="Send message"
-                                    className="w-10 h-10 shrink-0 rounded-full bg-primary-blue text-white flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-10 h-10 shrink-0 rounded-full bg-primary-blue text-white flex items-center justify-center hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <SendIcon sx={{ fontSize: '18px' }} />
                                 </button>
