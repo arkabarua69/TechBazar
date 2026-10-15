@@ -30,6 +30,10 @@ exports.processPayment = asyncErrorHandler(async (req, res, next) => {
 
     const { amount, email, phoneNo } = req.body;
 
+    if (!amount || !email || !phoneNo) {
+        return next(new ErrorHandler("Amount, Email, and Phone Number are required", 400));
+    }
+
     var params = {};
 
     /* initialize an array */
@@ -40,100 +44,113 @@ exports.processPayment = asyncErrorHandler(async (req, res, next) => {
     params["ORDER_ID"] = "oid" + uuidv4();
     params["CUST_ID"] = process.env.PAYTM_CUST_ID;
     params["TXN_AMOUNT"] = JSON.stringify(amount);
-    // params["CALLBACK_URL"] = `${req.protocol}://${req.get("host")}/api/v1/callback`;
     params["CALLBACK_URL"] = `https://${req.get("host")}/api/v1/callback`;
     params["EMAIL"] = email;
     params["MOBILE_NO"] = phoneNo;
 
-    let paytmChecksum = paytm.generateSignature(params, process.env.PAYTM_MERCHANT_KEY);
-    paytmChecksum.then(function (checksum) {
-
+    try {
+        const checksum = await paytm.generateSignature(params, process.env.PAYTM_MERCHANT_KEY);
         let paytmParams = {
             ...params,
             "CHECKSUMHASH": checksum,
         };
-
         res.status(200).json({
+            success: true,
             paytmParams
         });
-
-    }).catch(function (error) {
-        console.log(error);
-    });
+    } catch (error) {
+        console.error("Paytm signature generation failed:", error.message);
+        return next(new ErrorHandler(`Payment processing failed: ${error.message}`, 500));
+    }
 });
 
 // Paytm Callback
-exports.paytmResponse = (req, res, next) => {
-
-    // console.log(req.body);
+exports.paytmResponse = asyncErrorHandler(async (req, res, next) => {
 
     let paytmChecksum = req.body.CHECKSUMHASH;
     delete req.body.CHECKSUMHASH;
 
     let isVerifySignature = paytm.verifySignature(req.body, process.env.PAYTM_MERCHANT_KEY, paytmChecksum);
-    if (isVerifySignature) {
-        // console.log("Checksum Matched");
+    
+    if (!isVerifySignature) {
+        console.error("Paytm checksum verification failed");
+        return next(new ErrorHandler("Payment verification failed - Checksum mismatch", 400));
+    }
 
-        var paytmParams = {};
-
-        paytmParams.body = {
-            "mid": req.body.MID,
-            "orderId": req.body.ORDERID,
+    try {
+        var paytmParams = {
+            body: {
+                "mid": req.body.MID,
+                "orderId": req.body.ORDERID,
+            }
         };
 
-        paytm.generateSignature(JSON.stringify(paytmParams.body), process.env.PAYTM_MERCHANT_KEY).then(function (checksum) {
+        const checksum = await paytm.generateSignature(JSON.stringify(paytmParams.body), process.env.PAYTM_MERCHANT_KEY);
 
-            paytmParams.head = {
-                "signature": checksum
-            };
+        paytmParams.head = {
+            "signature": checksum
+        };
 
-            /* prepare JSON string for request */
-            var post_data = JSON.stringify(paytmParams);
+        var post_data = JSON.stringify(paytmParams);
 
-            var options = {
-                /* for Staging */
-                hostname: process.env.PAYTM_ENV === 'production' ? 'securegw.paytm.in' : 'securegw-stage.paytm.in',
-                port: 443,
-                path: '/v3/order/status',
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': post_data.length
-                }
-            };
+        var options = {
+            hostname: process.env.PAYTM_ENV === 'production' ? 'securegw.paytm.in' : 'securegw-stage.paytm.in',
+            port: 443,
+            path: '/v3/order/status',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': post_data.length
+            }
+        };
 
-            // Set up the request
-            var response = "";
-            var post_req = https.request(options, function (post_res) {
-                post_res.on('data', function (chunk) {
-                    response += chunk;
-                });
-
-                post_res.on('end', function () {
-                    let { body } = JSON.parse(response);
-                    // let status = body.resultInfo.resultStatus;
-                    // res.json(body);
-                    addPayment(body);
-                    // res.redirect(`${req.protocol}://${req.get("host")}/order/${body.orderId}`)
-                    res.redirect(`https://${req.get("host")}/order/${body.orderId}`)
-                });
+        let responseData = '';
+        
+        const post_req = https.request(options, async (post_res) => {
+            post_res.on('data', (chunk) => {
+                responseData += chunk;
             });
 
-            // post the data
-            post_req.write(post_data);
-            post_req.end();
+            post_res.on('end', async () => {
+                try {
+                    const parsedResponse = JSON.parse(responseData);
+                    const { body } = parsedResponse;
+                    
+                    await addPayment(body);
+                    res.redirect(`https://${req.get("host")}/order/${body.orderId}`);
+                } catch (parseError) {
+                    console.error("Paytm response parsing failed:", parseError.message);
+                    return res.redirect(`https://${req.get("host")}/orders/failed`);
+                }
+            });
         });
 
-    } else {
-        console.log("Checksum Mismatched");
+        post_req.on('error', (error) => {
+            console.error("Paytm verification request failed:", error.message);
+            return res.redirect(`https://${req.get("host")}/orders/failed`);
+        });
+
+        post_req.write(post_data);
+        post_req.end();
+
+    } catch (error) {
+        console.error("Paytm callback processing failed:", error.message);
+        return next(new ErrorHandler(`Payment callback processing failed: ${error.message}`, 500));
     }
-}
+});
 
 const addPayment = async (data) => {
     try {
-        await Payment.create(data);
+        if (!data || !data.orderId) {
+            console.error("Invalid payment data - missing orderId");
+            return false;
+        }
+        const payment = await Payment.create(data);
+        console.log(`Payment recorded: Order ${data.orderId}, Transaction ${data.txnId}`);
+        return true;
     } catch (error) {
-        console.log("Payment Failed!");
+        console.error(`Payment recording failed for order ${data?.orderId}:`, error.message);
+        return false;
     }
 }
 

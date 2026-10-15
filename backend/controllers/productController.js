@@ -4,22 +4,19 @@ const SearchFeatures = require('../utils/searchFeatures');
 const ErrorHandler = require('../utils/errorHandler');
 const { uploadToImgBBCompat } = require('../utils/imgbb');
 
-// Get All Products
+// Get All Products (public, paginated + filtered)
 exports.getAllProducts = asyncErrorHandler(async (req, res, next) => {
-
     const resultPerPage = 12;
     const productsCount = await Product.countDocuments();
-    // console.log(req.query);
 
     const searchFeature = new SearchFeatures(Product.find(), req.query)
         .search()
         .filter();
 
     let products = await searchFeature.query;
-    let filteredProductsCount = products.length;
+    const filteredProductsCount = products.length;
 
     searchFeature.pagination(resultPerPage);
-
     products = await searchFeature.query.clone();
 
     res.status(200).json({
@@ -31,10 +28,9 @@ exports.getAllProducts = asyncErrorHandler(async (req, res, next) => {
     });
 });
 
-// Get All Products ---Product Sliders
+// Get All Products — for sliders (no pagination)
 exports.getProducts = asyncErrorHandler(async (req, res, next) => {
     const products = await Product.find();
-
     res.status(200).json({
         success: true,
         products,
@@ -43,32 +39,27 @@ exports.getProducts = asyncErrorHandler(async (req, res, next) => {
 
 // Get Product Details
 exports.getProductDetails = asyncErrorHandler(async (req, res, next) => {
-
     const product = await Product.findById(req.params.id);
-
     if (!product) {
         return next(new ErrorHandler("Product Not Found", 404));
     }
-
     res.status(200).json({
         success: true,
         product,
     });
 });
 
-// Get All Products ---ADMIN
+// Get All Products — ADMIN
 exports.getAdminProducts = asyncErrorHandler(async (req, res, next) => {
     const products = await Product.find();
-
     res.status(200).json({
         success: true,
         products,
     });
 });
 
-// Create Product ---ADMIN
+// Create Product — ADMIN
 exports.createProduct = asyncErrorHandler(async (req, res, next) => {
-
     let images = [];
     if (typeof req.body.images === "string") {
         images.push(req.body.images);
@@ -77,13 +68,11 @@ exports.createProduct = asyncErrorHandler(async (req, res, next) => {
     }
 
     const imagesLink = [];
-
     for (let i = 0; i < images.length; i++) {
         const result = await uploadToImgBBCompat(images[i], `product-${Date.now()}-${i}`);
         imagesLink.push(result);
     }
 
-    // brand logo is optional — skip the upload when not provided
     let brandLogo = { public_id: "", url: "" };
     if (req.body.logo) {
         const result = await uploadToImgBBCompat(req.body.logo, `brand-logo-${Date.now()}`);
@@ -92,14 +81,14 @@ exports.createProduct = asyncErrorHandler(async (req, res, next) => {
 
     req.body.brand = {
         name: req.body.brandname,
-        logo: brandLogo
-    }
+        logo: brandLogo,
+    };
     req.body.images = imagesLink;
     req.body.user = req.user.id;
 
     let specs = [];
     (req.body.specifications || []).forEach((s) => {
-        specs.push(JSON.parse(s))
+        specs.push(JSON.parse(s));
     });
     req.body.specifications = specs;
 
@@ -107,15 +96,13 @@ exports.createProduct = asyncErrorHandler(async (req, res, next) => {
 
     res.status(201).json({
         success: true,
-        product
+        product,
     });
 });
 
-// Update Product ---ADMIN
+// Update Product — ADMIN
 exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
-
     let product = await Product.findById(req.params.id);
-
     if (!product) {
         return next(new ErrorHandler("Product Not Found", 404));
     }
@@ -127,11 +114,8 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
         } else {
             images = req.body.images;
         }
-        // ImgBB free tier has no server-side delete API; old images are simply orphaned.
-        // To support deletion, store delete_url and call it manually or via a cron job.
 
         const imagesLink = [];
-
         for (let i = 0; i < images.length; i++) {
             const result = await uploadToImgBBCompat(images[i], `product-${req.params.id}-${i}`);
             imagesLink.push(result);
@@ -145,19 +129,16 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
             name: req.body.brandname,
             logo: result,
         };
-    } else {
-        // Keep existing brand name if provided but logo was not re-uploaded
-        if (req.body.brandname) {
-            req.body.brand = {
-                name: req.body.brandname,
-                logo: product.brand.logo,
-            };
-        }
+    } else if (req.body.brandname) {
+        req.body.brand = {
+            name: req.body.brandname,
+            logo: product.brand.logo,
+        };
     }
 
     let specs = [];
-    req.body.specifications.forEach((s) => {
-        specs.push(JSON.parse(s))
+    (req.body.specifications || []).forEach((s) => {
+        specs.push(JSON.parse(s));
     });
     req.body.specifications = specs;
     req.body.user = req.user.id;
@@ -165,41 +146,32 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
     product = await Product.findByIdAndUpdate(req.params.id, req.body, {
         new: true,
         runValidators: true,
-        useFindAndModify: false,
     });
 
-    res.status(201).json({
+    res.status(200).json({
         success: true,
-        product
+        product,
     });
 });
 
-// Delete Product ---ADMIN
+// Delete Product — ADMIN
 exports.deleteProduct = asyncErrorHandler(async (req, res, next) => {
-
     const product = await Product.findById(req.params.id);
-
     if (!product) {
         return next(new ErrorHandler("Product Not Found", 404));
     }
 
-    // ImgBB free tier does not expose a server-side delete API.
-    // Images are soft-deleted on ImgBB's side (they expire or can be removed
-    // via the delete_url stored in imgbb.delete_url on each image object).
-    // If you need programmatic deletion, call product.images[i].imgbb.delete_url via HTTP GET.
-
     await product.deleteOne();
 
-    res.status(201).json({
-        success: true
+    res.status(200).json({
+        success: true,
+        message: "Product deleted successfully",
     });
 });
 
-// Toggle Featured flag on/off ---ADMIN (lightweight — no image/spec re-upload)
+// Toggle Featured flag — ADMIN
 exports.toggleFeaturedProduct = asyncErrorHandler(async (req, res, next) => {
-
     const product = await Product.findById(req.params.id);
-
     if (!product) {
         return next(new ErrorHandler("Product Not Found", 404));
     }
@@ -213,105 +185,83 @@ exports.toggleFeaturedProduct = asyncErrorHandler(async (req, res, next) => {
     });
 });
 
-// Create OR Update Reviews
+// Create or Update Review
 exports.createProductReview = asyncErrorHandler(async (req, res, next) => {
-
     const { rating, comment, productId } = req.body;
+
+    if (!rating || !productId) {
+        return next(new ErrorHandler("Rating and Product ID are required", 400));
+    }
+
+    const numRating = Number(rating);
+    if (isNaN(numRating) || numRating < 1 || numRating > 5) {
+        return next(new ErrorHandler("Rating must be between 1 and 5", 400));
+    }
 
     const review = {
         user: req.user._id,
         name: req.user.name,
-        rating: Number(rating),
-        comment,
-    }
+        rating: numRating,
+        comment: String(comment || '').slice(0, 1000),
+    };
 
     const product = await Product.findById(productId);
-
     if (!product) {
         return next(new ErrorHandler("Product Not Found", 404));
     }
 
-    const isReviewed = product.reviews.find(review => review.user.toString() === req.user._id.toString());
+    const existingReviewIndex = product.reviews.findIndex(
+        (rev) => rev.user.toString() === req.user._id.toString()
+    );
 
-    if (isReviewed) {
-
-        product.reviews.forEach((rev) => { 
-            if (rev.user.toString() === req.user._id.toString())
-                (rev.rating = rating, rev.comment = comment);
-        });
+    if (existingReviewIndex >= 0) {
+        product.reviews[existingReviewIndex].rating = numRating;
+        product.reviews[existingReviewIndex].comment = review.comment;
     } else {
         product.reviews.push(review);
         product.numOfReviews = product.reviews.length;
     }
 
-    let avg = 0;
-
-    product.reviews.forEach((rev) => {
-        avg += rev.rating;
-    });
-
+    const avg = product.reviews.reduce((sum, rev) => sum + rev.rating, 0);
     product.ratings = avg / product.reviews.length;
 
     await product.save({ validateBeforeSave: false });
 
-    res.status(200).json({
-        success: true
-    });
+    res.status(200).json({ success: true });
 });
 
-// Get All Reviews of Product
+// Get All Reviews of a Product
 exports.getProductReviews = asyncErrorHandler(async (req, res, next) => {
-
     const product = await Product.findById(req.query.id);
-
     if (!product) {
         return next(new ErrorHandler("Product Not Found", 404));
     }
 
     res.status(200).json({
         success: true,
-        reviews: product.reviews
+        reviews: product.reviews,
     });
 });
 
-// Delete Reveiws
+// Delete a Review
 exports.deleteReview = asyncErrorHandler(async (req, res, next) => {
-
     const product = await Product.findById(req.query.productId);
-
     if (!product) {
         return next(new ErrorHandler("Product Not Found", 404));
     }
 
-    const reviews = product.reviews.filter((rev) => rev._id.toString() !== req.query.id.toString());
+    const reviews = product.reviews.filter(
+        (rev) => rev._id.toString() !== req.query.id.toString()
+    );
 
-    let avg = 0;
+    const avg = reviews.reduce((sum, rev) => sum + rev.rating, 0);
+    const ratings = reviews.length > 0 ? avg / reviews.length : 0;
 
-    reviews.forEach((rev) => {
-        avg += rev.rating;
-    });
+    await Product.findByIdAndUpdate(
+        req.query.productId,
+        { reviews, ratings: Number(ratings), numOfReviews: reviews.length },
+        { new: true, runValidators: true }
+    );
 
-    let ratings = 0;
-
-    if (reviews.length === 0) {
-        ratings = 0;
-    } else {
-        ratings = avg / reviews.length;
-    }
-
-    const numOfReviews = reviews.length;
-
-    await Product.findByIdAndUpdate(req.query.productId, {
-        reviews,
-        ratings: Number(ratings),
-        numOfReviews,
-    }, {
-        new: true,
-        runValidators: true,
-        useFindAndModify: false,
-    });
-
-    res.status(200).json({
-        success: true,
-    });
+    res.status(200).json({ success: true });
 });

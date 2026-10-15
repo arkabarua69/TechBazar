@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import axios from 'axios';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
@@ -14,8 +13,9 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import { logoutUser } from '../../actions/userAction';
+import { useSiteConfig } from '../../context/SiteConfigContext';
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
     'Mobiles', 'Fashion', 'Electronics', 'Home', 'Travel',
     'Appliances', 'Furniture', 'Beauty,Toys & more', 'Grocery',
 ];
@@ -27,25 +27,17 @@ const MenuDrawer = ({ open, onClose }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const { isAuthenticated, user } = useSelector((state) => state.user);
+    const { config } = useSiteConfig();
 
     const [query, setQuery] = useState('');
-    const [support, setSupport] = useState({ hotline: '', whatsapp: '' });
-    const [categories, setCategories] = useState(CATEGORIES);
 
-    // support numbers + categories come from Admin → Homepage settings
-    useEffect(() => {
-        if (!open) return;
-        axios.get('/api/v1/siteconfig', { headers: { Accept: 'application/json' } })
-            .then(({ data }) => {
-                const cfg = data && data.config;
-                const s = (cfg && cfg.support) || {};
-                setSupport({ hotline: s.hotline || '', whatsapp: s.whatsapp || '' });
-                if (cfg && Array.isArray(cfg.categories) && cfg.categories.length) {
-                    setCategories(cfg.categories);
-                }
-            })
-            .catch(() => { /* keep defaults */ });
-    }, [open]);
+    // support numbers, categories and brand name come from the shared site
+    // config, so admin edits appear here live (no extra fetch).
+    const support = config.support || {};
+    const categories = Array.isArray(config.categories) && config.categories.length
+        ? config.categories
+        : DEFAULT_CATEGORIES;
+    const brandName = config.branding?.name || 'Store';
 
     // close on route change + lock body scroll while open
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -85,7 +77,7 @@ const MenuDrawer = ({ open, onClose }) => {
                 {/* header */}
                 <div className="flex items-center justify-between px-4 h-14 bg-primary-accent text-white shrink-0">
                     <span className="font-display font-extrabold text-lg tracking-tight">
-                        Tech<span className="text-yellow-300">Bazar</span>
+                        {brandName}
                     </span>
                     <button onClick={onClose} aria-label="Close menu" className="p-1.5 rounded-full hover:bg-white/15 transition">
                         <CloseIcon sx={{ fontSize: '20px' }} />
@@ -113,11 +105,11 @@ const MenuDrawer = ({ open, onClose }) => {
                         {isAuthenticated ? (
                             <>
                                 <Link to="/account" className={rowClass}>
-                                    <PersonOutlineIcon sx={{ fontSize: '20px', color: '#3b82f6' }} />
+                                    <PersonOutlineIcon sx={{ fontSize: '20px', color: 'var(--color-accent)' }} />
                                     {user && user.name ? user.name : 'My Account'}
                                 </Link>
                                 <Link to="/admin/dashboard" className={rowClass}>
-                                    <AdminPanelSettingsIcon sx={{ fontSize: '20px', color: '#3b82f6' }} />
+                                    <AdminPanelSettingsIcon sx={{ fontSize: '20px', color: 'var(--color-accent)' }} />
                                     Admin Dashboard
                                 </Link>
                                 <button onClick={handleLogout} className={rowClass}>
@@ -127,7 +119,7 @@ const MenuDrawer = ({ open, onClose }) => {
                             </>
                         ) : (
                             <Link to="/login" className={rowClass}>
-                                <PersonOutlineIcon sx={{ fontSize: '20px', color: '#3b82f6' }} />
+                                <PersonOutlineIcon sx={{ fontSize: '20px', color: 'var(--color-accent)' }} />
                                 Login / Register
                             </Link>
                         )}
@@ -136,7 +128,7 @@ const MenuDrawer = ({ open, onClose }) => {
                     {/* orders */}
                     <div className="border-b border-line py-2">
                         <Link to="/orders" className={rowClass}>
-                            <TrackChangesIcon sx={{ fontSize: '20px', color: '#3b82f6' }} />
+                            <TrackChangesIcon sx={{ fontSize: '20px', color: 'var(--color-accent)' }} />
                             Order Tracking & History
                         </Link>
                         <Link to="/track" className={rowClass}>
@@ -144,7 +136,7 @@ const MenuDrawer = ({ open, onClose }) => {
                             Find Order by Number
                         </Link>
                         <Link to="/cart" className={rowClass}>
-                            <ShoppingCartIcon sx={{ fontSize: '20px', color: '#3b82f6' }} />
+                            <ShoppingCartIcon sx={{ fontSize: '20px', color: 'var(--color-accent)' }} />
                             Cart
                         </Link>
                     </div>

@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import SecurityIcon from '@mui/icons-material/Security';
@@ -12,9 +10,6 @@ import { DEFAULT_SITE_CONFIG } from '../../utils/siteConfig';
 // a proper MUI icon instead.  Returns the cleaned text.
 const stripLeadingEmoji = (str = '') =>
     str.replace(/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\u{FE0F}\u{20E3}\s]+/u, '').trim();
-
-// Pick an icon component based on the index position (matches desktop array order)
-const DESKTOP_ICONS = [LocalShippingIcon, SecurityIcon, PhoneIcon];
 
 // MegaMart-style top micro-bar:
 //   desktop: left brand tagline | right: utility links with MUI icons
@@ -54,7 +49,6 @@ const AnnouncementBar = () => {
                 {/* Right: secondary announcements */}
                 <div className="flex items-center gap-5 shrink-0 opacity-90">
                     {desktop.slice(1).map((item, i) => {
-                        const Icon = DESKTOP_ICONS[i + 1] || LocalOfferIcon;
                         return (
                             <span key={i} className="flex items-center gap-1.5 whitespace-nowrap">
                                 {i === 0 && <SecurityIcon   sx={{ fontSize: '13px' }} />}

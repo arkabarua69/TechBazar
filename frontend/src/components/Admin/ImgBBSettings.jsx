@@ -61,6 +61,23 @@ const ImgBBSettings = () => {
     const [testing, setTesting]       = useState(false);
     const [testResult, setTestResult] = useState(null);       // { success, message, sampleUrl? }
 
+    // Test a key. `key` omitted → the backend tests the stored/env key.
+    const runTest = async (key) => {
+        setTesting(true);
+        setTestResult(null);
+        try {
+            const { data } = await axios.post('/api/v1/admin/imgbb/test', key ? { apiKey: key } : {});
+            setTestResult({ success: true, message: data.message || 'API key is valid', sampleUrl: data.sampleUrl });
+            return { ok: true, message: data.message || 'API key is valid' };
+        } catch (err) {
+            const msg = err.response?.data?.message || 'Test failed';
+            setTestResult({ success: false, message: msg });
+            return { ok: false, message: msg };
+        } finally {
+            setTesting(false);
+        }
+    };
+
     // ── Load current config ──────────────────────────────────────────────
     useEffect(() => {
         const fetchConfig = async () => {
@@ -80,24 +97,36 @@ const ImgBBSettings = () => {
         fetchConfig();
     }, [enqueueSnackbar]);
 
+    // Auto-verify the stored key once the panel opens, so an invalid key is
+    // surfaced immediately with a clear call-to-action.
+    useEffect(() => {
+        if (!loading) runTest();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [loading]);
+
     // ── Save settings ────────────────────────────────────────────────────
     const handleSave = async () => {
+        const newKey = apiKey.trim();
         const payload = { imgbb: { enabled } };
         // Only send apiKey if admin actually typed a new one
-        if (apiKey.trim()) {
-            payload.imgbb.apiKey = apiKey.trim();
+        if (newKey) {
+            payload.imgbb.apiKey = newKey;
         }
 
         setSaving(true);
         try {
             await axios.put('/api/v1/admin/websiteconfig', { config: payload });
             enqueueSnackbar('ImgBB settings saved', { variant: 'success' });
-            if (apiKey.trim()) {
+            if (newKey) {
                 setHasExisting(true);
                 setApiKey('');
                 setEditing(false);
+                // Verify the newly saved key immediately so any problem shows now.
+                const res = await runTest();
+                if (!res.ok) {
+                    enqueueSnackbar(`Saved, but the key check failed: ${res.message}`, { variant: 'warning' });
+                }
             }
-            setTestResult(null);
         } catch (err) {
             enqueueSnackbar(
                 err.response?.data?.message || 'Save failed',
@@ -110,25 +139,9 @@ const ImgBBSettings = () => {
 
     // ── Test stored key ──────────────────────────────────────────────────
     const handleTest = async () => {
-        setTesting(true);
-        setTestResult(null);
-        try {
-            // If admin typed a new key, test that one; otherwise test the stored key
-            const body = apiKey.trim() ? { apiKey: apiKey.trim() } : {};
-            const { data } = await axios.post('/api/v1/admin/imgbb/test', body);
-            setTestResult({
-                success: true,
-                message: data.message || 'API key is valid',
-                sampleUrl: data.sampleUrl,
-            });
-            enqueueSnackbar('ImgBB key verified', { variant: 'success' });
-        } catch (err) {
-            const msg = err.response?.data?.message || 'Test failed';
-            setTestResult({ success: false, message: msg });
-            enqueueSnackbar(msg, { variant: 'error' });
-        } finally {
-            setTesting(false);
-        }
+        // If admin typed a new key, test that one; otherwise test the stored key
+        const res = await runTest(apiKey.trim() || undefined);
+        enqueueSnackbar(res.message, { variant: res.ok ? 'success' : 'error' });
     };
 
     if (loading) {

@@ -1,35 +1,90 @@
 const mongoose = require('mongoose');
 const crypto = require('crypto');
 
-// Encryption utility for sensitive values
+// ─── Encryption utility for sensitive values ─────────────────────────────────
+// Values are encrypted with AES-256-CBC. The key is derived (SHA-256) from
+// CONFIG_ENCRYPTION_KEY. Set that variable explicitly in production and keep it
+// stable — otherwise previously stored ciphertext can no longer be decrypted.
 const algorithm = 'aes-256-cbc';
-const ENCRYPTION_KEY = process.env.CONFIG_ENCRYPTION_KEY || process.env.JWT_SECRET || 'default-encryption-key-32-bytes-long-here';
 const IV_LENGTH = 16;
+
+// Placeholder the admin UI sends instead of a real secret it never receives.
+const MASK = '••••••••••••••••••••';
+const isMaskValue = (value) =>
+    typeof value === 'string' &&
+    (value === MASK || (value.length >= 4 && /^[•*]+$/.test(value)));
+
+// Fields stored with the encrypt/decrypt set-get pair. For these an empty
+// string from the admin UI means "keep the existing value", because the real
+// value is never sent back to the browser.
+const ENCRYPTED_PATHS = new Set([
+    'email.smtpPassword',
+    'email.sendgridApiKey',
+    'payment.stripeSecretKey',
+    'payment.stripeWebhookSecret',
+    'payment.paytmMerchantKey',
+    'cloud.cloudinaryApiKey',
+    'cloud.cloudinaryApiSecret',
+    'imgbb.apiKey',
+    'apiKeys.otherApiKey1',
+    'apiKeys.otherApiKey2',
+    // Not encrypted at rest, but treated as a secret: it must never be sent
+    // back to the browser nor overwritten by an unrelated config save.
+    'database.mongoUri',
+]);
+
+// Paths whose value must never be written to the change log in plaintext.
+const isSensitivePath = (path) =>
+    ENCRYPTED_PATHS.has(path) || /secret|password|apikey|api_key|token/i.test(path);
+
+const resolveEncryptionKey = () =>
+    process.env.CONFIG_ENCRYPTION_KEY ||
+    process.env.JWT_SECRET ||
+    'default-encryption-key-32-bytes-long-here';
+
+if (!process.env.CONFIG_ENCRYPTION_KEY) {
+    console.warn(
+        '[websiteConfig] CONFIG_ENCRYPTION_KEY is not set — falling back to ' +
+        (process.env.JWT_SECRET ? 'JWT_SECRET' : 'an insecure built-in default') +
+        '. Set CONFIG_ENCRYPTION_KEY to a stable 32+ character secret in production.'
+    );
+}
+
+const encryptionKey = () =>
+    crypto.createHash('sha256').update(resolveEncryptionKey()).digest('base64').slice(0, 32);
+
+// Ciphertext format produced by encrypt(): "<32 hex IV>:<hex payload>"
+function isEncrypted(value) {
+    return typeof value === 'string' && /^[0-9a-f]{32}:[0-9a-f]+$/i.test(value);
+}
 
 function encrypt(text) {
     if (!text) return text;
+    if (isEncrypted(text)) return text; // never double-encrypt
     const iv = crypto.randomBytes(IV_LENGTH);
-    const key = crypto.createHash('sha256').update(ENCRYPTION_KEY).digest('base64').slice(0, 32);
-    const cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv);
-    let encrypted = cipher.update(text);
+    const cipher = crypto.createCipheriv(algorithm, Buffer.from(encryptionKey()), iv);
+    let encrypted = cipher.update(String(text));
     encrypted = Buffer.concat([encrypted, cipher.final()]);
     return `${iv.toString('hex')}:${encrypted.toString('hex')}`;
 }
 
 function decrypt(text) {
-    if (!text || !text.includes(':')) return text;
+    if (!text) return text;
+    // Plaintext legacy values (and the mask) pass through unchanged.
+    if (!isEncrypted(text)) return text;
     try {
-        const textParts = text.split(':');
-        const iv = Buffer.from(textParts.shift(), 'hex');
-        const encryptedText = Buffer.from(textParts.join(':'), 'hex');
-        const key = crypto.createHash('sha256').update(ENCRYPTION_KEY).digest('base64').slice(0, 32);
-        const decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
+        const [ivHex, ...rest] = text.split(':');
+        const iv = Buffer.from(ivHex, 'hex');
+        const encryptedText = Buffer.from(rest.join(':'), 'hex');
+        const decipher = crypto.createDecipheriv(algorithm, Buffer.from(encryptionKey()), iv);
         let decrypted = decipher.update(encryptedText);
         decrypted = Buffer.concat([decrypted, decipher.final()]);
         return decrypted.toString();
     } catch (err) {
-        console.error('Decryption error:', err.message);
-        return text;
+        // Never return ciphertext: callers would forward it to third-party APIs
+        // as an invalid credential. Return '' so they fall back to env instead.
+        console.error('[websiteConfig] Failed to decrypt a stored secret:', err.message);
+        return '';
     }
 }
 
@@ -404,33 +459,61 @@ websiteConfigSchema.statics.getCurrentConfig = async function() {
 websiteConfigSchema.statics.updateConfig = async function(newConfig, userId) {
     const currentConfig = await this.getCurrentConfig();
     const changes = [];
-    
-    // Helper to track changes
-    const trackChanges = (section, field, oldVal, newVal) => {
-        if (String(oldVal) !== String(newVal)) {
+
+    // Only allow paths that exist in the schema — prevents junk keys and
+    // mass-assignment from an arbitrary payload.
+    const allowedPaths = new Set(Object.keys(this.schema.paths));
+
+    const serialize = (v) =>
+        v === undefined || v === null
+            ? ''
+            : (typeof v === 'object' ? JSON.stringify(v) : String(v));
+
+    // Secrets are never recorded in plaintext — only whether they are set.
+    const trackChanges = (path, oldVal, newVal) => {
+        const sensitive = isSensitivePath(path);
+        const oldStr = sensitive ? (oldVal ? MASK : '') : serialize(oldVal);
+        const newStr = sensitive ? (newVal ? MASK : '') : serialize(newVal);
+        if (oldStr !== newStr) {
             changes.push({
-                field: `${section}.${field}`,
-                oldValue: typeof oldVal === 'object' ? JSON.stringify(oldVal) : String(oldVal),
-                newValue: typeof newVal === 'object' ? JSON.stringify(newVal) : String(newVal),
-                changedBy: userId
+                field: path,
+                oldValue: oldStr,
+                newValue: newStr,
+                changedBy: userId,
             });
         }
     };
-    
-    // Update each section
-    for (const [section, values] of Object.entries(newConfig)) {
-        if (currentConfig[section]) {
-            for (const [field, value] of Object.entries(values)) {
-                const oldValue = currentConfig[section][field];
-                trackChanges(section, field, oldValue, value);
-                currentConfig[section][field] = value;
-            }
+
+    for (const [section, values] of Object.entries(newConfig || {})) {
+        if (!currentConfig[section] || !values || typeof values !== 'object' || Array.isArray(values)) {
+            continue;
+        }
+
+        for (const [field, value] of Object.entries(values)) {
+            const path = `${section}.${field}`;
+            if (!allowedPaths.has(path)) continue;
+
+            // The admin UI sends a bullet placeholder for secrets it never
+            // receives — never treat that as the real value.
+            if (isMaskValue(value)) continue;
+
+            // For encrypted fields an empty string means "leave unchanged".
+            if (value === '' && ENCRYPTED_PATHS.has(path)) continue;
+
+            const oldValue = currentConfig[section][field];
+
+            // Nothing to do when the value is unchanged (this also avoids
+            // needlessly re-encrypting secrets on every save).
+            if (serialize(oldValue) === serialize(value)) continue;
+
+            currentConfig[section][field] = value;
+            trackChanges(path, oldValue, value);
         }
     }
-    
+
     currentConfig.updatedBy = userId;
     currentConfig.changeLog.push(...changes);
-    
+
     await currentConfig.save();
     return currentConfig;
 };
@@ -439,3 +522,7 @@ module.exports = mongoose.model('WebsiteConfig', websiteConfigSchema);
 module.exports.DEFAULT_CONFIG = DEFAULT_CONFIG;
 module.exports.encrypt = encrypt;
 module.exports.decrypt = decrypt;
+module.exports.isMaskValue = isMaskValue;
+module.exports.isSensitivePath = isSensitivePath;
+module.exports.ENCRYPTED_PATHS = ENCRYPTED_PATHS;
+module.exports.MASK = MASK;

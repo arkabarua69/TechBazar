@@ -1,53 +1,74 @@
 import { Link } from 'react-router-dom';
-import { getDiscount } from '../../utils/functions';
+import { useDispatch } from 'react-redux';
 import DeleteIcon from '@mui/icons-material/Delete';
 import StarIcon from '@mui/icons-material/Star';
 import { removeFromWishlist } from '../../actions/wishlistAction';
-import { useDispatch } from 'react-redux';
+import { getDiscount } from '../../utils/functions';
 
-const Product = (props) => {
-
-    const { product, name, price, cuttedPrice, image, ratings, reviews } = props;
-
+const Product = ({ product, name, price, cuttedPrice, image, ratings, reviews }) => {
     const dispatch = useDispatch();
-
-    const deleteHandler = () => {
-        dispatch(removeFromWishlist(product));
-    }
+    const discount = getDiscount(price, cuttedPrice);
 
     return (
-        <div className="surface p-4 flex gap-3 w-full group hover:shadow-md transition">
-            <div className="w-28 h-28 flex-shrink-0 bg-cloud border border-line rounded-xl overflow-hidden flex items-center justify-center">
-                <img draggable="false" className="h-full w-full object-contain p-2" src={image} alt={name} />
+        <div className="surface p-4 flex gap-3 w-full group hover:shadow-md transition duration-200">
+            {/* Thumbnail */}
+            <div
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden border shrink-0 flex items-center justify-center"
+                style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-bg)' }}
+            >
+                <img draggable="false" src={image} alt={name}
+                    className="h-full w-full object-contain p-2" />
             </div>
 
-            {/* <!-- description --> */}
-            <div className="flex flex-col gap-5 w-full p-1">
-                {/* <!-- product title --> */}
-                <div className="flex justify-between items-start sm:pr-5">
-                    <Link to={`/product/${product}`} className="flex flex-col gap-0.5">
-                        <p className="group-hover:text-primary-accent w-56 sm:w-full truncate font-medium text-slate-900">{name.length > 85 ? `${name.substring(0, 85)}...` : name}</p>
-                        {/* <!-- rating badge --> */}
-                        <span className="text-sm text-slate-500 font-medium flex gap-2 items-center">
-                            <span className="text-xs px-1.5 py-0.5 bg-primary-green rounded text-white flex items-center gap-0.5">{ratings} <StarIcon sx={{ fontSize: "14px" }} /></span>
-                            <span>({reviews.toLocaleString()})</span>
+            {/* Details */}
+            <div className="flex flex-col gap-3 w-full min-w-0 py-1">
+                <div className="flex justify-between items-start gap-2">
+                    <Link to={`/product/${product}`} className="flex flex-col gap-1 min-w-0">
+                        <p
+                            className="text-sm font-medium line-clamp-2 group-hover:underline"
+                            style={{ color: 'var(--color-text-primary)' }}
+                        >
+                            {name}
+                        </p>
+                        <span className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                            <span
+                                className="px-1.5 py-0.5 rounded text-white text-[10px] font-bold flex items-center gap-0.5"
+                                style={{ backgroundColor: 'var(--color-success)' }}
+                            >
+                                {ratings} <StarIcon sx={{ fontSize: 11 }} />
+                            </span>
+                            ({(reviews || 0).toLocaleString()})
                         </span>
-                        {/* <!-- rating badge --> */}
                     </Link>
-                    <button onClick={deleteHandler} className="btn-ghost text-xs px-3 py-1.5 text-slate-400 hover:text-red-500"><span><DeleteIcon /></span></button>
+                    <button
+                        onClick={() => dispatch(removeFromWishlist(product))}
+                        aria-label="Remove from wishlist"
+                        className="rounded-full p-1.5 transition-colors duration-150 shrink-0"
+                        style={{ color: 'var(--color-text-muted)' }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = '#ef4444'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
+                    >
+                        <DeleteIcon sx={{ fontSize: 20 }} />
+                    </button>
                 </div>
-                {/* <!-- product title --> */}
 
-                {/* <!-- price desc --> */}
-                <div className="flex items-center gap-2 text-2xl">
-                    <span className="font-bold text-slate-900">Tk {price.toLocaleString()}</span>
-                    <span className="text-sm text-slate-400 line-through mt-1">Tk {cuttedPrice.toLocaleString()}</span>
-                    <span className="text-sm font-medium text-primary-green mt-1">{getDiscount(price, cuttedPrice)}%&nbsp;off</span>
+                {/* Price */}
+                <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-lg" style={{ color: 'var(--color-text-primary)' }}>
+                        Tk {price.toLocaleString()}
+                    </span>
+                    {cuttedPrice > price && (
+                        <>
+                            <span className="text-sm line-through" style={{ color: 'var(--color-text-muted)' }}>
+                                Tk {cuttedPrice.toLocaleString()}
+                            </span>
+                            <span className="text-sm font-semibold" style={{ color: 'var(--color-success)' }}>
+                                {discount}% off
+                            </span>
+                        </>
+                    )}
                 </div>
-                {/* <!-- price desc --> */}
-
             </div>
-            {/* <!-- description --> */}
         </div>
     );
 };

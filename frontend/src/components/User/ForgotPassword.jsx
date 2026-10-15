@@ -1,4 +1,3 @@
-import TextField from '@mui/material/TextField';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,102 +5,88 @@ import { clearErrors, forgotPassword } from '../../actions/userAction';
 import { useSnackbar } from 'notistack';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import MetaData from '../Layouts/MetaData';
-import FormSidebar from './FormSidebar';
 import { useSiteConfig } from '../../context/SiteConfigContext';
 
 const ForgotPassword = () => {
     const { config } = useSiteConfig();
     const brandName = config?.branding?.name || 'Store';
-
     const dispatch = useDispatch();
     const { enqueueSnackbar } = useSnackbar();
-
     const { error, message, loading } = useSelector((state) => state.forgotPassword);
-
-    const [email, setEmail] = useState("");
+    const [email, setEmail] = useState('');
+    const [sent, setSent] = useState(false);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const formData = new FormData();
-        formData.set("email", email);
-        dispatch(forgotPassword(formData));
-        setEmail("");
-    }
+        dispatch(forgotPassword({ email }));
+    };
 
     useEffect(() => {
         if (error) {
-            enqueueSnackbar(error, { variant: "error" });
+            enqueueSnackbar(error, { variant: 'error' });
             dispatch(clearErrors());
         }
         if (message) {
-            enqueueSnackbar(message, { variant: "success" });
+            enqueueSnackbar(message, { variant: 'success' });
+            setSent(true);
+            setEmail('');
         }
     }, [dispatch, error, message, enqueueSnackbar]);
 
-
     return (
         <>
-            <MetaData title="Forgot Password" />
-
+            <MetaData title={`Forgot Password | ${brandName}`} />
             {loading && <BackdropLoader />}
-            <main className="w-full mt-4 sm:pt-6 sm:mt-0">
-
-                {/* <!-- row --> */}
-                <div className="surface flex flex-col sm:flex-row overflow-hidden w-full sm:w-5/6 md:w-4/6 lg:w-3/5 sm:mt-4 m-auto mb-7 shadow-lg rounded-lg">
-
-                    <FormSidebar
-                        title="Forgot Your Password?"
-                        tag="Enter the email address associated with your account."
-                    />
-
-                    {/* <!-- login column --> */}
-                    <div className="flex-1 overflow-hidden p-4 sm:p-10 order-1 sm:order-2">
-
-                        <div className="max-w-md mx-auto flex flex-col gap-7">
-
-                            <div className="text-center flex flex-col gap-2">
-                                <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900">Forgot Password</h2>
-                                <p className="text-sm text-slate-500">We'll send you a reset link to your email</p>
+            <div className="auth-page-bg min-h-screen flex items-center justify-center p-4">
+                <div className="w-full max-w-sm mx-auto">
+                    <div className="auth-card p-7 sm:p-8">
+                        {sent ? (
+                            <div className="text-center flex flex-col gap-4 py-4">
+                                <span className="text-5xl">📧</span>
+                                <h2 className="text-xl font-bold" style={{ color: '#E84B0F' }}>Check your email</h2>
+                                <p className="text-sm text-gray-500 leading-relaxed">
+                                    We've sent a password reset link to your email. Please check your inbox and spam folder.
+                                </p>
+                                <Link to="/login" className="btn-accent w-full py-3 text-sm font-semibold">
+                                    Back to Login
+                                </Link>
                             </div>
+                        ) : (
+                            <>
+                                <div className="text-center mb-6">
+                                    <span className="text-4xl">🔑</span>
+                                    <h1 className="text-2xl font-bold mt-2" style={{ color: '#E84B0F' }}>Forgot Password?</h1>
+                                    <p className="text-gray-500 text-sm mt-1">Enter your email to get a reset link</p>
+                                </div>
 
-                            {/* <!-- input container --> */}
-                            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                                <div className="flex flex-col w-full gap-4">
-
-                                    <TextField
-                                        fullWidth
-                                        label="Email Address"
+                                <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                                    <input
                                         type="email"
+                                        placeholder="Email Address"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
                                         autoComplete="email"
+                                        className="input-field"
                                     />
+                                    <button type="submit" className="btn-accent w-full py-3 text-sm font-semibold mt-1">
+                                        Send Reset Link
+                                    </button>
+                                </form>
 
-                                    {/* <!-- button container --> */}
-                                    <div className="flex flex-col gap-3 mt-1">
-                                        <p className="text-xs text-slate-500 text-center sm:text-left">By continuing, you agree to {brandName}'s <a href="/policy" className="text-primary-accent hover:underline font-medium"> Terms of Use</a> and <a href="/policy" className="text-primary-accent hover:underline font-medium"> Privacy Policy.</a></p>
-                                        <button type="submit" className="btn-accent w-full py-3 text-sm font-bold uppercase tracking-wide">Submit</button>
-                                    </div>
-                                    {/* <!-- button container --> */}
-
-                                </div>
-                            </form>
-                            {/* <!-- input container --> */}
-
-                            <div className="text-center">
-                                <Link to="/register" className="font-medium text-sm text-primary-accent hover:underline block w-full text-center">New to {brandName}? Create an account</Link>
-                            </div>
-                        </div>
-
+                                <p className="text-center text-sm text-gray-500 mt-4">
+                                    Remember your password?{' '}
+                                    <Link to="/login" className="font-semibold hover:underline" style={{ color: '#E84B0F' }}>
+                                        Sign in
+                                    </Link>
+                                </p>
+                            </>
+                        )}
                     </div>
-                    {/* <!-- login column --> */}
                 </div>
-                {/* <!-- row --> */}
-
-            </main>
+            </div>
         </>
     );
 };
 
-export default ForgotPassword
+export default ForgotPassword;

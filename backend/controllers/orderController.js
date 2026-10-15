@@ -6,16 +6,13 @@ const sendEmail = require('../utils/sendEmail');
 
 // Create New Order
 exports.newOrder = asyncErrorHandler(async (req, res, next) => {
+    const { shippingInfo, orderItems, paymentInfo, totalPrice } = req.body;
 
-    const {
-        shippingInfo,
-        orderItems,
-        paymentInfo,
-        totalPrice,
-    } = req.body;
+    if (!shippingInfo || !orderItems || !orderItems.length || !totalPrice) {
+        return next(new ErrorHandler("Missing required order fields", 400));
+    }
 
     const orderExist = await Order.findOne({ paymentInfo });
-
     if (orderExist) {
         return next(new ErrorHandler("Order Already Placed", 400));
     }
@@ -29,7 +26,8 @@ exports.newOrder = asyncErrorHandler(async (req, res, next) => {
         user: req.user._id,
     });
 
-    await sendEmail({
+    // Send confirmation email — non-blocking, don't fail order on email error
+    sendEmail({
         email: req.user.email,
         templateId: process.env.SENDGRID_ORDER_TEMPLATEID,
         data: {
@@ -38,7 +36,9 @@ exports.newOrder = asyncErrorHandler(async (req, res, next) => {
             orderItems,
             totalPrice,
             oid: order._id,
-        }
+        },
+    }).catch((err) => {
+        console.error(`Order confirmation email failed for order ${order._id}:`, err.message);
     });
 
     res.status(201).json({
@@ -49,49 +49,34 @@ exports.newOrder = asyncErrorHandler(async (req, res, next) => {
 
 // Get Single Order Details
 exports.getSingleOrderDetails = asyncErrorHandler(async (req, res, next) => {
-
     const order = await Order.findById(req.params.id).populate("user", "name email");
-
     if (!order) {
         return next(new ErrorHandler("Order Not Found", 404));
     }
-
+    // Only the owner (or an admin) may read an order — prevents IDOR.
+    const isOwner = order.user && String(order.user._id) === String(req.user._id);
+    if (!isOwner && req.user.role !== 'admin') {
+        return next(new ErrorHandler("Not authorized to view this order", 403));
+    }
     res.status(200).json({
         success: true,
         order,
     });
 });
 
-
-// Get Logged In User Orders
+// Get Logged-In User's Orders
 exports.myOrders = asyncErrorHandler(async (req, res, next) => {
-
     const orders = await Order.find({ user: req.user._id });
-
-    if (!orders) {
-        return next(new ErrorHandler("Order Not Found", 404));
-    }
-
     res.status(200).json({
         success: true,
         orders,
     });
 });
 
-
-// Get All Orders ---ADMIN
+// Get All Orders — ADMIN
 exports.getAllOrders = asyncErrorHandler(async (req, res, next) => {
-
     const orders = await Order.find();
-
-    if (!orders) {
-        return next(new ErrorHandler("Order Not Found", 404));
-    }
-
-    let totalAmount = 0;
-    orders.forEach((order) => {
-        totalAmount += order.totalPrice;
-    });
+    const totalAmount = orders.reduce((sum, o) => sum + o.totalPrice, 0);
 
     res.status(200).json({
         success: true,
@@ -100,49 +85,54 @@ exports.getAllOrders = asyncErrorHandler(async (req, res, next) => {
     });
 });
 
-// Update Order Status ---ADMIN
+// Update Order Status — ADMIN
 exports.updateOrder = asyncErrorHandler(async (req, res, next) => {
-
     const order = await Order.findById(req.params.id);
-
     if (!order) {
         return next(new ErrorHandler("Order Not Found", 404));
     }
 
     if (order.orderStatus === "Delivered") {
-        return next(new ErrorHandler("Already Delivered", 400));
+        return next(new ErrorHandler("This order has already been delivered", 400));
     }
 
-    if (req.body.status === "Shipped") {
+    const { status } = req.body;
+    if (!status) {
+        return next(new ErrorHandler("Order status is required", 400));
+    }
+
+    if (status === "Shipped") {
         order.shippedAt = Date.now();
-        order.orderItems.forEach(async (i) => {
-            await updateStock(i.product, i.quantity)
-        });
+        // Use Promise.all to run stock updates in parallel and catch any failures
+        await Promise.all(
+            order.orderItems.map((item) => updateStock(item.product, item.quantity))
+        );
     }
 
-    order.orderStatus = req.body.status;
-    if (req.body.status === "Delivered") {
+    order.orderStatus = status;
+
+    if (status === "Delivered") {
         order.deliveredAt = Date.now();
     }
 
     await order.save({ validateBeforeSave: false });
 
-    res.status(200).json({
-        success: true
-    });
+    res.status(200).json({ success: true });
 });
 
 async function updateStock(id, quantity) {
     const product = await Product.findById(id);
-    product.stock -= quantity;
+    if (!product) {
+        console.error(`updateStock: Product ${id} not found`);
+        return;
+    }
+    product.stock = Math.max(0, product.stock - quantity);
     await product.save({ validateBeforeSave: false });
 }
 
-// Delete Order ---ADMIN
+// Delete Order — ADMIN
 exports.deleteOrder = asyncErrorHandler(async (req, res, next) => {
-
     const order = await Order.findById(req.params.id);
-
     if (!order) {
         return next(new ErrorHandler("Order Not Found", 404));
     }
@@ -151,5 +141,6 @@ exports.deleteOrder = asyncErrorHandler(async (req, res, next) => {
 
     res.status(200).json({
         success: true,
+        message: "Order deleted successfully",
     });
 });

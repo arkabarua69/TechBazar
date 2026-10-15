@@ -1,50 +1,70 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import MetaData from '../Layouts/MetaData';
-import successfull from '../../assets/images/Transaction/success.png';
-import failed from '../../assets/images/Transaction/failed.png';
 
 const OrderSuccess = ({ success }) => {
-
     const navigate = useNavigate();
-    const [time, setTime] = useState(3);
+    const [time, setTime] = useState(4);
 
     useEffect(() => {
         if (time === 0) {
-            if (success) {
-                navigate("/orders")
-            } else {
-                navigate("/cart")
-            }
+            navigate(success ? '/orders' : '/cart');
             return;
-        };
-        const intervalId = setInterval(() => {
-            setTime(time - 1);
-        }, 1000);
-
-        return () => clearInterval(intervalId);
-        // eslint-disable-next-line
-    }, [time]);
+        }
+        const id = setInterval(() => setTime((t) => t - 1), 1000);
+        return () => clearInterval(id);
+    }, [time, success, navigate]);
 
     return (
         <>
-            <MetaData title={`Payment ${success ? "Success" : "Failed"}`} />
+            <MetaData title={`Payment ${success ? 'Successful' : 'Failed'}`} />
+            <div
+                className="min-h-screen flex items-center justify-center p-6"
+                style={{ backgroundColor: 'var(--color-bg)' }}
+            >
+                <div className="surface max-w-md w-full p-8 sm:p-12 text-center flex flex-col items-center gap-5">
+                    {/* Status icon */}
+                    <div
+                        className="w-20 h-20 rounded-full flex items-center justify-center text-4xl"
+                        style={{
+                            backgroundColor: success ? 'rgba(22,163,74,0.1)' : 'rgba(239,68,68,0.1)',
+                        }}
+                    >
+                        {success ? '✓' : '✗'}
+                    </div>
 
-            <main className="w-full sm:w-11/12 mx-auto flex flex-col gap-4 px-3 sm:px-4 pb-10 mt-3 sm:mt-6">
+                    <div className="flex flex-col gap-2">
+                        <h1
+                            className="font-bold text-xl sm:text-2xl"
+                            style={{ color: success ? 'var(--color-success)' : 'var(--color-danger)' }}
+                        >
+                            {success ? 'Order Placed Successfully!' : 'Payment Failed'}
+                        </h1>
+                        <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                            {success
+                                ? 'Your order has been confirmed. Track it in My Orders.'
+                                : 'Something went wrong with the payment. Please try again.'}
+                        </p>
+                    </div>
 
-                {/* <!-- row --> */}
-                <div className="surface p-8 sm:p-12 text-center max-w-lg mx-auto flex flex-col items-center justify-center gap-3">
+                    <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                        Redirecting to {success ? 'orders' : 'cart'} in {time}s…
+                    </p>
+
+                    <Link
+                        to={success ? '/orders' : '/cart'}
+                        className="btn-accent px-8 py-3 text-sm font-semibold"
+                    >
+                        {success ? 'View My Orders' : 'Back to Cart'}
+                    </Link>
+
                     {success && (
-                        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-green/10 text-primary-green text-2xl font-bold">✓</span>
+                        <Link to="/" className="text-sm font-medium hover:underline" style={{ color: 'var(--color-accent)' }}>
+                            Continue Shopping
+                        </Link>
                     )}
-                    <img draggable="false" className="w-1/2 h-60 object-contain" src={success ? successfull : failed} alt="Transaction Status" />
-                    <h1 className="font-display font-extrabold text-xl sm:text-2xl text-slate-900">Transaction {success ? "Successful" : "Failed"}</h1>
-                    <p className="mt-2 text-sm text-slate-600">Redirecting to {success ? "orders" : "cart"} in {time} sec</p>
-                    <Link to={success ? "/orders" : "/cart"} className="btn-accent mt-2 py-2.5 px-6 text-sm font-bold uppercase rounded-lg">go to {success ? "orders" : "cart"}</Link>
                 </div>
-                {/* <!-- row --> */}
-
-            </main>
+            </div>
         </>
     );
 };

@@ -2,77 +2,102 @@ import { useSelector } from 'react-redux';
 import CheckIcon from '@mui/icons-material/Check';
 
 const Stepper = ({ activeStep, children }) => {
-
     const { user } = useSelector((state) => state.user);
     const { shippingInfo, cartItems } = useSelector((state) => state.cart);
 
-    const address = `${shippingInfo.address}, ${shippingInfo.city}, ${shippingInfo.state} - ${shippingInfo.pincode}`;
+    const address = shippingInfo
+        ? [shippingInfo.address, shippingInfo.city, shippingInfo.state, shippingInfo.pincode]
+            .filter(Boolean).join(', ')
+        : '';
 
     const steps = [
         {
-            label: "LOGIN",
-            desc: <p className="font-medium text-sm text-slate-600">{user.name} <span className="text-sm font-normal text-slate-500">{user.email}</span></p>
+            label: 'LOGIN',
+            desc: (
+                <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                    {user?.name}{' '}
+                    <span className="font-normal" style={{ color: 'var(--color-text-secondary)' }}>{user?.email}</span>
+                </p>
+            ),
         },
         {
-            label: "DELIVERY ADDRESS",
-            desc: <p className="font-medium text-sm text-slate-600">{user.name} <span className="text-sm font-normal text-slate-500">{address}</span></p>
+            label: 'DELIVERY ADDRESS',
+            desc: (
+                <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                    {user?.name}{' '}
+                    <span className="font-normal" style={{ color: 'var(--color-text-secondary)' }}>{address}</span>
+                </p>
+            ),
         },
         {
-            label: "ORDER SUMMARY",
-            desc: <p className="font-medium text-sm text-slate-600">{cartItems.length} Item</p>
+            label: 'ORDER SUMMARY',
+            desc: (
+                <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                    {cartItems.length} Item{cartItems.length !== 1 ? 's' : ''}
+                </p>
+            ),
         },
         {
-            label: "PAYMENT OPTIONS",
-            desc: <p className="font-medium text-sm text-slate-600">Paytm</p>
-        }
-    ]
+            label: 'PAYMENT',
+            desc: <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>Mobile Banking / COD</p>,
+        },
+    ];
 
     return (
-        <div className="flex flex-col gap-4">
-
+        <div className="flex flex-col gap-3">
             {steps.map((step, index) => {
+                const isActive = activeStep === index;
+                const isDone = activeStep > index;
 
                 return (
-                    <>
-                        {activeStep === index ? (
-                            <div className="surface flex flex-col overflow-hidden">
-                                <div className="flex items-center bg-primary-accent px-6 py-3 gap-4">
-                                    <span className="h-5 w-5 flex items-center justify-center text-xs font-bold bg-blue-50 text-primary-accent rounded-lg">{index + 1}</span>
-                                    <h2 className="font-display font-bold text-white text-base sm:text-lg">{step.label}</h2>
+                    <div key={index}>
+                        {isActive ? (
+                            <div className="surface overflow-hidden">
+                                {/* Active step header */}
+                                <div
+                                    className="flex items-center px-5 sm:px-6 py-3 gap-3"
+                                    style={{ backgroundColor: 'var(--color-accent)' }}
+                                >
+                                    <span
+                                        className="h-6 w-6 flex items-center justify-center text-xs font-bold rounded-lg shrink-0"
+                                        style={{ backgroundColor: 'rgba(255,255,255,0.25)', color: '#fff' }}
+                                    >
+                                        {index + 1}
+                                    </span>
+                                    <h2 className="font-bold text-white text-sm sm:text-base">{step.label}</h2>
                                 </div>
                                 {children}
                             </div>
                         ) : (
-                            <>
-                                {activeStep > index ? (
-                                    <Step isDesc={true} {...step} index={index} />
-                                ) : (
-                                    <Step isDesc={false} {...step} index={index} />
-                                )}
-                            </>
+                            <div className="surface flex items-start px-4 py-3 gap-3">
+                                <span
+                                    className="mt-1 h-5 w-5 flex items-center justify-center text-xs font-bold rounded-lg shrink-0"
+                                    style={{
+                                        backgroundColor: isDone ? 'rgba(232,75,15,0.1)' : 'var(--color-bg)',
+                                        color: isDone ? 'var(--color-accent)' : 'var(--color-text-muted)',
+                                    }}
+                                >
+                                    {index + 1}
+                                </span>
+                                <div className="flex flex-col gap-0.5">
+                                    <h2
+                                        className="font-semibold text-sm flex items-center gap-2"
+                                        style={{ color: isDone ? 'var(--color-text-primary)' : 'var(--color-text-muted)' }}
+                                    >
+                                        {step.label}
+                                        {isDone && (
+                                            <CheckIcon sx={{ fontSize: 18, color: 'var(--color-success)' }} />
+                                        )}
+                                    </h2>
+                                    {isDone && step.desc}
+                                </div>
+                            </div>
                         )}
-                    </>
-                )
+                    </div>
+                );
             })}
-
         </div>
     );
 };
-
-const Step = ({ isDesc, label, desc, index }) => {
-    return (
-        <div className="surface flex px-4 py-3 pb-4">
-            <span className="mt-2 ml-2 mr-4 h-5 w-5 flex items-center justify-center text-xs font-bold bg-blue-50 text-primary-accent rounded-lg">{index + 1}</span>
-            <div className="flex flex-col mt-1 gap-0.5">
-                <h2 className={`font-medium flex items-center gap-2 ${isDesc ? "text-slate-700" : "text-slate-400"}`}>{label}
-                    {isDesc && (
-                        <span className="text-primary-green mb-1"><CheckIcon sx={{ fontSize: "20px" }} /></span>
-                    )}
-                </h2>
-                {isDesc && desc}
-            </div>
-        </div>
-    )
-}
 
 export default Stepper;

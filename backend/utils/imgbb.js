@@ -16,26 +16,59 @@
 
 const https = require('https');
 const querystring = require('querystring');
+const crypto = require('crypto');
+
+// Admin UI never sends the real key back; it sends this placeholder instead.
+const MASK_VALUES = new Set(['••••••••••••••••••••']);
+const looksMasked = (value) =>
+    typeof value === 'string' && (MASK_VALUES.has(value) || /^[•*]{4,}$/.test(value));
+
+// A key is usable only when it is a non-empty, non-placeholder string.
+const sanitizeKey = (value) => {
+    if (!value || typeof value !== 'string') return null;
+    const trimmed = value.trim();
+    if (!trimmed || looksMasked(trimmed)) return null;
+    return trimmed;
+};
 
 /**
  * Resolve the active ImgBB API key.
  * Prefers the DB-stored key (so admins can change it without redeploying).
- * Falls back to the env variable as a safety net.
+ * Falls back to the env variable as a safety net. The key is never logged.
  */
 async function resolveApiKey() {
     // Lazy-require to avoid circular dependency issues at module load time
     try {
         const WebsiteConfig = require('../models/websiteConfigModel');
         const cfg = await WebsiteConfig.getCurrentConfig();
-        const dbKey = cfg?.imgbb?.apiKey;
-        if (dbKey && dbKey.trim()) return dbKey.trim();
+        const dbKey = sanitizeKey(cfg?.imgbb?.apiKey);
+        if (dbKey) return dbKey;
     } catch (_) {
         // DB might not be available during startup — fall through
     }
-    const envKey = process.env.IMGBB_API_KEY;
-    if (envKey && envKey.trim()) return envKey.trim();
-    return null;
+    return sanitizeKey(process.env.IMGBB_API_KEY);
 }
+
+// Map raw ImgBB errors to clear, actionable messages for the admin.
+const friendlyError = (raw, statusCode) => {
+    const message = String(raw || '').trim();
+    if (/invalid api v1 key/i.test(message) || /invalid.*key/i.test(message)) {
+        return (
+            'The configured ImgBB API key is invalid or not activated. ' +
+            'Open Admin → Config → ImgBB Settings and save a valid key from api.imgbb.com.'
+        );
+    }
+    if (/no image/i.test(message) || /image.*(required|missing)/i.test(message)) {
+        return 'ImgBB rejected the upload: no image data was received.';
+    }
+    if (/rate.?limit|too many/i.test(message)) {
+        return 'ImgBB rate limit reached. Please try again in a moment.';
+    }
+    if (/expiration/i.test(message)) {
+        return 'ImgBB rejected the expiration value (must be between 60 and 15552000 seconds).';
+    }
+    return message || `ImgBB upload failed (HTTP ${statusCode}).`;
+};
 
 /**
  * Upload a base64-encoded image to ImgBB.
@@ -47,42 +80,61 @@ async function resolveApiKey() {
  * @returns {Promise<object>} ImgBB `data` object: { id, url, display_url, thumb, delete_url, … }
  */
 async function uploadToImgBB(imageData, name = '', expiration = null, apiKeyOverride = null) {
-    const apiKey = apiKeyOverride || (await resolveApiKey());
+    const apiKey = sanitizeKey(apiKeyOverride) || (await resolveApiKey());
 
     if (!apiKey) {
         throw new Error(
             'ImgBB API key is not configured. ' +
-            'Set IMGBB_API_KEY in config.env or configure it in Admin → Website Config → ImgBB Settings.'
+            'Set IMGBB_API_KEY in config.env or add one in Admin → Config → ImgBB Settings.'
         );
     }
 
-    if (!imageData) {
+    if (!imageData || typeof imageData !== 'string') {
         throw new Error('No image data provided to uploadToImgBB.');
     }
 
-    // Strip the data URI prefix if present — ImgBB expects raw base64
-    const base64 = imageData.replace(/^data:image\/[a-zA-Z+]+;base64,/, '');
+    // Strip a data URI prefix if present — ImgBB expects raw base64.
+    const base64 = imageData
+        .replace(/^data:image\/[a-z0-9.+-]+;base64,/i, '')
+        .replace(/\s+/g, '');
 
-    // Build query string (key + optional expiration)
+    if (!base64) {
+        throw new Error('The image data is empty after removing the data URI prefix.');
+    }
+
+    // Query string: key + optional expiration (per official ImgBB API v1 docs)
     const qs = { key: apiKey };
     if (expiration && Number.isInteger(Number(expiration))) {
         qs.expiration = Number(expiration);
     }
 
-    // Build URL-encoded POST body
-    const postBody = querystring.stringify({
-        image: base64,
-        ...(name ? { name } : {}),
-    });
+    // Build a multipart/form-data body — the format ImgBB recommends for file
+    // uploads. This avoids any chance of the base64 payload being mangled by
+    // URL encoding (base64 contains '+', '/', '=' which are special in URLs).
+    const boundary = `----ImgBBFormBoundary${crypto.randomBytes(16).toString('hex')}`;
+    const chunks = [];
+    const addField = (fieldName, value) => {
+        chunks.push(Buffer.from(
+            `--${boundary}\r\n` +
+            `Content-Disposition: form-data; name="${fieldName}"\r\n\r\n` +
+            `${value}\r\n`,
+            'utf8'
+        ));
+    };
+    addField('image', base64);
+    if (name) addField('name', String(name));
+    chunks.push(Buffer.from(`--${boundary}--\r\n`, 'utf8'));
+    const postBody = Buffer.concat(chunks);
 
     return new Promise((resolve, reject) => {
         const options = {
             hostname: 'api.imgbb.com',
             path: `/1/upload?${querystring.stringify(qs)}`,
             method: 'POST',
+            timeout: 60000,
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': Buffer.byteLength(postBody),
+                'Content-Type': `multipart/form-data; boundary=${boundary}`,
+                'Content-Length': postBody.length,
             },
         };
 
@@ -94,20 +146,20 @@ async function uploadToImgBB(imageData, name = '', expiration = null, apiKeyOver
                 try {
                     parsed = JSON.parse(raw);
                 } catch (e) {
-                    return reject(new Error(`ImgBB returned non-JSON response: ${raw.slice(0, 200)}`));
+                    return reject(new Error(`ImgBB returned a non-JSON response (HTTP ${res.statusCode}).`));
                 }
 
                 if (!parsed.success) {
-                    const msg =
-                        parsed?.error?.message ||
-                        `ImgBB upload failed (HTTP ${res.statusCode})`;
-                    return reject(new Error(msg));
+                    return reject(new Error(friendlyError(parsed?.error?.message, res.statusCode)));
                 }
 
                 resolve(parsed.data);
             });
         });
 
+        req.on('timeout', () => {
+            req.destroy(new Error('ImgBB request timed out after 60 seconds.'));
+        });
         req.on('error', (err) => reject(new Error(`ImgBB network error: ${err.message}`)));
         req.write(postBody);
         req.end();
@@ -143,4 +195,4 @@ async function uploadToImgBBCompat(imageData, name = '', expiration = null, apiK
     };
 }
 
-module.exports = { uploadToImgBB, uploadToImgBBCompat, resolveApiKey };
+module.exports = { uploadToImgBB, uploadToImgBBCompat, resolveApiKey, sanitizeKey, looksMasked };

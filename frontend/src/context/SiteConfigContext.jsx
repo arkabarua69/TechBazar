@@ -75,6 +75,23 @@ const applyTheme = (theme = {}) => {
     }
 };
 
+// Deep-merge a partial config over the defaults so missing nested keys keep
+// their defaults (e.g. a config that only stores payment.bKashNumber still
+// keeps default nagadNumber / delivery / branding values).
+const deepMerge = (base, override) => {
+    if (Array.isArray(base) || Array.isArray(override)) {
+        return override !== undefined ? override : base;
+    }
+    if (base && override && typeof base === 'object' && typeof override === 'object') {
+        const out = { ...base };
+        Object.keys(override).forEach((k) => {
+            out[k] = deepMerge(base[k], override[k]);
+        });
+        return out;
+    }
+    return override !== undefined ? override : base;
+};
+
 export const SiteConfigProvider = ({ children }) => {
     const [config, setConfig] = useState(DEFAULT_SITE_CONFIG);
 
@@ -82,20 +99,10 @@ export const SiteConfigProvider = ({ children }) => {
         axios.get('/api/v1/siteconfig', { headers: { Accept: 'application/json' } })
             .then(({ data }) => {
                 if (data && data.config) {
-                    const merged = { ...DEFAULT_SITE_CONFIG, ...data.config };
-                    // Always merge with orange defaults so old blue DB records are overridden
-                    const theme = {
-                        ...DEFAULT_SITE_CONFIG.theme,
-                        ...(merged.theme || {}),
-                    };
-                    // If DB has old blue accent, override with orange default
-                    if (theme.colorAccent === '#3b82f6' || theme.colorAccent === '#2563eb') {
-                        theme.colorAccent      = DEFAULT_SITE_CONFIG.theme.colorAccent;
-                        theme.colorAccentHover = DEFAULT_SITE_CONFIG.theme.colorAccentHover;
-                    }
-                    merged.theme = theme;
+                    // Honour whatever the admin saved — including a blue accent.
+                    const merged = deepMerge(DEFAULT_SITE_CONFIG, data.config);
                     setConfig(merged);
-                    applyTheme(theme);
+                    applyTheme(merged.theme);
                 }
             })
             .catch(() => {

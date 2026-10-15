@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import MetaData from '../Layouts/MetaData';
@@ -27,8 +27,6 @@ import {
     Eye,
     EyeOff,
     X,
-    ChevronDown,
-    ChevronUp,
     Loader2,
     Database,
     Trash2,
@@ -64,10 +62,11 @@ const SECRET_FIELDS = new Set([
     'payment.paytmMerchantKey',
     'cloud.cloudinaryApiKey',
     'cloud.cloudinaryApiSecret',
+    'imgbb.apiKey',
     'apiKeys.otherApiKey1',
     'apiKeys.otherApiKey2',
+    'database.mongoUri',
 ]);
-const isSecretField = (section, field) => SECRET_FIELDS.has(`${section}.${field}`);
 // ─── Field Components ─────────────────────────────────────────────────────────
 const inputCls =
     'border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 w-full bg-white';
@@ -531,6 +530,7 @@ const BrandingPanel = () => {
         });
         // Also update local state so the next full save includes it
         setBrand(field, url);
+        reloadConfig(); // logo/favicon update on the live site immediately
     };
 
     // ── Save branding fields ───────────────────────────────────────────────────
@@ -539,6 +539,7 @@ const BrandingPanel = () => {
         setBrandSaving(true);
         try {
             await axios.put('/api/v1/admin/websiteconfig', { config: { branding: brandConfig.branding } });
+            reloadConfig(); // header logo/name update live
             enqueueSnackbar('Branding saved', { variant: 'success' });
         } catch (err) {
             enqueueSnackbar(err.response?.data?.message || 'Save failed', { variant: 'error' });
@@ -695,6 +696,7 @@ const DatabasePanel = () => {
         }
     };
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => { fetchStatus(); }, []);
 
     const handleTest = async () => {
@@ -1069,7 +1071,6 @@ const HomepagePanel = () => {
     const a = hpConfig.announcement || {};
     const h = hpConfig.hero || {};
     const f = hpConfig.flashSale || {};
-    const b = hpConfig.branding || {};
     const s = hpConfig.seo || {};
     const n = hpConfig.navigation || {};
     const c = hpConfig.content || {};
@@ -1302,7 +1303,7 @@ const HomepagePanel = () => {
             <Card>
                 <SectionHeading>SEO</SectionHeading>
                 <div className="flex flex-col gap-3">
-                    <HomepageField label="Title template (%s = page name)" value={s.titleTemplate} onChange={(v) => setHpSection('seo', 'titleTemplate', v)} placeholder="%s | TechBazar" />
+                    <HomepageField label="Title template (%s = page name)" value={s.titleTemplate} onChange={(v) => setHpSection('seo', 'titleTemplate', v)} placeholder="%s | Store" />
                     <HomepageField label="Default meta description" textarea value={s.description} onChange={(v) => setHpSection('seo', 'description', v)} />
                 </div>
             </Card>
@@ -1481,23 +1482,10 @@ const WebsiteConfig = () => {
             });
             await axios.put('/api/v1/admin/websiteconfig', { config: payload });
 
-            // ── Sync site name & tagline to siteconfig so the whole UI updates instantly ──
-            // General > siteName is the source of truth for the brand name shown
-            // in the header, footer, page titles, login page, etc. Those all read
-            // from GET /api/v1/siteconfig (branding.name), so we mirror the value.
-            if (activeCategory === 'general' && payload.general?.siteName) {
-                try {
-                    await axios.put('/api/v1/admin/siteconfig', {
-                        branding: {
-                            name: payload.general.siteName,
-                            ...(payload.general.tagline !== undefined && { tagline: payload.general.tagline }),
-                        },
-                    }, { headers: { 'Content-Type': 'application/json', Accept: 'application/json' } });
-                    reloadConfig(); // refresh SiteConfigContext so header/footer update live
-                } catch (_) {
-                    // non-fatal — websiteconfig save already succeeded
-                }
-            }
+            // The backend mirrors storefront-facing fields (branding, contact,
+            // payment, delivery, social, SEO) into SiteConfig. Refresh the
+            // shared SiteConfigContext so the header/footer/theme update live.
+            reloadConfig();
 
             enqueueSnackbar('Configuration saved', { variant: 'success' });
             setPendingSecrets({});

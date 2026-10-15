@@ -60,19 +60,6 @@ class SearchFeatures {
             }
         }
 
-        // When a shop filter is applied, always include products that have no
-        // shop assigned — they belong to no specific shop but should still
-        // appear on all shop pages alongside shop-specific products.
-        const shopOr = [];
-        if (parsedQuery.shop) {
-            const shopFilter = parsedQuery.shop;
-            delete parsedQuery.shop;
-            shopOr.push({ shop: shopFilter });
-            shopOr.push({ shop: { $exists: false } });
-            shopOr.push({ shop: null });
-            shopOr.push({ shop: '' });
-        }
-
         // For numeric range filters (e.g. ratings[gte]=4, price[lte]=200000),
         // MongoDB's $gte/$gt/$lt/$lte operators do NOT match documents where the
         // field is missing entirely — those are treated as null, and null is
@@ -114,10 +101,6 @@ class SearchFeatures {
             } else {
                 andClauses.push({ [key]: val });
             }
-        }
-
-        if (shopOr.length) {
-            andClauses.push({ $or: shopOr });
         }
 
         let finalQuery;

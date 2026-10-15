@@ -50,86 +50,100 @@ import NotFound from './components/NotFound';
 import ImageGallery from './components/Gallery/ImageGallery';
 import { SiteConfigProvider } from './context/SiteConfigContext';
 import MobileTopBar from './components/Layouts/Header/MobileTopBar';
+
 function App() {
   const dispatch = useDispatch();
   const { pathname } = useLocation();
-  // const [stripeApiKey, setStripeApiKey] = useState("");
-  // async function getStripeApiKey() {
-  //   const { data } = await axios.get('/api/v1/stripeapikey');
-  //   setStripeApiKey(data.stripeApiKey);
-  // }
+
+  // Load web fonts once on mount
   useEffect(() => {
     WebFont.load({
       google: {
-        families: ["Roboto:300,400,500,600,700"]
+        families: ["Roboto:300,400,500,600,700"],
       },
     });
-  });
+  }, []);
+
+  // Load authenticated user on mount
   useEffect(() => {
     dispatch(loadUser());
-    // getStripeApiKey();
   }, [dispatch]);
-  // keep page content clear of fixed top bars:
-  //   desktop  → measure <header> height (AnnouncementBar + nav row)
-  //   mobile   → measure .mobile-topbar height (announcement ticker + logo/search row)
+
+  // Keep page content clear of fixed top bars
   useEffect(() => {
     const apply = () => {
-      const isMobile = window.innerWidth < 768; // Tailwind md breakpoint
+      const isMobile = window.innerWidth < 768;
       const el = isMobile
         ? document.querySelector('.mobile-topbar')
         : document.querySelector('header');
       document.body.style.paddingTop = el && el.offsetHeight ? `${el.offsetHeight}px` : '';
     };
-    // run immediately, then again after a short delay for fonts/images
+
     apply();
     const t = setTimeout(apply, 300);
     const t2 = setTimeout(apply, 800);
 
+    let ro;
     if (typeof ResizeObserver !== 'undefined') {
-      const ro = new ResizeObserver(apply);
-      // observe both — whichever is visible will have a non-zero offsetHeight
-      const waitAndObserve = () => {
-        const header = document.querySelector('header');
-        const mobileBar = document.querySelector('.mobile-topbar');
-        if (header) ro.observe(header);
-        if (mobileBar) ro.observe(mobileBar);
-      };
-      waitAndObserve();
-      setTimeout(waitAndObserve, 300);
+      ro = new ResizeObserver(apply);
+      const header = document.querySelector('header');
+      const mobileBar = document.querySelector('.mobile-topbar');
+      if (header) ro.observe(header);
+      if (mobileBar) ro.observe(mobileBar);
+      // Re-observe after fonts/layout settle
+      const t3 = setTimeout(() => {
+        const h = document.querySelector('header');
+        const m = document.querySelector('.mobile-topbar');
+        if (h) ro.observe(h);
+        if (m) ro.observe(m);
+      }, 300);
       window.addEventListener('resize', apply);
       return () => {
-        clearTimeout(t); clearTimeout(t2);
+        clearTimeout(t); clearTimeout(t2); clearTimeout(t3);
         ro.disconnect();
         window.removeEventListener('resize', apply);
         document.body.style.paddingTop = '';
       };
     }
+
     window.addEventListener('resize', apply);
-    return () => { clearTimeout(t); clearTimeout(t2); window.removeEventListener('resize', apply); document.body.style.paddingTop = ''; };
+    return () => {
+      clearTimeout(t); clearTimeout(t2);
+      window.removeEventListener('resize', apply);
+      document.body.style.paddingTop = '';
+    };
   }, [pathname]);
-  // always scroll to top on route/path change
+
+  // Scroll to top on route change
   useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: "smooth"
-    });
-  }, [pathname])
-  // disable right click
-  window.addEventListener("contextmenu", (e) => e.preventDefault());
-  window.addEventListener("keydown", (e) => {
-    if (e.keyCode == 123) e.preventDefault();
-    if (e.ctrlKey && e.shiftKey && e.keyCode === 73) e.preventDefault();
-    if (e.ctrlKey && e.shiftKey && e.keyCode === 74) e.preventDefault();
-  });
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  }, [pathname]);
+
+  // Block right-click and common DevTools shortcuts — registered once on mount
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault();
+    const handleKeyDown = (e) => {
+      if (e.keyCode === 123) e.preventDefault(); // F12
+      if (e.ctrlKey && e.shiftKey && e.keyCode === 73) e.preventDefault(); // Ctrl+Shift+I
+      if (e.ctrlKey && e.shiftKey && e.keyCode === 74) e.preventDefault(); // Ctrl+Shift+J
+    };
+    window.addEventListener('contextmenu', handleContextMenu);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('contextmenu', handleContextMenu);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   return (
     <SiteConfigProvider>
       <Header />
       <MobileTopBar />
       <BottomBar />
-      {/* dedicated admin bottom bar (mobile only) — returns null off /admin */}
+      {/* Admin bottom nav — hidden on non-admin pages internally */}
       <AdminBottomNav />
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -137,181 +151,78 @@ function App() {
         <Route path="/products" element={<Products />} />
         <Route path="/products/:keyword" element={<Products />} />
         <Route path="/cart" element={<Cart />} />
-        {/* guest checkout (no login required) */}
         <Route path="/checkout" element={<Checkout />} />
-        {/* guest order tracking (phone or order id) + static policy page */}
         <Route path="/track" element={<TrackOrder />} />
         <Route path="/policy" element={<Policy />} />
         <Route path="/gallery" element={<ImageGallery />} />
-        {/* order process */}
-        <Route path="/shipping" element={
-          <ProtectedRoute>
-            <Shipping />
-          </ProtectedRoute>
-        } ></Route>
-        <Route path="/order/confirm" element={
-          <ProtectedRoute>
-            <OrderConfirm />
-          </ProtectedRoute>
-        } ></Route>
-        <Route path="/process/payment" element={
-          <ProtectedRoute>
-            {/* // stripeApiKey && ( */}
-            {/* // <Elements stripe={loadStripe(stripeApiKey)}> */}
-            <Payment />
-            {/* // </Elements> */}
-            {/* ) */}
-          </ProtectedRoute>
-        } ></Route>
+
+        {/* Auth-only routes */}
+        <Route path="/shipping" element={<ProtectedRoute><Shipping /></ProtectedRoute>} />
+        <Route path="/order/confirm" element={<ProtectedRoute><OrderConfirm /></ProtectedRoute>} />
+        <Route path="/process/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
         <Route path="/orders/success" element={<OrderSuccess success={true} />} />
         <Route path="/orders/failed" element={<OrderSuccess success={false} />} />
-        {/* order process */}
-        <Route path="/order/:id" element={
-          <ProtectedRoute>
-            <OrderStatus />
-          </ProtectedRoute>
-        } ></Route>
-        <Route path="/orders" element={
-          <ProtectedRoute>
-            <MyOrders />
-          </ProtectedRoute>
-        }></Route>
-        <Route path="/order_details/:id" element={
-          <ProtectedRoute>
-            <OrderDetails />
-          </ProtectedRoute>
-        }></Route>
-        <Route path="/account" element={
-          <ProtectedRoute>
-            <Account />
-          </ProtectedRoute>
-        } ></Route>
-        <Route path="/account/update" element={
-          <ProtectedRoute>
-            <UpdateProfile />
-          </ProtectedRoute>
-        } ></Route>
-        <Route path="/password/update" element={
-          <ProtectedRoute>
-            <UpdatePassword />
-          </ProtectedRoute>
-        } ></Route>
+        <Route path="/order/:id" element={<ProtectedRoute><OrderStatus /></ProtectedRoute>} />
+        <Route path="/orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
+        <Route path="/order_details/:id" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
+        <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
+        <Route path="/account/update" element={<ProtectedRoute><UpdateProfile /></ProtectedRoute>} />
+        <Route path="/password/update" element={<ProtectedRoute><UpdatePassword /></ProtectedRoute>} />
         <Route path="/password/forgot" element={<ForgotPassword />} />
         <Route path="/password/reset/:token" element={<ResetPassword />} />
-        <Route path="/wishlist" element={
-          <ProtectedRoute>
-            <Wishlist />
-          </ProtectedRoute>
-        } ></Route>
+        <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
+
+        {/* Admin routes */}
         <Route path="/admin/dashboard" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={0}>
-              <MainData />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
+          <ProtectedRoute isAdmin={true}><Dashboard activeTab={0}><MainData /></Dashboard></ProtectedRoute>
+        } />
         <Route path="/admin/orders" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={1}>
-              <OrderTable />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
+          <ProtectedRoute isAdmin={true}><Dashboard activeTab={1}><OrderTable /></Dashboard></ProtectedRoute>
+        } />
         <Route path="/admin/order/:id" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={1}>
-              <UpdateOrder />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
+          <ProtectedRoute isAdmin={true}><Dashboard activeTab={1}><UpdateOrder /></Dashboard></ProtectedRoute>
+        } />
         <Route path="/admin/products" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={2}>
-              <ProductTable />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
+          <ProtectedRoute isAdmin={true}><Dashboard activeTab={2}><ProductTable /></Dashboard></ProtectedRoute>
+        } />
         <Route path="/admin/new_product" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={3}>
-              <NewProduct />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
+          <ProtectedRoute isAdmin={true}><Dashboard activeTab={3}><NewProduct /></Dashboard></ProtectedRoute>
+        } />
         <Route path="/admin/product/:id" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={2}>
-              <UpdateProduct />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
+          <ProtectedRoute isAdmin={true}><Dashboard activeTab={2}><UpdateProduct /></Dashboard></ProtectedRoute>
+        } />
         <Route path="/admin/users" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={4}>
-              <UserTable />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
+          <ProtectedRoute isAdmin={true}><Dashboard activeTab={4}><UserTable /></Dashboard></ProtectedRoute>
+        } />
         <Route path="/admin/user/:id" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={4}>
-              <UpdateUser />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
+          <ProtectedRoute isAdmin={true}><Dashboard activeTab={4}><UpdateUser /></Dashboard></ProtectedRoute>
+        } />
         <Route path="/admin/reviews" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={5}>
-              <ReviewsTable />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
+          <ProtectedRoute isAdmin={true}><Dashboard activeTab={5}><ReviewsTable /></Dashboard></ProtectedRoute>
+        } />
         <Route path="/admin/store_orders" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={6}>
-              <StoreOrders />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
-        {/* /admin/homepage redirects to /admin/config where Homepage is now a category */}
+          <ProtectedRoute isAdmin={true}><Dashboard activeTab={6}><StoreOrders /></Dashboard></ProtectedRoute>
+        } />
         <Route path="/admin/homepage" element={<Navigate to="/admin/config" replace />} />
         <Route path="/admin/chat" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={8}>
-              <ChatInbox />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
-        {/* Website Configuration — admin only */}
+          <ProtectedRoute isAdmin={true}><Dashboard activeTab={8}><ChatInbox /></Dashboard></ProtectedRoute>
+        } />
         <Route path="/admin/config" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={9}>
-              <WebsiteConfig />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
-        {/* Database Manager — admin only */}
+          <ProtectedRoute isAdmin={true}><Dashboard activeTab={9}><WebsiteConfig /></Dashboard></ProtectedRoute>
+        } />
         <Route path="/admin/database" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={10}>
-              <DatabaseManager />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
-        {/* "More" tab of the admin bottom nav */}
+          <ProtectedRoute isAdmin={true}><Dashboard activeTab={10}><DatabaseManager /></Dashboard></ProtectedRoute>
+        } />
         <Route path="/admin/more" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={-1}>
-              <More />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
-        <Route path="*" element={<NotFound />}></Route>
+          <ProtectedRoute isAdmin={true}><Dashboard activeTab={-1}><More /></Dashboard></ProtectedRoute>
+        } />
+
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />
-      {/* floating live chat messenger — hidden on /admin pages internally */}
       <ChatWidget />
     </SiteConfigProvider>
   );
 }
+
 export default App;

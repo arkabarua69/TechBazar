@@ -5,7 +5,7 @@ services:
     name: flipkart-mern
     runtime: node
     plan: free
-    buildCommand: npm install --omit=dev && npm install --prefix frontend && npm run build --prefix frontend
+    buildCommand: npm install --omit=dev && NPM_CONFIG_PRODUCTION=false npm install --prefix frontend && npm run build --prefix frontend
     startCommand: npm start
     healthCheckPath: /
     envVars:
@@ -15,6 +15,12 @@ services:
       - key: MONGO_URI
         sync: false
       - key: JWT_SECRET
+        sync: false
+      - key: CONFIG_ENCRYPTION_KEY
+        sync: false
+      # Optional fallback for image uploads — the key can also be set from the
+      # admin panel (Admin → Config → ImgBB Settings), which takes priority.
+      - key: IMGBB_API_KEY
         sync: false
       # --- Regular config (same values as backend/config/config.env) ---
       - key: JWT_EXPIRE

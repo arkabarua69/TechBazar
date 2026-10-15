@@ -18,7 +18,6 @@ import {
     SEARCH_FOCUS_EVENT,
     LAST_SEEN_KEY,
 } from '../../utils/adminHelpers';
-import { useSiteConfig } from '../../context/SiteConfigContext';
 
 const STATUS_STYLES = {
     PENDING_APPROVAL: 'bg-yellow-100 text-yellow-800',
@@ -362,7 +361,7 @@ const StoreOrders = () => {
                                     Call
                                 </a>
                                 <a
-                                    href={waLink(order.customer?.phone, `TechBazar: inquiry about your order #${shortOrderId(order._id)}`)}
+                                    href={waLink(order.customer?.phone, `Inquiry about your order #${shortOrderId(order._id)}`)}
                                     target="_blank"
                                     rel="noreferrer"
                                     onClick={(e) => e.stopPropagation()}
@@ -573,7 +572,7 @@ const StoreOrders = () => {
                                 Update status ▸
                             </button>
                             <a
-                                href={waLink(sheetOrder.customer?.phone, `TechBazar: inquiry about your order #${shortOrderId(sheetOrder._id)}`)}
+                                href={waLink(sheetOrder.customer?.phone, `Inquiry about your order #${shortOrderId(sheetOrder._id)}`)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="bg-green-50 text-green-700 border border-green-200 rounded-xl py-2.5 text-sm font-semibold text-center active:bg-green-100"

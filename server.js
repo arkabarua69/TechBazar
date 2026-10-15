@@ -10,11 +10,16 @@ process.on('uncaughtException', (err) => {
 });
 connectDatabase();
 // deployment
-__dirname = path.resolve();
+const rootDir = path.resolve();
 if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, '/frontend/build')))
+    app.use(express.static(path.join(rootDir, '/frontend/build')))
     app.get('*', (req, res) => {
-        res.sendFile(path.resolve(__dirname, 'frontend', 'build', 'index.html'))
+        // Never let the SPA fallback swallow unmatched API routes — return a
+        // real JSON 404 so client-side errors surface instead of HTML.
+        if (req.path.startsWith('/api')) {
+            return res.status(404).json({ success: false, message: `API route not found: ${req.method} ${req.path}` });
+        }
+        res.sendFile(path.resolve(rootDir, 'frontend', 'build', 'index.html'))
     });
 } else {
     app.get('/', (req, res) => {

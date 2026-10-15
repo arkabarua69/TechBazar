@@ -9,7 +9,7 @@ import CheckIcon from '@mui/icons-material/Check';
 // ── Preset colour palettes ────────────────────────────────────────────────────
 const PRESETS = [
     {
-        name: 'TechBazar Blue',
+        name: 'Ocean Blue',
         theme: {
             colorAccent: '#3b82f6', colorAccentHover: '#2563eb',
             colorHeader: '#ffffff', colorHeaderText: '#0f172a',

@@ -45,6 +45,7 @@ const ImgBBUploader = ({
     const [uploading,   setUploading]   = useState(false);
     const [autoSaving,  setAutoSaving]  = useState(false);
     const [uploadedUrl, setUploadedUrl] = useState('');   // confirmed hosted URL this session
+    const [progress,    setProgress]    = useState(0);    // 0-100 upload progress
 
     // When parent resets currentUrl (e.g. config reloads), clear session state
     useEffect(() => {
@@ -58,8 +59,23 @@ const ImgBBUploader = ({
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
+
+        // Only real images may be uploaded.
+        const isImage = file.type
+            ? file.type.startsWith('image/')
+            : /\.(jpe?g|png|gif|webp|bmp|tiff?|svg|avif|heic|heif|ico)$/i.test(file.name || '');
+        if (!isImage) {
+            enqueueSnackbar('Please choose an image file (JPG, PNG, GIF, WebP, SVG…).', { variant: 'warning' });
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            return;
+        }
+
         if (file.size > maxSizeMB * 1024 * 1024) {
-            enqueueSnackbar(`File too large — max ${maxSizeMB} MB`, { variant: 'warning' });
+            enqueueSnackbar(
+                `File too large — ${(file.size / (1024 * 1024)).toFixed(1)} MB. Max ${maxSizeMB} MB.`,
+                { variant: 'warning' }
+            );
+            if (fileInputRef.current) fileInputRef.current.value = '';
             return;
         }
         const reader = new FileReader();
@@ -105,11 +121,17 @@ const ImgBBUploader = ({
 
         // Upload to ImgBB via backend proxy
         setUploading(true);
+        setProgress(0);
         try {
             const { data } = await axios.post(
                 '/api/v1/admin/imgbb/upload',
                 { image: imageData, name: label.replace(/\s+/g, '-').toLowerCase() },
-                { headers: { 'Content-Type': 'application/json' } }
+                {
+                    headers: { 'Content-Type': 'application/json' },
+                    onUploadProgress: (e) => {
+                        if (e.total) setProgress(Math.round((e.loaded / e.total) * 100));
+                    },
+                }
             );
 
             const hostedUrl = data.display_url || data.url;
@@ -132,12 +154,14 @@ const ImgBBUploader = ({
                 }
             }
         } catch (err) {
-            enqueueSnackbar(
-                err.response?.data?.message || 'ImgBB upload failed',
-                { variant: 'error' }
-            );
+            let msg = err.response?.data?.message || 'ImgBB upload failed';
+            if (err.response?.status === 502 && /api key/i.test(msg)) {
+                msg = 'ImgBB upload failed. Check the API key in Admin → Config → ImgBB Settings.';
+            }
+            enqueueSnackbar(msg, { variant: 'error' });
         } finally {
             setUploading(false);
+            setProgress(0);
         }
     };
 
@@ -224,6 +248,22 @@ const ImgBBUploader = ({
                     >
                         {displayUrl}
                     </a>
+                </div>
+            )}
+
+            {/* Upload progress */}
+            {uploading && (
+                <div className="w-full">
+                    <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                        <span>Uploading to ImgBB…</span>
+                        <span>{progress}%</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-orange-500 transition-all duration-200"
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
                 </div>
             )}
 

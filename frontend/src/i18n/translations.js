@@ -23,7 +23,7 @@ export const translations = {
         logout: 'Logout',
 
         // admin chrome
-        admin_title: 'TechBazar Admin',
+        admin_title: 'Admin Panel',
         all_rights: 'All rights reserved',
         switch_language: 'Switch language',
 
@@ -166,7 +166,7 @@ export const translations = {
         logout: 'Logout',
 
         // admin chrome
-        admin_title: 'TechBazar Admin',
+        admin_title: 'Admin Panel',
         all_rights: 'All rights reserved',
         switch_language: 'Switch language',
 

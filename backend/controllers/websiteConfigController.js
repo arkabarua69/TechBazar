@@ -1,44 +1,95 @@
 const WebsiteConfig = require('../models/websiteConfigModel');
+const SiteConfig = require('../models/siteConfigModel');
 const ErrorHandler = require('../utils/errorHandler');
 const asyncErrorHandler = require('../middlewares/asyncErrorHandler');
-const { uploadToImgBB } = require('../utils/imgbb');
+const { uploadToImgBB, sanitizeKey } = require('../utils/imgbb');
+const { isSensitivePath, MASK } = require('../models/websiteConfigModel');
+
+// Placeholder written in place of any real secret before it leaves the server.
+const maskSecrets = (obj) => {
+    const out = typeof obj?.toObject === 'function' ? obj.toObject() : JSON.parse(JSON.stringify(obj || {}));
+    const walk = (node, prefix) => {
+        if (!node || typeof node !== 'object') return;
+        for (const key of Object.keys(node)) {
+            const path = prefix ? `${prefix}.${key}` : key;
+            const value = node[key];
+            if (value && typeof value === 'object') {
+                walk(value, path);
+            } else if (value && (isSensitivePath(path) || path === 'database.mongoUri')) {
+                node[key] = MASK;
+            }
+        }
+    };
+    walk(out, '');
+    return out;
+};
+
+// ─── Mirror admin settings into the storefront (SiteConfig) ──────────────────
+// The public website renders exclusively from GET /api/v1/siteconfig
+// (the SiteConfig document). The admin "Config" page writes to WebsiteConfig,
+// so any field the storefront actually shows must be copied across, otherwise
+// saving it in the admin panel has no visible effect on the site.
+// Only fields explicitly present in the incoming payload are written, so a
+// partial update (e.g. only the branding section) never clobbers the rest.
+const syncToStorefront = async (cfg = {}) => {
+    const doc = (await SiteConfig.findOne().sort('-updatedAt')) || new SiteConfig();
+    const set = (path, value) => {
+        if (value !== undefined && value !== null) doc.set(path, value);
+    };
+
+    const {
+        general = {},
+        branding = {},
+        payment = {},
+        shipping = {},
+        social = {},
+    } = cfg;
+
+    // ── Identity (header, footer, page titles) ──────────────────────────────
+    if (general.siteName !== undefined) set('branding.name', String(general.siteName).slice(0, 60));
+    if (general.tagline !== undefined) set('branding.tagline', String(general.tagline).slice(0, 160));
+    if (branding.logoUrl !== undefined) set('branding.logoUrl', branding.logoUrl);
+    if (branding.faviconUrl !== undefined) set('branding.faviconUrl', branding.faviconUrl);
+
+    // ── Contact + SEO description ───────────────────────────────────────────
+    if (general.contactPhone !== undefined) set('support.hotline', general.contactPhone);
+    if (social.whatsappNumber !== undefined) set('support.whatsapp', social.whatsappNumber);
+    if (general.siteDescription !== undefined) set('seo.description', general.siteDescription);
+
+    // ── Payment numbers + delivery charges shown at checkout ────────────────
+    if (payment.bKashNumber !== undefined) set('payment.bKashNumber', payment.bKashNumber);
+    if (payment.nagadNumber !== undefined) set('payment.nagadNumber', payment.nagadNumber);
+    if (shipping.insideDhaka !== undefined) set('delivery.insideDhaka', shipping.insideDhaka);
+    if (shipping.outsideDhaka !== undefined) set('delivery.outsideDhaka', shipping.outsideDhaka);
+
+    // ── Social links → footer "social" column ───────────────────────────────
+    const socialEntries = [
+        ['Facebook', social.facebookUrl],
+        ['Twitter', social.twitterUrl],
+        ['Instagram', social.instagramUrl],
+        ['YouTube', social.youtubeUrl],
+    ].filter(([, url]) => url);
+    if (socialEntries.length) {
+        const cols = doc.content?.footer?.columns || [];
+        const socialCol = cols.find((c) => String(c.title).toLowerCase() === 'social');
+        if (socialCol) {
+            socialCol.links = socialEntries.map(([name, redirect]) => ({ name, redirect, internal: false }));
+            doc.markModified('content.footer.columns');
+        }
+    }
+
+    doc.updatedAt = new Date();
+    await doc.save();
+};
 
 // Get current website configuration (admin only)
 const getWebsiteConfig = asyncErrorHandler(async (req, res, next) => {
     const config = await WebsiteConfig.getCurrentConfig();
     
-    // Return config with masked sensitive fields for security
-    const configObj = config.toObject();
-    
-    // Mask encrypted fields (show only if they exist, but hide actual values)
-    const maskSensitiveFields = (section) => {
-        const masked = { ...section };
-        const encryptedFields = ['smtpPassword', 'sendgridApiKey', 'stripeSecretKey', 
-                               'stripeWebhookSecret', 'paytmMerchantKey', 'cloudinaryApiKey',
-                               'cloudinaryApiSecret', 'otherApiKey1', 'otherApiKey2'];
-        
-        encryptedFields.forEach(field => {
-            if (masked[field]) {
-                masked[field] = '••••••••••••••••••••';
-            }
-        });
-        return masked;
-    };
-    
-    // Apply masking to relevant sections
-    if (configObj.email) configObj.email = maskSensitiveFields(configObj.email);
-    if (configObj.payment) configObj.payment = maskSensitiveFields(configObj.payment);
-    if (configObj.cloud) configObj.cloud = maskSensitiveFields(configObj.cloud);
-    if (configObj.apiKeys) configObj.apiKeys = maskSensitiveFields(configObj.apiKeys);
+    // Return the config with every sensitive field masked — real secrets
+    // (passwords, API keys, DB URI) never leave the server.
+    const configObj = maskSecrets(config);
 
-    // Mask ImgBB API key — never expose to frontend
-    if (configObj.imgbb && configObj.imgbb.apiKey) {
-        configObj.imgbb = {
-            ...configObj.imgbb,
-            apiKey: '••••••••••••••••••••',
-        };
-    }
-    
     res.status(200).json({
         success: true,
         config: configObj
@@ -102,7 +153,10 @@ const updateWebsiteConfig = asyncErrorHandler(async (req, res, next) => {
     
     // Update configuration
     const updatedConfig = await WebsiteConfig.updateConfig(sanitizedConfig, userId);
-    
+
+    // Mirror storefront-facing fields into SiteConfig so the public site updates
+    await syncToStorefront(sanitizedConfig);
+
     // Clear any related caches (implement based on your caching strategy)
     // Example: clearRedisCache('website-config');
     
@@ -208,15 +262,17 @@ const getPublicConfig = asyncErrorHandler(async (req, res, next) => {
 // Export configuration as JSON file (admin only)
 const exportConfig = asyncErrorHandler(async (req, res, next) => {
     const config = await WebsiteConfig.getCurrentConfig();
-    const configObj = config.toObject();
-    
+
+    // Never export real secrets — the file may be shared or stored insecurely.
+    const configObj = maskSecrets(config);
+
     // Create a timestamp for the filename
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `website-config-export-${timestamp}.json`;
-    
+
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    
+
     res.status(200).json(configObj);
 });
 
@@ -244,7 +300,10 @@ const importConfig = asyncErrorHandler(async (req, res, next) => {
         
         // Update configuration with imported data
         const updatedConfig = await WebsiteConfig.updateConfig(configData, userId);
-        
+
+        // Mirror storefront-facing fields into SiteConfig as well
+        await syncToStorefront(configData);
+
         res.status(200).json({
             success: true,
             message: 'Configuration imported successfully',
@@ -256,32 +315,36 @@ const importConfig = asyncErrorHandler(async (req, res, next) => {
     }
 });
 
-module.exports = {
-    getWebsiteConfig,
-    updateWebsiteConfig,
-    resetWebsiteConfig,
-    getConfigChangeLog,
-    getPublicConfig,
-    exportConfig,
-    importConfig
-};
+
 
 // ─── ImgBB — Test API key ─────────────────────────────────────────────────────
 // POST /api/v1/admin/imgbb/test
 // Body: { apiKey: "..." } — if omitted, uses the stored/env key
 const testImgbbKey = asyncErrorHandler(async (req, res, next) => {
-    const { apiKey } = req.body;
+    const { apiKey } = req.body || {};
+
+    // Validate a key supplied from the admin panel (reject blanks / placeholders)
+    let candidate = null;
+    if (apiKey !== undefined && apiKey !== null && String(apiKey).trim() !== '') {
+        candidate = sanitizeKey(apiKey);
+        if (!candidate) {
+            return next(new ErrorHandler(
+                'The entered key looks like a masked placeholder. Paste the real ImgBB API key from api.imgbb.com.',
+                400
+            ));
+        }
+    }
 
     // 1×1 transparent GIF — minimal payload to validate the key without wasting quota
     const TINY_GIF_BASE64 =
         'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
     try {
-        const data = await uploadToImgBB(TINY_GIF_BASE64, 'kiro-test', 60, apiKey || null);
+        const data = await uploadToImgBB(TINY_GIF_BASE64, 'imgbb-key-test', 60, candidate);
         res.status(200).json({
             success: true,
             message: 'ImgBB API key is valid',
-            sampleUrl: data.url,
+            sampleUrl: data.display_url || data.url,
         });
     } catch (err) {
         return next(new ErrorHandler(`ImgBB key test failed: ${err.message}`, 400));
@@ -292,18 +355,36 @@ const testImgbbKey = asyncErrorHandler(async (req, res, next) => {
 // POST /api/v1/admin/imgbb/upload
 // Body: { image: "<base64 or data URI>", name?: "...", expiration?: 600 }
 // Returns: { url, display_url, thumb_url, delete_url, id, width, height, size }
-const uploadImage = asyncErrorHandler(async (req, res, next) => {
-    const { image, name = '', expiration = null } = req.body;
+const ALLOWED_IMAGE_MIME = /^image\/(jpeg|jpg|png|gif|webp|bmp|tiff|svg\+xml|x-icon|avif|heic|heif)$/i;
+const MAX_IMAGE_BYTES = 32 * 1024 * 1024; // 32 MB — ImgBB free-tier limit
 
-    if (!image) {
-        return next(new ErrorHandler('image field is required', 400));
+const uploadImage = asyncErrorHandler(async (req, res, next) => {
+    const { image, name = '', expiration = null } = req.body || {};
+
+    if (!image || typeof image !== 'string') {
+        return next(new ErrorHandler('No image data received. Pick a file or paste an image URL.', 400));
     }
 
-    // Validate size before uploading (base64 expands ~33% vs binary)
-    const approxBytes = Buffer.byteLength(image.replace(/^data:[^;]+;base64,/, ''), 'base64');
-    const MAX_BYTES = 32 * 1024 * 1024; // 32 MB ImgBB limit
-    if (approxBytes > MAX_BYTES) {
-        return next(new ErrorHandler('Image exceeds 32 MB limit', 400));
+    // If a data URI is supplied, enforce the declared MIME type.
+    const mimeMatch = image.match(/^data:([^;]+);base64,/i);
+    if (mimeMatch && !ALLOWED_IMAGE_MIME.test(mimeMatch[1])) {
+        return next(new ErrorHandler(
+            `Unsupported file type "${mimeMatch[1]}". Please upload a JPG, PNG, GIF, WebP or SVG image.`,
+            400
+        ));
+    }
+
+    // Validate size before uploading (base64 expands ~33% vs binary).
+    const rawBase64 = image.replace(/^data:image\/[a-z0-9.+-]+;base64,/i, '').replace(/\s+/g, '');
+    if (!rawBase64) {
+        return next(new ErrorHandler('The image data is empty or corrupted.', 400));
+    }
+    const approxBytes = Buffer.byteLength(rawBase64, 'base64');
+    if (approxBytes > MAX_IMAGE_BYTES) {
+        return next(new ErrorHandler(
+            `Image is too large (${(approxBytes / (1024 * 1024)).toFixed(1)} MB). Maximum size is 32 MB.`,
+            400
+        ));
     }
 
     try {
@@ -320,7 +401,8 @@ const uploadImage = asyncErrorHandler(async (req, res, next) => {
             size: data.size,
         });
     } catch (err) {
-        return next(new ErrorHandler(err.message, 500));
+        // Surface the friendly message (already key-safe) to the admin panel.
+        return next(new ErrorHandler(err.message, 502));
     }
 });
 
@@ -335,3 +417,5 @@ module.exports = {
     testImgbbKey,
     uploadImage,
 };
+
+

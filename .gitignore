@@ -13,4 +13,7 @@ frontend/build
 # vercel link
 .vercel
 
+# runtime pid / process files
+*.pid
+
 *.log

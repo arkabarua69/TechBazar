@@ -16,7 +16,6 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { clearErrors, getProducts } from '../../actions/productAction';
 import { addItemsToCart } from '../../actions/cartAction';
 import Loader from '../Layouts/Loader';
-import MinCategory from '../Layouts/MinCategory';
 import MetaData from '../Layouts/MetaData';
 import { useCategories } from '../../utils/useCategories';
 import { getDiscount } from '../../utils/functions';
@@ -572,7 +571,6 @@ const Products = () => {
 const ListCard = ({ product }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { enqueueSnackbar } = useSnackbar();
     const { _id, name, images, ratings, numOfReviews, price, cuttedPrice, brand, stock, highlights } = product || {};
     const image = images?.[0]?.url;
     const discount = Number(getDiscount(price, cuttedPrice)) || 0;

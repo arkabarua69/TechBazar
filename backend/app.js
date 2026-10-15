@@ -6,7 +6,7 @@ const errorMiddleware = require('./middlewares/error');
 const app = express();
 // config
 if (process.env.NODE_ENV !== 'production') {
-    require('dotenv').config({ path: 'backend/config/config.env' });
+    require('dotenv').config({ path: require('path').join(__dirname, 'config', 'config.env') });
 }
 // Increase body size limits — base64-encoded images can be several MB
 // (a 5 MB image becomes ~6.8 MB as base64)

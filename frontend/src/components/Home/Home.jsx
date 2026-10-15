@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useEffect } from 'react';
 import Hero from './Hero';
 import TrustBadges from './TrustBadges';
 import FlashSale from './FlashSale';
@@ -12,7 +11,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { clearErrors, getSliderProducts } from '../../actions/productAction';
 import { useSnackbar } from 'notistack';
 import MetaData from '../Layouts/MetaData';
-import { DEFAULT_SITE_CONFIG } from '../../utils/siteConfig';
 import { Link } from 'react-router-dom';
 import { useSiteConfig } from '../../context/SiteConfigContext';
 
@@ -46,14 +44,6 @@ const Home = () => {
 
     const { error, loading, products } = useSelector((state) => state.products);
 
-    const [config, setConfig] = useState(DEFAULT_SITE_CONFIG);
-
-    useEffect(() => {
-        axios.get('/api/v1/siteconfig', { headers: { Accept: 'application/json' } })
-            .then((res) => res.data?.config && setConfig({ ...DEFAULT_SITE_CONFIG, ...res.data.config }))
-            .catch(() => {});
-    }, []);
-
     useEffect(() => {
         if (error) {
             enqueueSnackbar(error, { variant: 'error' });
@@ -64,6 +54,7 @@ const Home = () => {
 
     const productList = products || [];
     const brandName = siteConfig.branding?.name || 'Store';
+    const config = siteConfig; // homepage sections come from the shared config
 
     return (
         <>

@@ -1,27 +1,70 @@
+const PriceSidebar = ({ cartItems, onCheckout }) => {
+    const mrpTotal = cartItems.reduce((s, i) => s + i.cuttedPrice * i.quantity, 0);
+    const priceTotal = cartItems.reduce((s, i) => s + i.price * i.quantity, 0);
+    const discount = mrpTotal - priceTotal;
 
-const PriceSidebar = ({ cartItems }) => {
     return (
-        <div className="flex sticky top-16 sm:h-screen flex-col sm:w-72 shrink-0">
+        <div className="flex sticky top-20 flex-col sm:w-72 shrink-0 w-full">
+            <div className="surface overflow-hidden">
+                <h2
+                    className="border-b px-5 py-4 font-bold text-sm uppercase tracking-wider"
+                    style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}
+                >
+                    Price Details
+                </h2>
 
-            {/* <!-- nav tiles --> */}
-            <div className="surface flex flex-col">
-                <h1 className="border-b border-line px-4 sm:px-5 py-4 font-display font-bold text-base sm:text-lg text-slate-900">PRICE DETAILS</h1>
+                <div className="flex flex-col gap-4 p-5">
+                    {/* MRP */}
+                    <div className="flex justify-between text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                        <span>MRP ({cartItems.length} item{cartItems.length !== 1 ? 's' : ''})</span>
+                        <span>Tk {mrpTotal.toLocaleString()}</span>
+                    </div>
 
-                <div className="flex flex-col gap-4 p-6 pb-4">
-                    <p className="flex justify-between text-sm text-slate-600">Price ({cartItems.length} item) <span>Tk {cartItems.reduce((sum, item) => sum + (item.cuttedPrice * item.quantity), 0).toLocaleString()}</span></p>
-                    <p className="flex justify-between text-sm text-slate-600">Discount <span className="text-primary-green">- Tk {cartItems.reduce((sum, item) => sum + ((item.cuttedPrice * item.quantity) - (item.price * item.quantity)), 0).toLocaleString()}</span></p>
-                    <p className="flex justify-between text-sm text-slate-600">Delivery Charge <span className="text-slate-500">Tk 70 · Tk 130 <span className="text-xs">(advance)</span></span></p>
+                    {/* Discount */}
+                    {discount > 0 && (
+                        <div className="flex justify-between text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                            <span>Discount</span>
+                            <span style={{ color: 'var(--color-success)' }}>
+                                − Tk {discount.toLocaleString()}
+                            </span>
+                        </div>
+                    )}
 
-                    <p className="flex justify-between border-t border-line pt-2 mt-1 font-bold text-slate-900 text-base">Total (on delivery) <span>Tk {cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toLocaleString()}</span></p>
-                    <div className="border-t border-line"></div>
+                    {/* Delivery */}
+                    <div className="flex justify-between text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                        <span>Delivery Charge</span>
+                        <span style={{ color: 'var(--color-text-muted)' }}>Tk 70 – 130 (advance)</span>
+                    </div>
 
-                    <p className="text-xs text-slate-500">Delivery charge is paid in advance (bKash / Nagad). Product price is Cash on Delivery.</p>
+                    {/* Total */}
+                    <div
+                        className="flex justify-between pt-3 border-t font-bold text-base"
+                        style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }}
+                    >
+                        <span>Total (on delivery)</span>
+                        <span>Tk {priceTotal.toLocaleString()}</span>
+                    </div>
 
+                    {discount > 0 && (
+                        <p className="text-xs font-semibold" style={{ color: 'var(--color-success)' }}>
+                            You save Tk {discount.toLocaleString()} on this order 🎉
+                        </p>
+                    )}
+
+                    <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                        Delivery charge is paid in advance via bKash / Nagad. Product price is Cash on Delivery.
+                    </p>
+
+                    {onCheckout && cartItems.length > 0 && (
+                        <button
+                            onClick={onCheckout}
+                            className="btn-accent w-full py-3 text-sm font-semibold mt-1"
+                        >
+                            Place Order
+                        </button>
+                    )}
                 </div>
-
             </div>
-            {/* <!-- nav tiles --> */}
-
         </div>
     );
 };

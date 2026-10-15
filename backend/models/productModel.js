@@ -117,6 +117,23 @@ const productSchema = new mongoose.Schema({
         ref: "User",
         required: true
     },
+    // ── Business Koro storefront fields (server-only, never sent to client) ──
+    bkId: {
+        type: String,
+        index: true,
+    },
+    bkVariants: {
+        type: Array,
+        select: false,
+    },
+    bkCostPrice: {
+        type: Number,
+        select: false,
+    },
+    source: {
+        type: String,
+        default: "local",
+    },
     // admin-selected: shown first in the homepage "Featured" section
     featured: {
         type: Boolean,

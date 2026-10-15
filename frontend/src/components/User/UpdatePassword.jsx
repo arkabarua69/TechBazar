@@ -1,125 +1,103 @@
 import { useEffect, useState } from 'react';
-import { useSnackbar } from 'notistack';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearErrors, loadUser, updatePassword } from '../../actions/userAction';
 import { UPDATE_PASSWORD_RESET } from '../../constants/userConstants';
+import { useSnackbar } from 'notistack';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import MetaData from '../Layouts/MetaData';
-import FormSidebar from './FormSidebar';
 
 const UpdatePassword = () => {
-
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { enqueueSnackbar } = useSnackbar();
-
     const { error, isUpdated, loading } = useSelector((state) => state.profile);
 
-    const [oldPassword, setOldPassword] = useState("");
-    const [newPassword, setNewPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
+    const [oldPassword, setOldPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
 
-    const updatePasswordSubmitHandler = (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-
         if (newPassword.length < 8) {
-            enqueueSnackbar("Password length must be atleast 8 characters", { variant: "warning" });
+            enqueueSnackbar('Password must be at least 8 characters', { variant: 'warning' });
             return;
         }
         if (newPassword !== confirmPassword) {
-            enqueueSnackbar("Password Doesn't Match", { variant: "error" });
+            enqueueSnackbar("Passwords don't match", { variant: 'error' });
             return;
         }
-
         const formData = new FormData();
-        formData.set("oldPassword", oldPassword);
-        formData.set("newPassword", newPassword);
-        formData.set("confirmPassword", confirmPassword);
-
+        formData.set('oldPassword', oldPassword);
+        formData.set('newPassword', newPassword);
+        formData.set('confirmPassword', confirmPassword);
         dispatch(updatePassword(formData));
-    }
+    };
 
     useEffect(() => {
         if (error) {
-            enqueueSnackbar(error, { variant: "error" });
+            enqueueSnackbar(error, { variant: 'error' });
             dispatch(clearErrors());
         }
         if (isUpdated) {
-            enqueueSnackbar("Password Updated Successfully", { variant: "success" });
+            enqueueSnackbar('Password updated successfully', { variant: 'success' });
             dispatch(loadUser());
             navigate('/account');
-
             dispatch({ type: UPDATE_PASSWORD_RESET });
         }
     }, [dispatch, error, isUpdated, navigate, enqueueSnackbar]);
 
     return (
         <>
-            <MetaData title="Password Update" />
-
+            <MetaData title="Change Password" />
             {loading && <BackdropLoader />}
-            <main className="w-full mt-4 sm:pt-6 sm:mt-0">
-
-                {/* <!-- row --> */}
-                <div className="surface flex flex-col sm:flex-row overflow-hidden w-full sm:w-5/6 md:w-4/6 lg:w-3/5 sm:mt-4 m-auto mb-7 shadow-lg rounded-lg">
-
-                    <FormSidebar
-                        title="Looks like you want to update password!"
-                        tag="Enter your current and new password to update"
-                    />
-
-                    {/* <!-- signup column --> */}
-                    <div className="flex-1 overflow-hidden p-4 sm:p-10 order-1 sm:order-2">
-
-                        <div className="max-w-md mx-auto flex flex-col gap-7">
-
-                            <div className="text-center flex flex-col gap-2">
-                                <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900">Change Password</h2>
-                                <p className="text-sm text-slate-500">Enter your current and new password</p>
-                            </div>
-
-                            {/* <!-- personal info procedure container --> */}
-                            <form
-                                onSubmit={updatePasswordSubmitHandler}
-                                className="flex flex-col gap-5"
-                            >
-                                <div className="flex flex-col gap-4 items-start">
-
-                                    {/* <!-- input container column --> */}
-                                    <div className="flex flex-col w-full justify-between sm:flex-col gap-3 items-center">
-
-                                        <div className="flex flex-col gap-1.5 w-full">
-                                            <label htmlFor="oldPassword" className="text-xs font-semibold uppercase tracking-wider text-slate-500">Current Password</label>
-                                            <input id="oldPassword" name="oldPassword" type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} required autoComplete="current-password" className="input-field w-full" />
-                                        </div>
-                                        <div className="flex flex-col gap-1.5 w-full">
-                                            <label htmlFor="newPassword" className="text-xs font-semibold uppercase tracking-wider text-slate-500">New Password</label>
-                                            <input id="newPassword" name="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required autoComplete="new-password" className="input-field w-full" />
-                                        </div>
-                                        <div className="flex flex-col gap-1.5 w-full">
-                                            <label htmlFor="confirmPassword" className="text-xs font-semibold uppercase tracking-wider text-slate-500">Confirm New Password</label>
-                                            <input id="confirmPassword" name="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required autoComplete="new-password" className="input-field w-full" />
-                                        </div>
-
-                                    </div>
-                                    {/* <!-- input container column --> */}
-                                    <button type="submit" className="btn-accent w-full py-3 text-sm font-bold uppercase tracking-wide mt-1">Update Password</button>
-                                    <Link className="btn-ghost w-full py-3 text-sm text-center" to="/account">Cancel</Link>
-                                </div>
-
-                            </form>
-                            {/* <!-- personal info procedure container --> */}
+            <div className="auth-page-bg min-h-screen flex items-center justify-center p-4">
+                <div className="w-full max-w-sm mx-auto">
+                    <div className="auth-card p-7 sm:p-8">
+                        <div className="text-center mb-6">
+                            <h1 className="text-2xl font-bold" style={{ color: '#E84B0F' }}>Change Password</h1>
+                            <p className="text-gray-500 text-sm mt-1">Enter your current and new password</p>
                         </div>
 
-                    </div>
-                    {/* <!-- signup column --> */}
-                </div>
-                {/* <!-- row --> */}
+                        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                            <input
+                                type="password"
+                                placeholder="Current Password"
+                                value={oldPassword}
+                                onChange={(e) => setOldPassword(e.target.value)}
+                                required
+                                autoComplete="current-password"
+                                className="input-field"
+                            />
+                            <input
+                                type="password"
+                                placeholder="New Password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                required
+                                autoComplete="new-password"
+                                className="input-field"
+                            />
+                            <input
+                                type="password"
+                                placeholder="Confirm New Password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                required
+                                autoComplete="new-password"
+                                className="input-field"
+                            />
 
-            </main>
+                            <button type="submit" className="btn-accent w-full py-3 text-sm font-semibold mt-2">
+                                Update Password
+                            </button>
+                            <Link to="/account" className="btn-ghost w-full py-3 text-sm text-center">Cancel</Link>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </>
     );
 };
 
-export default UpdatePassword
+export default UpdatePassword;
