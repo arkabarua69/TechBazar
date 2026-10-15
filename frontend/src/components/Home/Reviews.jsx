@@ -28,9 +28,19 @@ title="What our customers say"
                         </blockquote>
 
                         <figcaption className="flex items-center gap-3 border-t border-line pt-3">
-                            <span className="w-9 h-9 rounded-full bg-primary-accent/10 text-primary-accent font-display font-bold text-sm flex items-center justify-center">
-                                {initials(review.name)}
-                            </span>
+                            {review.image ? (
+                                <img
+                                    src={review.image}
+                                    alt={review.name}
+                                    draggable="false"
+                                    className="w-9 h-9 rounded-full object-cover border border-line"
+                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                />
+                            ) : (
+                                <span className="w-9 h-9 rounded-full bg-primary-accent/10 text-primary-accent font-display font-bold text-sm flex items-center justify-center">
+                                    {initials(review.name)}
+                                </span>
+                            )}
                             <span className="flex flex-col">
                                 <span className="text-sm font-semibold text-slate-800">{review.name}</span>
                                 <span className="text-xs text-slate-500">{review.district}</span>

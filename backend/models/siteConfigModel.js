@@ -94,9 +94,9 @@ const DEFAULT_CONFIG = {
         { icon: 'Inventory2',   title: 'Receive Your Product',    description: 'Pay the remaining amount to the courier on delivery.' },
     ],
     reviews: [
-        { name: 'Rakib Hasan',   district: 'Dhaka',      rating: 5, comment: 'Received my order right on time and the quality is great. Cash on delivery made it feel trustworthy.' },
-        { name: 'Sabrina Akter', district: 'Chittagong', rating: 5, comment: 'I paid the delivery charge in advance and got the product within two days. The support team is very helpful.' },
-        { name: 'Tanvir Ahmed',  district: 'Sylhet',     rating: 4, comment: 'The price is lower than other places and the product is original. Will order again, God willing.' },
+        { name: 'Rakib Hasan',   district: 'Dhaka',      rating: 5, comment: 'Received my order right on time and the quality is great. Cash on delivery made it feel trustworthy.', image: '' },
+        { name: 'Sabrina Akter', district: 'Chittagong', rating: 5, comment: 'I paid the delivery charge in advance and got the product within two days. The support team is very helpful.', image: '' },
+        { name: 'Tanvir Ahmed',  district: 'Sylhet',     rating: 4, comment: 'The price is lower than other places and the product is original. Will order again, God willing.', image: '' },
     ],
     branding: {
         name:       'My Store',
@@ -235,6 +235,7 @@ const siteConfigSchema = new mongoose.Schema({
             district: String,
             rating:   { type: Number, min: 1, max: 5, default: 5 },
             comment:  String,
+            image:    String,
         }],
         default: DEFAULT_CONFIG.reviews,
     },

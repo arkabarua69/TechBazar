@@ -21,6 +21,7 @@ import {
     Zap,
     Key,
     Sliders,
+    Settings,
     History,
     Save,
     RotateCcw,
@@ -243,10 +244,13 @@ const ColorField = ({ label, value, onChange }) => {
 };
 // ─── Section Renderer ─────────────────────────────────────────────────────────
 const SectionHeading = ({ children }) => (
-    <h3 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">{children}</h3>
+    <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-800 mb-4 pb-2.5 border-b border-gray-100">
+        <span className="w-1 h-4 rounded-full bg-[#E84B0F]" />
+        {children}
+    </h3>
 );
 const Card = ({ children, className = '' }) => (
-    <div className={`bg-white border border-gray-200 rounded-2xl shadow-sm p-5 ${className}`}>
+    <div className={`bg-white border border-gray-200/80 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5 ${className}`}>
         {children}
     </div>
 );
@@ -1031,6 +1035,21 @@ const HomepagePanel = () => {
             return { ...prev, [arrayKey]: arr };
         });
 
+    // Auto-save a single review's image URL immediately (like the logo uploader).
+    const autoSaveReviewImage = async (index, url) => {
+        const arr = JSON.parse(JSON.stringify(hpConfig.reviews || []));
+        arr[index] = { ...arr[index], image: url || '' };
+        setHpConfig((prev) => ({ ...prev, reviews: arr }));
+        try {
+            await axios.put('/api/v1/admin/siteconfig',
+                { reviews: arr },
+                { headers: { 'Content-Type': 'application/json', Accept: 'application/json' } });
+            reloadConfig();
+        } catch {
+            enqueueSnackbar('Image uploaded but could not save — press Save', { variant: 'warning' });
+        }
+    };
+
     const saveHp = async () => {
         setHpSaving(true);
         try {
@@ -1249,10 +1268,17 @@ const HomepagePanel = () => {
                                 </div>
                             </div>
                             <HomepageField label="Comment" textarea value={review.comment} onChange={(v) => setHpArrayItem('reviews', i, 'comment', v)} />
+                            <ImgBBUploader
+                                label="Customer image (optional)"
+                                currentUrl={review.image || ''}
+                                onUploaded={(url) => setHpArrayItem('reviews', i, 'image', url || '')}
+                                onAutoSave={(url) => autoSaveReviewImage(i, url)}
+                                previewClass="max-h-20 max-w-full object-contain"
+                            />
                         </div>
                     ))}
                 </div>
-                <button onClick={() => addHpArrayItem('reviews', { name: '', district: '', rating: 5, comment: '' })}
+                <button onClick={() => addHpArrayItem('reviews', { name: '', district: '', rating: 5, comment: '', image: '' })}
                     className="mt-3 text-sm border border-dashed border-gray-400 rounded-xl px-3 py-1.5 hover:bg-gray-50">+ Add Review</button>
             </Card>
 
@@ -1553,10 +1579,15 @@ const WebsiteConfig = () => {
                 <ResetModal onConfirm={handleReset} onCancel={() => setShowResetModal(false)} />
             )}
             {/* ── Top Bar ──────────────────────────────────────────────────────────── */}
-            <div className="flex flex-col gap-3 mb-6 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                    <h1 className="text-xl font-bold text-gray-900">Website Configuration</h1>
-                    <p className="text-xs text-gray-500 mt-0.5">Manage all website settings from one place</p>
+            <div className="flex flex-col gap-3 mb-6 sm:flex-row sm:items-start sm:justify-between rounded-2xl border border-gray-200/80 bg-gradient-to-br from-white to-orange-50/60 shadow-sm p-4 sm:p-5">
+                <div className="flex items-center gap-3">
+                    <span className="w-10 h-10 rounded-2xl bg-[#E84B0F]/10 text-[#E84B0F] flex items-center justify-center shrink-0">
+                        <Settings size={18} />
+                    </span>
+                    <div>
+                        <h1 className="text-lg sm:text-xl font-bold text-gray-900">Website Configuration</h1>
+                        <p className="text-xs text-gray-500 mt-0.5">Manage all website settings from one place</p>
+                    </div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                     {/* Search */}
@@ -1624,17 +1655,17 @@ const WebsiteConfig = () => {
             <div className="flex gap-5 items-start">
                 {/* ── Sidebar (desktop only) ────────────────────────────────────── */}
                 <aside
-                    className="hidden lg:flex flex-col gap-0.5 bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden"
+                    className="hidden lg:flex flex-col gap-1 bg-white border border-gray-200/80 rounded-2xl shadow-sm p-2"
                     style={{ minWidth: 220, width: 220, flexShrink: 0 }}
                 >
                     {CATEGORIES.map(({ id, label, Icon, count }) => (
                         <button
                             key={id}
                             onClick={() => { setActiveCategory(id); setSearchQuery(''); }}
-                            className={`w-full flex items-center gap-2.5 px-4 py-3 text-sm font-medium transition-colors text-left border-l-2 ${
+                            className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium transition-colors text-left rounded-xl ${
                                 activeCategory === id && !isSearching
-                                    ? 'border-[#E84B0F] text-[#E84B0F] bg-orange-50'
-                                    : 'border-transparent text-gray-600 hover:bg-gray-50'
+                                    ? 'bg-[#E84B0F] text-white shadow-sm'
+                                    : 'text-gray-600 hover:bg-orange-50 hover:text-[#E84B0F]'
                             }`}
                         >
                             <Icon size={15} className="shrink-0" />
@@ -1643,7 +1674,7 @@ const WebsiteConfig = () => {
                                 <span
                                     className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
                                         activeCategory === id && !isSearching
-                                            ? 'bg-orange-100 text-[#E84B0F]'
+                                            ? 'bg-white/25 text-white'
                                             : 'bg-gray-100 text-gray-400'
                                     }`}
                                 >
@@ -1654,7 +1685,7 @@ const WebsiteConfig = () => {
                     ))}
                 </aside>
                 {/* ── Content area ──────────────────────────────────────────────── */}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 flex flex-col gap-4">
                     {isSearching ? renderSearchResults() : renderCategoryContent()}
                 </div>
             </div>

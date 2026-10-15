@@ -78,7 +78,7 @@ const Home = () => {
                 {/* Flash Sale / Deal of the Day */}
                 {config.flashSale?.enabled !== false && productList.length > 0 && (
                     <section className="mb-6">
-                        <SectionHeader title="Grab the best deal on" accent="Smartphones" />
+                        <SectionHeader title="Grab the best deal on" />
                         <FlashSale flashSale={config.flashSale} products={productList} />
                     </section>
                 )}

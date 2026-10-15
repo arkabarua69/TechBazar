@@ -76,7 +76,18 @@ const updateSiteConfig = async (req, res) => {
         }
         if (Array.isArray(body.trustBadges)) update.trustBadges = body.trustBadges;
         if (Array.isArray(body.howToOrder)) update.howToOrder = body.howToOrder;
-        if (Array.isArray(body.reviews)) update.reviews = body.reviews;
+        if (Array.isArray(body.reviews)) {
+            update.reviews = body.reviews
+                .filter((r) => r && (str(r.name) || str(r.comment)))
+                .slice(0, 24)
+                .map((r) => ({
+                    name:     str(r.name).slice(0, 60),
+                    district: str(r.district).slice(0, 60),
+                    rating:   Math.min(5, Math.max(1, Number(r.rating) || 5)),
+                    comment:  str(r.comment).slice(0, 800),
+                    image:    str(r.image).slice(0, 500),
+                }));
+        }
 
         // theme — visual customisation tokens
         if (body.theme && typeof body.theme === 'object') {

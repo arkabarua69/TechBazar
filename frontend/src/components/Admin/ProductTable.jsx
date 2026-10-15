@@ -14,6 +14,8 @@ import BackdropLoader from '../Layouts/BackdropLoader';
 import BottomSheet from './BottomSheet';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
+import Inventory2Icon from '@mui/icons-material/Inventory2';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { shortOrderId } from '../../utils/adminHelpers';
 
 const ProductTable = () => {
@@ -212,15 +214,54 @@ const ProductTable = () => {
     const [sheetId, setSheetId] = useState(null);
     const sheetRow = rows.find((r) => r.id === sheetId) || null;
 
+    // Quick catalog stats for the header strip
+    const stats = {
+        total: rows.length,
+        inStock: rows.filter((r) => r.stock > 0).length,
+        low: rows.filter((r) => r.stock > 0 && r.stock < 10).length,
+        out: rows.filter((r) => r.stock <= 0).length,
+    };
+
     return (
         <>
             <MetaData title="Admin Products" />
 
             {loading && <BackdropLoader />}
 
-            <div className="flex justify-between items-center gap-3 flex-wrap">
-                <h1 className="text-lg sm:text-xl font-extrabold text-gray-900">Products</h1>
-                <Link to="/admin/new_product" className="bg-black text-white rounded-full px-4 py-2 text-sm font-semibold hover:bg-gray-800 active:scale-95 transition">+ New Product</Link>
+            {/* ── Header ─────────────────────────────────────────────── */}
+            <div className="flex flex-col gap-4">
+                <div className="flex justify-between items-center gap-3 flex-wrap">
+                    <div className="flex items-center gap-3">
+                        <span className="w-11 h-11 rounded-2xl bg-[#E84B0F]/10 text-[#E84B0F] flex items-center justify-center shrink-0">
+                            <Inventory2Icon sx={{ fontSize: '1.35rem' }} />
+                        </span>
+                        <div>
+                            <h1 className="text-lg sm:text-xl font-extrabold text-gray-900 leading-tight">Products</h1>
+                            <p className="text-xs text-gray-500">{stats.total} product{stats.total === 1 ? '' : 's'} in your catalog</p>
+                        </div>
+                    </div>
+                    <Link
+                        to="/admin/new_product"
+                        className="inline-flex items-center gap-1.5 bg-[#E84B0F] hover:bg-[#C63E0A] text-white rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm active:scale-95 transition"
+                    >
+                        <span className="text-base leading-none">+</span> New Product
+                    </Link>
+                </div>
+
+                {/* Stats strip */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+                    {[
+                        { label: 'Total', value: stats.total, tint: 'text-gray-900', bg: 'bg-gray-50', ring: 'ring-gray-100' },
+                        { label: 'In stock', value: stats.inStock, tint: 'text-green-700', bg: 'bg-green-50', ring: 'ring-green-100' },
+                        { label: 'Low stock', value: stats.low, tint: 'text-orange-700', bg: 'bg-orange-50', ring: 'ring-orange-100' },
+                        { label: 'Out of stock', value: stats.out, tint: 'text-red-700', bg: 'bg-red-50', ring: 'ring-red-100' },
+                    ].map((s) => (
+                        <div key={s.label} className={`rounded-2xl ${s.bg} ring-1 ${s.ring} px-3.5 py-3`}>
+                            <p className={`text-xl font-extrabold leading-none ${s.tint}`}>{s.value}</p>
+                            <p className="text-[11px] font-medium text-gray-500 mt-1">{s.label}</p>
+                        </div>
+                    ))}
+                </div>
             </div>
 
             {/* ===== MOBILE: card-based app layout (no horizontal scroll) ===== */}
@@ -231,22 +272,33 @@ const ProductTable = () => {
                     </div>
                 )}
                 {rows.map((product) => (
-                    <article key={product.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                        {/* card header: image + name + stock */}
-                        <div className="flex items-center gap-3 p-3 pb-2">
-                            <img
-                                draggable="false"
-                                src={product.image}
-                                alt={product.name}
-                                className="w-14 h-14 object-contain rounded-lg border bg-gray-50 shrink-0"
-                            />
+                    <article key={product.id} className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden ring-1 ring-black/[0.02] active:scale-[0.995] transition-transform">
+                        {/* card header: image + name + rating + stock */}
+                        <div className="flex items-start gap-3 p-3">
+                            <div className="relative shrink-0">
+                                <img
+                                    draggable="false"
+                                    src={product.image}
+                                    alt={product.name}
+                                    className="w-16 h-16 object-contain rounded-xl border border-gray-100 bg-gray-50"
+                                />
+                                {product.cprice > product.price && (
+                                    <span className="absolute -top-1.5 -left-1.5 text-[10px] font-bold bg-[#E84B0F] text-white px-1.5 py-0.5 rounded-full shadow-sm">
+                                        -{Math.round(((product.cprice - product.price) / product.cprice) * 100)}%
+                                    </span>
+                                )}
+                            </div>
                             <div className="min-w-0 flex-1">
-                                <p className="font-medium text-gray-900 text-sm truncate">{product.name}</p>
-                                <p className="text-xs text-gray-500 mt-0.5">#{shortOrderId(product.id)}</p>
+                                <p className="font-semibold text-gray-900 text-sm leading-snug line-clamp-2">{product.name}</p>
+                                <p className="text-[11px] text-gray-400 mt-1">#{shortOrderId(product.id)}</p>
+                                <div className="flex items-center gap-1 mt-1">
+                                    <Rating readOnly value={product.rating} size="small" precision={0.5} sx={{ fontSize: '0.95rem' }} />
+                                    <span className="text-[11px] text-gray-500">{(product.rating || 0).toFixed(1)}</span>
+                                </div>
                             </div>
 
                             {/* stock badge */}
-                            <span className={`shrink-0 text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${
+                            <span className={`shrink-0 text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap ${
                                 product.stock <= 0
                                     ? 'bg-red-100 text-red-700'
                                     : product.stock < 10
@@ -263,35 +315,22 @@ const ProductTable = () => {
                             tabIndex={0}
                             onClick={() => setSheetId(product.id)}
                             onKeyDown={(e) => { if (e.key === 'Enter') setSheetId(product.id); }}
-                            className="flex flex-col gap-2 px-3 py-2 cursor-pointer active:bg-gray-50 transition-colors"
+                            className="flex items-center justify-between gap-3 px-3 py-2.5 cursor-pointer active:bg-gray-50 transition-colors border-t border-gray-100"
                         >
-                            {/* price row */}
                             <div className="flex items-baseline gap-2">
-                                <span className="font-bold text-gray-900 text-sm">Tk {product.price.toLocaleString()}</span>
+                                <span className="font-extrabold text-gray-900 text-base">Tk {product.price.toLocaleString()}</span>
                                 {product.cprice > product.price && (
-                                    <span className="text-xs text-gray-500 line-through">Tk {product.cprice.toLocaleString()}</span>
-                                )}
-                                {product.cprice > product.price && (
-                                    <span className="text-xs text-red-600 font-medium">
-                                        -{Math.round(((product.cprice - product.price) / product.cprice) * 100)}%
-                                    </span>
+                                    <span className="text-xs text-gray-400 line-through">Tk {product.cprice.toLocaleString()}</span>
                                 )}
                             </div>
-
-                            {/* category badge */}
-                            <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full w-fit">
-                                {product.category}
-                            </span>
-
-                            {/* rating */}
-                            <div className="flex items-center gap-1">
-                                <Rating readOnly value={product.rating} size="small" precision={0.5} />
-                                <span className="text-xs text-gray-500">{(product.rating || 0).toFixed(1)}</span>
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-[11px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">{product.category}</span>
+                                <ChevronRightIcon sx={{ fontSize: '1.15rem' }} className="text-gray-400" />
                             </div>
                         </div>
 
                         {/* featured toggle + actions */}
-                        <div className="flex items-center justify-between px-3 py-2 border-t border-gray-100 bg-gray-50">
+                        <div className="flex items-center justify-between px-3 py-2 border-t border-gray-100 bg-gray-50/70">
                             <button
                                 onClick={() => toggleFeaturedHandler(product.id)}
                                 disabled={togglingId === product.id}
@@ -318,16 +357,38 @@ const ProductTable = () => {
             </div>
 
             {/* ===== DESKTOP: table (visible on sm+ screens) ===== */}
-            <div className="hidden sm:block bg-white rounded-2xl border border-gray-200 shadow-sm w-full overflow-x-auto" style={{ height: 'min(470px, 60vh)' }}>
+            <div className="hidden sm:block bg-white rounded-2xl border border-gray-200/80 shadow-sm w-full overflow-hidden" style={{ height: 'min(560px, 68vh)' }}>
                 <DataGrid
                     rows={rows}
                     columns={columns}
                     pageSize={10}
+                    rowsPerPageOptions={[10, 25, 50]}
                     disableSelectIconOnClick
+                    disableRowSelectionOnClick
                     columnVisibilityModel={isMobile ? { category: false, cprice: false, rating: false, featured: false } : {}}
                     sx={{
                         boxShadow: 0,
                         border: 0,
+                        '& .MuiDataGrid-columnHeaders': {
+                            backgroundColor: '#fafafa',
+                            borderBottom: '1px solid #f0f0f0',
+                        },
+                        '& .MuiDataGrid-columnHeaderTitle': {
+                            fontWeight: 700,
+                            fontSize: '0.72rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.03em',
+                            color: '#6b7280',
+                        },
+                        '& .MuiDataGrid-cell': {
+                            borderBottom: '1px solid #f5f5f5',
+                        },
+                        '& .MuiDataGrid-row:hover': {
+                            backgroundColor: '#fff7f2',
+                        },
+                        '& .MuiDataGrid-footerContainer': {
+                            borderTop: '1px solid #f0f0f0',
+                        },
                     }}
                 />
             </div>

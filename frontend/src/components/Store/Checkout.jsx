@@ -260,15 +260,15 @@ const Checkout = () => {
                                     </div>
                                 </div>
 
-                                <div className="mt-3 grid grid-cols-2 border-y border-line bg-white/70">
+                                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 border-y border-line bg-white/70">
                                     <div className="px-4 py-3">
                                         <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Amount to send</p>
                                         <p className="text-xl font-extrabold text-slate-900 leading-tight">Tk {deliveryCharge}</p>
                                     </div>
-                                    <div className="px-4 py-3 border-l border-line flex items-center justify-between gap-2">
+                                    <div className="px-4 py-3 border-t sm:border-t-0 sm:border-l border-line flex items-center justify-between gap-3">
                                         <div className="min-w-0">
                                             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{method} number</p>
-                                            <p className="text-base font-bold text-slate-900 truncate">
+                                            <p className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-wide whitespace-nowrap leading-tight">
                                                 {(method === 'bKash' ? config.payment.bKashNumber : config.payment.nagadNumber) || '—'}
                                             </p>
                                         </div>
