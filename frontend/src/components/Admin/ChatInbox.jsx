@@ -7,6 +7,7 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import SendIcon from '@mui/icons-material/Send';
 import ForumOutlinedIcon from '@mui/icons-material/ForumOutlined';
 import { formatDate } from '../../utils/functions';
+import { MessageSquare, Search, RefreshCw } from 'lucide-react';
 
 // ── Admin chat inbox ──────────────────────────────────────────────────
 // Dedicated two-pane inbox: conversation list on the left, thread on the
@@ -176,16 +177,29 @@ const ChatInbox = () => {
         <>
             <MetaData title="Chat Inbox" />
 
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-                <h1 className="text-lg sm:text-xl font-extrabold text-gray-900">Chat Inbox</h1>
-                <div className="flex gap-2 items-center">
-                    {unreadTotal > 0 && (
-                        <span className="text-xs font-semibold bg-red-100 text-red-700 rounded-full px-2.5 py-1">
-                            {unreadTotal} unread
-                        </span>
-                    )}
-                    <button onClick={() => { searchRef.current = search.trim(); fetchList(true); }} className="text-sm font-semibold border border-gray-300 bg-white rounded-full px-4 py-2 text-gray-700 hover:bg-gray-100">Refresh</button>
+            <div className="flex items-center gap-3">
+                <span className="w-11 h-11 rounded-2xl bg-[#E84B0F]/10 text-[#E84B0F] flex items-center justify-center shrink-0">
+                    <MessageSquare size={22} strokeWidth={2} />
+                </span>
+                <div className="min-w-0 flex-1">
+                    <h1 className="text-lg sm:text-xl font-extrabold text-gray-900 leading-tight">Chat Inbox</h1>
+                    <p className="text-xs text-gray-500">
+                        {unreadTotal > 0
+                            ? `${unreadTotal} unread message${unreadTotal === 1 ? '' : 's'}`
+                            : 'Live conversations from your storefront'}
+                    </p>
                 </div>
+                {unreadTotal > 0 && (
+                    <span className="hidden sm:inline text-xs font-semibold bg-red-100 text-red-700 rounded-full px-2.5 py-1 shrink-0">
+                        {unreadTotal} unread
+                    </span>
+                )}
+                <button
+                    onClick={() => { searchRef.current = search.trim(); fetchList(true); }}
+                    className="flex items-center gap-1.5 text-sm font-semibold border border-gray-300 bg-white rounded-full px-3.5 py-2 text-gray-700 hover:bg-gray-100 shrink-0"
+                >
+                    <RefreshCw size={15} /> <span className="hidden sm:inline">Refresh</span>
+                </button>
             </div>
 
             <div className="flex bg-white border border-line rounded-2xl overflow-hidden" style={{ minHeight: '65vh' }}>
@@ -193,26 +207,31 @@ const ChatInbox = () => {
                 {/* ── conversation list ── */}
                 <div className={`w-full sm:w-1/3 md:w-1/4 border-r border-line flex flex-col ${activeId ? 'hidden sm:flex' : 'flex'}`}>
                     {/* filters */}
-                    <div className="flex border-b border-line">
-                        {FILTERS.map((f) => (
-                            <button
-                                key={f.key}
-                                onClick={() => setFilter(f.key)}
-                                className={`flex-1 text-xs font-medium py-2.5 border-b-2 transition ${filter === f.key ? 'border-black text-black' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
-                            >
-                                {f.label}
-                            </button>
-                        ))}
+                    <div className="p-2 border-b border-line">
+                        <div className="flex gap-1 bg-gray-100 rounded-full p-1">
+                            {FILTERS.map((f) => (
+                                <button
+                                    key={f.key}
+                                    onClick={() => setFilter(f.key)}
+                                    className={`flex-1 text-xs font-bold py-1.5 rounded-full transition ${filter === f.key ? 'bg-[#E84B0F] text-white shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                                >
+                                    {f.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     {/* search */}
                     <div className="p-2 border-b border-line">
-                        <input
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Search name, phone, message..."
-                            className="w-full border border-line rounded px-3 py-1.5 text-sm focus:outline-none focus:border-black"
-                        />
+                        <div className="relative">
+                            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            <input
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Search name, phone, message..."
+                                className="w-full border border-line rounded-full pl-9 pr-3 py-2 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:border-[#E84B0F] focus:ring-2 focus:ring-[#E84B0F]/20 transition"
+                            />
+                        </div>
                     </div>
 
                     {/* items */}
@@ -232,11 +251,11 @@ const ChatInbox = () => {
                                 key={c._id}
                                 onClick={() => openConversation(c._id)}
                                 className={`w-full text-left flex gap-3 px-3 py-3 border-b border-line transition ${
-                                    activeId === c._id ? 'bg-gray-100' : 'hover:bg-gray-50'
+                                    activeId === c._id ? 'bg-[#FFF0EB]' : 'hover:bg-[#FFF7F2]'
                                 }`}
                             >
                                 <span className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold ${
-                                    c.status === 'closed' ? 'bg-gray-200 text-gray-500' : 'bg-black text-white'
+                                    c.status === 'closed' ? 'bg-gray-200 text-gray-500' : 'bg-[#E84B0F] text-white'
                                 }`}>
                                     {initials(c.name)}
                                 </span>
@@ -279,7 +298,7 @@ const ChatInbox = () => {
                                     <ArrowBackIcon sx={{ fontSize: '20px' }} />
                                 </button>
                                 <span className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold ${
-                                    active?.status === 'closed' ? 'bg-gray-200 text-gray-500' : 'bg-black text-white'
+                                    active?.status === 'closed' ? 'bg-gray-200 text-gray-500' : 'bg-[#E84B0F] text-white'
                                 }`}>
                                     {initials(active?.name)}
                                 </span>
@@ -322,7 +341,7 @@ const ChatInbox = () => {
                                         key={msg._id}
                                         className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm break-words ${
                                             msg.sender === 'admin'
-                                                ? 'self-end bg-black text-white rounded-br-sm'
+                                                ? 'self-end bg-[#E84B0F] text-white rounded-br-sm'
                                                 : 'self-start bg-white text-slate-700 border border-line rounded-bl-sm'
                                         }`}
                                     >
@@ -344,13 +363,13 @@ const ChatInbox = () => {
                                     onChange={(e) => setText(e.target.value)}
                                     placeholder="Type a reply..."
                                     maxLength={2000}
-                                    className="flex-1 border border-line rounded-full px-4 py-2 text-sm focus:outline-none focus:border-black"
+                                    className="flex-1 border border-line rounded-full px-4 py-2 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:border-[#E84B0F] focus:ring-2 focus:ring-[#E84B0F]/20 transition"
                                 />
                                 <button
                                     type="submit"
                                     disabled={sending || !(text || '').trim()}
                                     aria-label="Send reply"
-                                    className="w-10 h-10 shrink-0 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-10 h-10 shrink-0 rounded-full bg-[#E84B0F] text-white flex items-center justify-center hover:bg-[#C63E0A] disabled:opacity-50 disabled:cursor-not-allowed transition"
                                 >
                                     <SendIcon sx={{ fontSize: '18px' }} />
                                 </button>

@@ -5,16 +5,11 @@ import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
     CircularProgress, Tooltip, IconButton, Chip, Dialog, DialogTitle,
     DialogContent, DialogActions, Button, TextField, Pagination,
-    InputAdornment,
 } from '@mui/material';
-import StorageIcon from '@mui/icons-material/Storage';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import SearchIcon from '@mui/icons-material/Search';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import AddIcon from '@mui/icons-material/Add';
-import RefreshIcon from '@mui/icons-material/Refresh';
 import TableRowsIcon from '@mui/icons-material/TableRows';
+import { Database, Table2, HardDrive, Layers, RefreshCw, Plus, ChevronRight, ArrowLeft, Search, Pencil, Trash2 } from 'lucide-react';
 
 /* ─── helpers ─────────────────────────────────────────────── */
 const fmt = (bytes) => {
@@ -24,7 +19,37 @@ const fmt = (bytes) => {
     return (bytes / Math.pow(k, i)).toFixed(1) + ' ' + sz[i];
 };
 
-const pill = 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold';
+// KPI tile used in the stats strip.
+const Stat = ({ icon, label, value, tone }) => {
+    const tones = {
+        orange: 'bg-[#E84B0F]/10 text-[#E84B0F]',
+        blue: 'bg-blue-100 text-blue-600',
+        green: 'bg-green-100 text-green-600',
+    };
+    return (
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-3 flex items-center gap-2.5">
+            <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${tones[tone]}`}>
+                {icon}
+            </span>
+            <div className="min-w-0">
+                <p className="text-lg font-extrabold text-gray-900 leading-none truncate">{value}</p>
+                <p className="text-[11px] text-gray-500 truncate">{label}</p>
+            </div>
+        </div>
+    );
+};
+
+// Plain-text preview of a document field (for the mobile cards).
+const cellText = (doc, field) => {
+    const v = doc[field];
+    if (v === null || v === undefined) return 'null';
+    if (typeof v === 'object') {
+        const s = JSON.stringify(v);
+        return s.length > 60 ? s.slice(0, 60) + '…' : s;
+    }
+    const s = String(v);
+    return s.length > 90 ? s.slice(0, 90) + '…' : s;
+};
 
 /* ─── Create-collection modal ──────────────────────────────── */
 const CreateCollectionModal = ({ open, onClose, onCreated }) => {
@@ -197,28 +222,38 @@ const CollectionList = ({ onSelect, onCreateClick }) => {
 
     useEffect(() => { load(); }, [load]);
 
+    const totalDocs = collections.reduce((s, c) => s + (c.count || 0), 0);
+    const totalSize = collections.reduce((s, c) => s + (c.size || 0), 0);
+
     return (
-        <div>
+        <div className="flex flex-col gap-4">
             {/* Header */}
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-                <div className="flex items-center gap-2">
-                    <StorageIcon sx={{ color: '#E84B0F', fontSize: 22 }} />
-                    <h1 className="text-lg font-bold text-gray-800">Database Collections</h1>
-                    <span className={`${pill} bg-orange-50 text-orange-600 border border-orange-200 ml-1`}>
-                        {collections.length} collections
-                    </span>
+            <div className="flex items-center gap-3">
+                <span className="w-11 h-11 rounded-2xl bg-[#E84B0F]/10 text-[#E84B0F] flex items-center justify-center shrink-0">
+                    <Database size={22} strokeWidth={2} />
+                </span>
+                <div className="min-w-0 flex-1">
+                    <h1 className="text-lg sm:text-xl font-extrabold text-gray-900 leading-tight">Database</h1>
+                    <p className="text-xs text-gray-500">
+                        {collections.length} collection{collections.length === 1 ? '' : 's'} · {totalDocs.toLocaleString()} documents
+                    </p>
                 </div>
-                <div className="flex gap-2">
-                    <button onClick={load}
-                        className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 border border-gray-200 rounded-xl px-3 py-2">
-                        <RefreshIcon sx={{ fontSize: 15 }} /> Refresh
-                    </button>
-                    <button onClick={onCreateClick}
-                        className="flex items-center gap-1.5 text-xs font-semibold text-white rounded-xl px-3 py-2"
-                        style={{ backgroundColor: '#E84B0F' }}>
-                        <AddIcon sx={{ fontSize: 15 }} /> New Collection
-                    </button>
-                </div>
+                <button onClick={load} aria-label="Refresh"
+                    className="hidden sm:flex items-center gap-1.5 text-sm font-semibold border border-gray-300 bg-white rounded-full px-3.5 py-2 text-gray-700 hover:bg-gray-100 shrink-0">
+                    <RefreshCw size={15} /> Refresh
+                </button>
+                <button onClick={onCreateClick}
+                    className="flex items-center gap-1.5 text-sm font-semibold text-white rounded-full px-3.5 py-2 shrink-0"
+                    style={{ backgroundColor: '#E84B0F' }}>
+                    <Plus size={15} /> <span className="hidden sm:inline">New Collection</span><span className="sm:hidden">New</span>
+                </button>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                <Stat icon={<Layers size={16} />} label="Collections" value={collections.length} tone="orange" />
+                <Stat icon={<Table2 size={16} />} label="Documents" value={totalDocs.toLocaleString()} tone="blue" />
+                <Stat icon={<HardDrive size={16} />} label="Data size" value={fmt(totalSize)} tone="green" />
             </div>
 
             {loading ? (
@@ -226,52 +261,74 @@ const CollectionList = ({ onSelect, onCreateClick }) => {
                     <CircularProgress size={20} /> Loading collections…
                 </div>
             ) : collections.length === 0 ? (
-                <div className="text-center py-16 text-gray-400">
-                    <StorageIcon sx={{ fontSize: 48, opacity: 0.2 }} />
+                <div className="text-center py-16 text-gray-400 bg-white rounded-2xl border border-dashed border-gray-300">
+                    <Database size={44} className="mx-auto text-gray-200" />
                     <p className="mt-2 text-sm">No collections found</p>
                 </div>
             ) : (
-                <TableContainer component={Paper} elevation={0}
-                    sx={{ border: '1px solid #f3e8e0', borderRadius: '1rem', overflow: 'hidden' }}>
-                    <Table size="small">
-                        <TableHead>
-                            <TableRow sx={{ backgroundColor: '#fdf6f2' }}>
-                                {['Collection Name', 'Documents', 'Data Size', 'Storage', 'Indexes', ''].map(h => (
-                                    <TableCell key={h} sx={{ fontWeight: 700, fontSize: 12, color: '#7A5C48', borderBottom: '1px solid #f3e8e0' }}>
-                                        {h}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {collections.map((col) => (
-                                <TableRow key={col.name} hover
-                                    sx={{ '&:last-child td': { border: 0 }, cursor: 'pointer', transition: 'background .15s' }}
-                                    onClick={() => onSelect(col.name)}>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <TableRowsIcon sx={{ fontSize: 14, color: '#E84B0F' }} />
-                                            <span className="font-semibold text-gray-800 text-sm">{col.name}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Chip label={col.count.toLocaleString()} size="small"
-                                            sx={{ backgroundColor: '#fdf6f2', color: '#E84B0F', fontWeight: 700, fontSize: 11, border: '1px solid #f3e8e0' }} />
-                                    </TableCell>
-                                    <TableCell sx={{ fontSize: 12, color: '#7A5C48' }}>{fmt(col.size)}</TableCell>
-                                    <TableCell sx={{ fontSize: 12, color: '#7A5C48' }}>{fmt(col.storageSize)}</TableCell>
-                                    <TableCell sx={{ fontSize: 12, color: '#7A5C48' }}>{col.indexes}</TableCell>
-                                    <TableCell sx={{ textAlign: 'right' }}>
-                                        <button onClick={e => { e.stopPropagation(); onSelect(col.name); }}
-                                            className="text-xs font-medium text-orange-500 hover:text-orange-700 hover:underline">
-                                            Browse →
-                                        </button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
+                <>
+                    {/* Mobile cards */}
+                    <div className="sm:hidden flex flex-col gap-3">
+                        {collections.map((col) => (
+                            <button key={col.name} onClick={() => onSelect(col.name)}
+                                className="text-left bg-white rounded-2xl border border-gray-200/80 shadow-sm p-3 flex items-center gap-3 active:scale-[0.99] transition">
+                                <span className="w-10 h-10 rounded-xl bg-[#E84B0F]/10 text-[#E84B0F] flex items-center justify-center shrink-0">
+                                    <Table2 size={18} />
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                    <span className="block font-bold text-sm text-gray-900 truncate">{col.name}</span>
+                                    <span className="block text-xs text-gray-500">{col.count.toLocaleString()} docs · {fmt(col.size)}</span>
+                                </span>
+                                <ChevronRight size={18} className="text-gray-300 shrink-0" />
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Desktop table */}
+                    <div className="hidden sm:block">
+                        <TableContainer component={Paper} elevation={0}
+                            sx={{ border: '1px solid #f3e8e0', borderRadius: '1rem', overflow: 'hidden' }}>
+                            <Table size="small">
+                                <TableHead>
+                                    <TableRow sx={{ backgroundColor: '#fdf6f2' }}>
+                                        {['Collection Name', 'Documents', 'Data Size', 'Storage', 'Indexes', ''].map(h => (
+                                            <TableCell key={h} sx={{ fontWeight: 700, fontSize: 12, color: '#7A5C48', borderBottom: '1px solid #f3e8e0' }}>
+                                                {h}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {collections.map((col) => (
+                                        <TableRow key={col.name} hover
+                                            sx={{ '&:last-child td': { border: 0 }, cursor: 'pointer', transition: 'background .15s' }}
+                                            onClick={() => onSelect(col.name)}>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <TableRowsIcon sx={{ fontSize: 14, color: '#E84B0F' }} />
+                                                    <span className="font-semibold text-gray-800 text-sm">{col.name}</span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Chip label={col.count.toLocaleString()} size="small"
+                                                    sx={{ backgroundColor: '#fdf6f2', color: '#E84B0F', fontWeight: 700, fontSize: 11, border: '1px solid #f3e8e0' }} />
+                                            </TableCell>
+                                            <TableCell sx={{ fontSize: 12, color: '#7A5C48' }}>{fmt(col.size)}</TableCell>
+                                            <TableCell sx={{ fontSize: 12, color: '#7A5C48' }}>{fmt(col.storageSize)}</TableCell>
+                                            <TableCell sx={{ fontSize: 12, color: '#7A5C48' }}>{col.indexes}</TableCell>
+                                            <TableCell sx={{ textAlign: 'right' }}>
+                                                <button onClick={e => { e.stopPropagation(); onSelect(col.name); }}
+                                                    className="text-xs font-medium text-orange-500 hover:text-orange-700 hover:underline">
+                                                    Browse →
+                                                </button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </div>
+                </>
             )}
         </div>
     );
@@ -337,7 +394,7 @@ const DocumentBrowser = ({ collectionName, onBack }) => {
     };
 
     return (
-        <div>
+        <div className="flex flex-col gap-4">
             {/* Edit modal */}
             <EditDocModal open={!!editDoc} doc={editDoc} collection={collectionName}
                 onClose={() => setEditDoc(null)} onSaved={handleSaved} />
@@ -346,39 +403,39 @@ const DocumentBrowser = ({ collectionName, onBack }) => {
                 onClose={() => setDeleteDoc(null)} onDeleted={handleDeleted} />
 
             {/* Header */}
-            <div className="flex items-center gap-3 mb-4 flex-wrap">
-                <button onClick={onBack}
-                    className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 border border-gray-200 rounded-xl px-3 py-2">
-                    <ArrowBackIcon sx={{ fontSize: 16 }} /> Collections
+            <div className="flex items-center gap-3">
+                <button onClick={onBack} aria-label="Back to collections"
+                    className="w-11 h-11 rounded-2xl border border-gray-200 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-100 shrink-0">
+                    <ArrowLeft size={18} />
                 </button>
-                <div className="flex items-center gap-2">
-                    <TableRowsIcon sx={{ color: '#E84B0F', fontSize: 18 }} />
-                    <h1 className="text-base font-bold text-gray-800">{collectionName}</h1>
-                    <span className={`${pill} bg-orange-50 text-orange-600 border border-orange-200`}>
-                        {total.toLocaleString()} docs
-                    </span>
+                <span className="w-11 h-11 rounded-2xl bg-[#E84B0F]/10 text-[#E84B0F] flex items-center justify-center shrink-0">
+                    <Table2 size={22} strokeWidth={2} />
+                </span>
+                <div className="min-w-0 flex-1">
+                    <h1 className="text-lg sm:text-xl font-extrabold text-gray-900 leading-tight truncate">{collectionName}</h1>
+                    <p className="text-xs text-gray-500">{total.toLocaleString()} document{total === 1 ? '' : 's'}</p>
                 </div>
             </div>
 
             {/* Search */}
-            <div className="flex gap-2 mb-4">
-                <TextField
-                    size="small" placeholder="Search by _id or keyword…"
-                    value={searchInput}
-                    onChange={e => setSearchInput(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                    InputProps={{
-                        startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: '#B8937A' }} /></InputAdornment>,
-                    }}
-                    sx={{ flex: 1, maxWidth: 440, '& .MuiOutlinedInput-root': { borderRadius: '0.75rem' } }}
-                />
+            <div className="flex gap-2">
+                <div className="relative flex-1">
+                    <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    <input
+                        value={searchInput}
+                        onChange={e => setSearchInput(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                        placeholder="Search by _id or keyword…"
+                        className="w-full border border-gray-200 rounded-full pl-9 pr-3 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:border-[#E84B0F] focus:ring-2 focus:ring-[#E84B0F]/20 transition"
+                    />
+                </div>
                 <button onClick={handleSearch}
-                    className="text-sm font-semibold text-white rounded-xl px-4 py-2"
+                    className="text-sm font-semibold text-white rounded-full px-4 py-2.5 shrink-0"
                     style={{ backgroundColor: '#E84B0F' }}>
                     Search
                 </button>
                 <button onClick={() => { setSearchInput(''); setSearch(''); load(1, ''); }}
-                    className="text-sm text-gray-500 hover:text-gray-700 border border-gray-200 rounded-xl px-3 py-2">
+                    className="text-sm text-gray-500 hover:text-gray-700 border border-gray-200 rounded-full px-4 py-2.5 shrink-0">
                     Clear
                 </button>
             </div>
@@ -394,8 +451,45 @@ const DocumentBrowser = ({ collectionName, onBack }) => {
                 </div>
             ) : (
                 <>
+                    {/* Mobile cards */}
+                    <div className="sm:hidden flex flex-col gap-3">
+                        {docs.map((doc) => (
+                            <article key={doc._id} className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-3">
+                                <div className="flex items-start gap-2">
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-[10px] uppercase tracking-wide text-gray-400 font-bold">_id</p>
+                                        <p className="text-xs font-mono text-gray-700 break-all">{doc._id}</p>
+                                    </div>
+                                    <div className="flex gap-1.5 shrink-0">
+                                        <button onClick={() => setEditDoc(doc)} aria-label="Edit document"
+                                            className="w-8 h-8 rounded-lg bg-[#E84B0F]/10 text-[#E84B0F] flex items-center justify-center">
+                                            <Pencil size={14} />
+                                        </button>
+                                        <button onClick={() => setDeleteDoc(doc)} aria-label="Delete document"
+                                            className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center">
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="mt-2.5 flex flex-col gap-1 border-t border-gray-100 pt-2">
+                                    {fields.filter(f => f !== '_id').slice(0, 4).map(f => (
+                                        <div key={f} className="flex gap-2 text-xs">
+                                            <span className="font-mono text-gray-400 shrink-0 max-w-[42%] truncate">{f}</span>
+                                            <span className="text-gray-700 min-w-0 flex-1 truncate">{cellText(doc, f)}</span>
+                                        </div>
+                                    ))}
+                                    {fields.filter(f => f !== '_id').length > 4 && (
+                                        <p className="text-[11px] text-gray-400">+{fields.filter(f => f !== '_id').length - 4} more fields</p>
+                                    )}
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+
+                    {/* Desktop table */}
+                    <div className="hidden sm:block mb-3">
                     <TableContainer component={Paper} elevation={0}
-                        sx={{ border: '1px solid #f3e8e0', borderRadius: '1rem', overflow: 'hidden', mb: 3 }}>
+                        sx={{ border: '1px solid #f3e8e0', borderRadius: '1rem', overflow: 'hidden' }}>
                         <Table size="small">
                             <TableHead>
                                 <TableRow sx={{ backgroundColor: '#fdf6f2' }}>
@@ -443,6 +537,7 @@ const DocumentBrowser = ({ collectionName, onBack }) => {
                             </TableBody>
                         </Table>
                     </TableContainer>
+                    </div>
 
                     {/* Pagination */}
                     {pages > 1 && (
@@ -469,32 +564,26 @@ const DatabaseManager = () => {
     const handleCreated = () => setRefreshKey(k => k + 1);
 
     return (
-        <div className="min-h-screen p-4 sm:p-6" style={{ backgroundColor: '#FAE5D3' }}>
-            <div className="max-w-6xl mx-auto">
-                <div className="bg-white rounded-2xl shadow-sm p-5 sm:p-7"
-                    style={{ border: '1px solid rgba(232,75,15,0.12)' }}>
+        <div className="flex flex-col gap-4 sm:gap-6">
+            <CreateCollectionModal
+                open={createOpen}
+                onClose={() => setCreateOpen(false)}
+                onCreated={handleCreated}
+            />
 
-                    <CreateCollectionModal
-                        open={createOpen}
-                        onClose={() => setCreateOpen(false)}
-                        onCreated={handleCreated}
-                    />
-
-                    {selectedCollection ? (
-                        <DocumentBrowser
-                            key={selectedCollection}
-                            collectionName={selectedCollection}
-                            onBack={() => setSelectedCollection(null)}
-                        />
-                    ) : (
-                        <CollectionList
-                            key={refreshKey}
-                            onSelect={setSelectedCollection}
-                            onCreateClick={() => setCreateOpen(true)}
-                        />
-                    )}
-                </div>
-            </div>
+            {selectedCollection ? (
+                <DocumentBrowser
+                    key={selectedCollection}
+                    collectionName={selectedCollection}
+                    onBack={() => setSelectedCollection(null)}
+                />
+            ) : (
+                <CollectionList
+                    key={refreshKey}
+                    onSelect={setSelectedCollection}
+                    onCreateClick={() => setCreateOpen(true)}
+                />
+            )}
         </div>
     );
 };

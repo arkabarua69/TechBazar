@@ -953,14 +953,14 @@ const DatabasePanel = () => {
 
 const HomepageField = ({ label, value, onChange, textarea, type = 'text', placeholder = '' }) => (
     <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-gray-500">{label}</label>
+        <label className="text-xs font-semibold text-gray-500">{label}</label>
         {textarea ? (
             <textarea
                 value={value || ''}
                 onChange={(e) => onChange(e.target.value)}
                 rows={3}
                 placeholder={placeholder}
-                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-orange-400 resize-y w-full"
+                className="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#E84B0F] focus:ring-2 focus:ring-[#E84B0F]/20 transition resize-y w-full"
             />
         ) : (
             <input
@@ -968,7 +968,7 @@ const HomepageField = ({ label, value, onChange, textarea, type = 'text', placeh
                 value={value ?? ''}
                 onChange={(e) => onChange(type === 'number' ? Number(e.target.value) : e.target.value)}
                 placeholder={placeholder}
-                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-orange-400 w-full"
+                className="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#E84B0F] focus:ring-2 focus:ring-[#E84B0F]/20 transition w-full"
             />
         )}
     </div>
@@ -1193,19 +1193,29 @@ const HomepagePanel = () => {
                 {/* Side cards */}
                 <div className="grid sm:grid-cols-2 gap-3 border-t border-gray-100 mt-4 pt-4">
                     {['sideTop', 'sideBottom'].map((group, gi) => (
-                        <div key={group} className="flex flex-col gap-3 bg-gray-50 rounded-xl p-3 border border-gray-100">
-                            <p className="text-[11px] font-bold text-[#E84B0F] uppercase tracking-wider flex items-center gap-1.5">
-                                <Image size={12} /> {gi === 0 ? 'Side Card · Top' : 'Side Card · Bottom'}
-                            </p>
+                        <div key={group} className="flex flex-col gap-3 bg-[#FFF7F2] rounded-xl p-3 border border-[#F3E8E0] shadow-sm">
+                            <div className="flex items-center gap-2 pb-2 border-b border-[#F3E8E0]">
+                                <span className="w-7 h-7 rounded-lg bg-[#E84B0F] text-white flex items-center justify-center shrink-0">
+                                    <Image size={14} />
+                                </span>
+                                <div className="min-w-0">
+                                    <p className="text-xs font-bold text-gray-900 leading-tight">
+                                        {gi === 0 ? 'Top side card' : 'Bottom side card'}
+                                    </p>
+                                    <p className="text-[10px] text-gray-400 leading-tight">hero.{group}</p>
+                                </div>
+                            </div>
                             <HomepageField label="Title" value={h[group]?.title} onChange={(v) => setHpNested('hero', group, 'title', v)} />
                             <HomepageField label="Subtitle" value={h[group]?.subtitle} onChange={(v) => setHpNested('hero', group, 'subtitle', v)} />
-                            <ImgBBUploader
-                                label="Card Image"
-                                currentUrl={h[group]?.image ?? ''}
-                                onUploaded={(url) => setHpNested('hero', group, 'image', url)}
-                                onAutoSave={(url) => autoSaveHpNested('hero', group, 'image', url)}
-                                previewClass="max-h-28 max-w-full object-cover rounded-lg w-full shadow-sm"
-                            />
+                            <div className="rounded-lg border border-dashed border-[#E8C9B5] bg-white/70 p-2">
+                                <ImgBBUploader
+                                    label="Card Image"
+                                    currentUrl={h[group]?.image ?? ''}
+                                    onUploaded={(url) => setHpNested('hero', group, 'image', url)}
+                                    onAutoSave={(url) => autoSaveHpNested('hero', group, 'image', url)}
+                                    previewClass="max-h-28 max-w-full object-cover rounded-lg w-full shadow-sm"
+                                />
+                            </div>
                             <HomepageField label="Link" value={h[group]?.link} onChange={(v) => setHpNested('hero', group, 'link', v)} />
                         </div>
                     ))}
