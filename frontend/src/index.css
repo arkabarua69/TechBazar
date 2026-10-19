@@ -74,7 +74,10 @@ body { padding-top: 5rem; }
 
 /* ── Native mobile-app feel ── */
 html { -webkit-text-size-adjust: 100%; }
-body { overscroll-behavior-y: none; }
+/* NOTE: do NOT put `overscroll-behavior-y: none` on body. Body is a scroll
+   container here (overflow-x: hidden), so it stops wheel scroll-chaining from
+   the many overflow:hidden cards to the page scroller — the whole page then
+   refuses to scroll with the mouse wheel. */
 a, button, [role="button"], input, label, select, textarea {
   -webkit-tap-highlight-color: transparent;
 }
