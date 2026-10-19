@@ -32,6 +32,8 @@ const ENCRYPTED_PATHS = new Set([
     'socialLogin.googleClientSecret',
     'socialLogin.facebookAppSecret',
     'socialLogin.discordClientSecret',
+    // Discord product-notification webhook (anyone with it can post)
+    'discord.webhookUrl',
     // Not encrypted at rest, but treated as a secret: it must never be sent
     // back to the browser nor overwritten by an unrelated config save.
     'database.mongoUri',
@@ -224,6 +226,17 @@ const DEFAULT_CONFIG = {
         enabled: true,
     },
 
+    // Discord notifications — new/updated/removed products are posted to a
+    // channel through this webhook. The URL is a secret (anyone who has it can
+    // post to the channel), so it is encrypted at rest.
+    discord: {
+        enabled: true,
+        webhookUrl: '',          // Will be encrypted
+        notifyOnCreate: true,
+        notifyOnUpdate: true,
+        notifyOnDelete: true,
+    },
+
     // API Keys (encrypted)
     apiKeys: {
         otherApiKey1: '', // Will be encrypted
@@ -375,8 +388,7 @@ const websiteConfigSchema = new mongoose.Schema({
             default: DEFAULT_CONFIG.socialLogin.googleClientSecret,
             set: encrypt,
             get: decrypt,
-        },
-        facebookEnabled: { type: Boolean, default: DEFAULT_CONFIG.socialLogin.facebookEnabled },
+        },        facebookEnabled: { type: Boolean, default: DEFAULT_CONFIG.socialLogin.facebookEnabled },
         facebookAppId: { type: String, default: DEFAULT_CONFIG.socialLogin.facebookAppId },
         facebookAppSecret: {
             type: String,
@@ -447,6 +459,20 @@ const websiteConfigSchema = new mongoose.Schema({
             set: encrypt,
             get: decrypt
         },
+    },
+
+    // Discord notifications (webhook URL is encrypted)
+    discord: {
+        enabled: { type: Boolean, default: DEFAULT_CONFIG.discord.enabled },
+        webhookUrl: {
+            type: String,
+            default: DEFAULT_CONFIG.discord.webhookUrl,
+            set: encrypt,
+            get: decrypt
+        },
+        notifyOnCreate: { type: Boolean, default: DEFAULT_CONFIG.discord.notifyOnCreate },
+        notifyOnUpdate: { type: Boolean, default: DEFAULT_CONFIG.discord.notifyOnUpdate },
+        notifyOnDelete: { type: Boolean, default: DEFAULT_CONFIG.discord.notifyOnDelete },
     },
 
     // Advanced features

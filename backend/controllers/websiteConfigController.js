@@ -5,6 +5,7 @@ const asyncErrorHandler = require('../middlewares/asyncErrorHandler');
 const { uploadToImgBB, sanitizeKey } = require('../utils/imgbb');
 const { isSensitivePath, MASK } = require('../models/websiteConfigModel');
 const { invalidateOgCache } = require('../utils/ogMeta');
+const { sendTestNotification } = require('../utils/discordNotify');
 
 // Placeholder written in place of any real secret before it leaves the server.
 const maskSecrets = (obj) => {
@@ -120,7 +121,8 @@ const updateWebsiteConfig = asyncErrorHandler(async (req, res, next) => {
     // Only allow updates to known sections
     const allowedSections = [
         'general', 'branding', 'seo', 'email', 'payment', 'cloud',
-        'social', 'socialLogin', 'shipping', 'security', 'cache', 'apiKeys', 'features', 'imgbb'
+        'social', 'socialLogin', 'shipping', 'security', 'cache', 'apiKeys', 'features', 'imgbb',
+        'discord'
     ];
     
     for (const section of allowedSections) {
@@ -367,6 +369,22 @@ const testImgbbKey = asyncErrorHandler(async (req, res, next) => {
     }
 });
 
+// ─── Discord — Send a test notification ──────────────────────────────────────
+// POST /api/v1/admin/discord/test
+// Sends a small confirmation embed to the configured webhook so the admin can
+// verify the setup immediately.
+const testDiscordWebhook = asyncErrorHandler(async (req, res, next) => {
+    try {
+        await sendTestNotification();
+        res.status(200).json({
+            success: true,
+            message: 'Test message sent — check your Discord channel.',
+        });
+    } catch (err) {
+        return next(new ErrorHandler(`Discord test failed: ${err.message}`, 400));
+    }
+});
+
 // ─── ImgBB — Generic image upload endpoint ───────────────────────────────────
 // POST /api/v1/admin/imgbb/upload
 // Body: { image: "<base64 or data URI>", name?: "...", expiration?: 600 }
@@ -432,6 +450,7 @@ module.exports = {
     importConfig,
     testImgbbKey,
     uploadImage,
+    testDiscordWebhook,
 };
 
 

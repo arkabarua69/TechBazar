@@ -3,6 +3,7 @@ const asyncErrorHandler = require('../middlewares/asyncErrorHandler');
 const SearchFeatures = require('../utils/searchFeatures');
 const ErrorHandler = require('../utils/errorHandler');
 const { uploadToImgBBCompat } = require('../utils/imgbb');
+const { notifyProductEvent } = require('../utils/discordNotify');
 
 // An image value may arrive as:
 //   • an already-hosted http(s) URL (uploaded client-side via the ImgBB uploader
@@ -126,6 +127,10 @@ exports.createProduct = asyncErrorHandler(async (req, res, next) => {
 
     const product = await Product.create(req.body);
 
+    // Post the new product to the Discord channel (best-effort — never blocks
+    // or fails the request). Fire-and-forget so the admin response is instant.
+    notifyProductEvent('created', product.toObject()).catch(() => {});
+
     res.status(201).json({
         success: true,
         product,
@@ -177,6 +182,9 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
         runValidators: true,
     });
 
+    // Discord: product updated (best-effort, non-blocking)
+    if (product) notifyProductEvent('updated', product.toObject()).catch(() => {});
+
     res.status(200).json({
         success: true,
         product,
@@ -190,7 +198,13 @@ exports.deleteProduct = asyncErrorHandler(async (req, res, next) => {
         return next(new ErrorHandler("Product Not Found", 404));
     }
 
+    // Capture a plain copy before the document is gone, so the Discord embed
+    // still has the name/price/images.
+    const snapshot = product.toObject();
     await product.deleteOne();
+
+    // Discord: product removed (best-effort, non-blocking)
+    notifyProductEvent('deleted', snapshot).catch(() => {});
 
     res.status(200).json({
         success: true,

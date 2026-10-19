@@ -34,6 +34,10 @@ import {
     Trash2,
     RefreshCw,
     Image,
+    Bell,
+    Send,
+    CheckCircle2,
+    AlertCircle,
 } from 'lucide-react';
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MASK_STRING = '••••••••••••••••••••';
@@ -47,6 +51,7 @@ const CATEGORIES = [
     { id: 'imgbb',     label: 'ImgBB Settings', Icon: Image,       count: null },
     { id: 'social',    label: 'Social Media',   Icon: Share2,      count: 6  },
     { id: 'socialLogin', label: 'Social Login', Icon: Key,         count: 10 },
+    { id: 'discord',   label: 'Discord Alerts', Icon: Bell,        count: 5  },
     { id: 'shipping',  label: 'Shipping',       Icon: Truck,       count: 5  },
     { id: 'security',  label: 'Security',       Icon: Shield,      count: 6  },
     { id: 'cache',     label: 'Cache',          Icon: Zap,         count: 4  },
@@ -71,6 +76,7 @@ const SECRET_FIELDS = new Set([
     'socialLogin.googleClientSecret',
     'socialLogin.facebookAppSecret',
     'socialLogin.discordClientSecret',
+    'discord.webhookUrl',
     'database.mongoUri',
 ]);
 // ─── Field Components ─────────────────────────────────────────────────────────
@@ -403,6 +409,12 @@ const buildFieldIndex = (config, handlers) => {
     add('socialLogin', 'discordClientId', 'Discord Client ID', <TextField key="discordClientId" label="Discord Client ID" value={config.socialLogin?.discordClientId} onChange={(v) => set('socialLogin', 'discordClientId', v)} placeholder="1234567890123456789" />);
     add('socialLogin', 'discordClientSecret', 'Discord Client Secret', <SecretField key="discordClientSecret" label="Discord Client Secret" section="socialLogin" field="discordClientSecret" value={config.socialLogin?.discordClientSecret} onSecretChange={onSecretChange} />);
     add('socialLogin', 'callbackBaseUrl', 'Callback Base URL', <TextField key="callbackBaseUrl" label="Callback Base URL (optional)" value={config.socialLogin?.callbackBaseUrl} onChange={(v) => set('socialLogin', 'callbackBaseUrl', v)} placeholder="Leave empty to auto-detect, e.g. https://your-site.com" />);
+    // discord (product notifications)
+    add('discord', 'webhookUrl', 'Discord Webhook URL', <SecretField key="webhookUrl" label="Discord Webhook URL" section="discord" field="webhookUrl" value={config.discord?.webhookUrl} onSecretChange={onSecretChange} />);
+    add('discord', 'enabled', 'Discord Alerts', <ToggleField key="enabled" label="Enable Discord Notifications" description="Post product updates to your Discord channel" value={config.discord?.enabled} onChange={(v) => set('discord', 'enabled', v)} />);
+    add('discord', 'notifyOnCreate', 'New Products', <ToggleField key="notifyOnCreate" label="New Product Added" description="Post an embed with full details and images when a product is added" value={config.discord?.notifyOnCreate} onChange={(v) => set('discord', 'notifyOnCreate', v)} />);
+    add('discord', 'notifyOnUpdate', 'Product Updates', <ToggleField key="notifyOnUpdate" label="Product Updated" description="Post when a product is edited" value={config.discord?.notifyOnUpdate} onChange={(v) => set('discord', 'notifyOnUpdate', v)} />);
+    add('discord', 'notifyOnDelete', 'Product Removed', <ToggleField key="notifyOnDelete" label="Product Removed" description="Post when a product is deleted" value={config.discord?.notifyOnDelete} onChange={(v) => set('discord', 'notifyOnDelete', v)} />);
     // shipping
     add('shipping', 'insideDhaka', 'Delivery – Inside Dhaka (Tk)', <NumberField key="insideDhaka" label="Delivery – Inside Dhaka (Tk)" value={config.shipping?.insideDhaka} onChange={(v) => set('shipping', 'insideDhaka', v)} min={0} />);
     add('shipping', 'outsideDhaka', 'Delivery – Outside Dhaka (Tk)', <NumberField key="outsideDhaka" label="Delivery – Outside Dhaka (Tk)" value={config.shipping?.outsideDhaka} onChange={(v) => set('shipping', 'outsideDhaka', v)} min={0} />);
@@ -1566,6 +1578,176 @@ const HomepagePanel = ({ registerSave, registerReset, onSavingChange }) => {
         </div>
     );
 };
+// ─── Discord notifications panel ──────────────────────────────────────────────
+// Lets the admin paste the channel webhook and verify it with a test message.
+// The URL is a secret: the server never sends it back, so an untouched field
+// shows the bullet placeholder and an empty value keeps the stored one.
+const DiscordPanel = ({ config, set, onSecretChange }) => {
+    const { enqueueSnackbar } = useSnackbar();
+    const { reloadConfig } = useSiteConfig();
+    const [testing, setTesting] = useState(false);
+    const [webhookInput, setWebhookInput] = useState('');
+    const [touched, setTouched] = useState(false);
+
+    const d = config.discord || {};
+    const storedMasked = d.webhookUrl === MASK_STRING || /^[•*]{4,}$/.test(String(d.webhookUrl || ''));
+
+    const saveWebhook = async () => {
+        const value = webhookInput.trim();
+        if (!value) {
+            enqueueSnackbar('Paste your Discord webhook URL first', { variant: 'warning' });
+            return false;
+        }
+        if (!/^https:\/\/(canary\.|ptb\.)?discord(app)?\.com\/api\/webhooks\//i.test(value)) {
+            enqueueSnackbar('That does not look like a Discord webhook URL (https://discord.com/api/webhooks/…)', { variant: 'error' });
+            return false;
+        }
+        setTesting(true);
+        try {
+            await axios.put('/api/v1/admin/websiteconfig', { config: { discord: { webhookUrl: value } } });
+            set('discord', 'webhookUrl', MASK_STRING);
+            setTouched(false);
+            setWebhookInput('');
+            reloadConfig();
+            enqueueSnackbar('Webhook saved', { variant: 'success' });
+            return true;
+        } catch (err) {
+            enqueueSnackbar(err?.response?.data?.message || 'Could not save the webhook', { variant: 'error' });
+            return false;
+        } finally {
+            setTesting(false);
+        }
+    };
+
+    const sendTest = async () => {
+        // If the admin typed a new URL but has not saved it yet, save first so
+        // the test uses the value they are looking at.
+        if (touched && webhookInput.trim()) {
+            const ok = await saveWebhook();
+            if (!ok) return;
+        }
+        if (!storedMasked && !(touched && webhookInput.trim())) {
+            enqueueSnackbar('Save a webhook URL first', { variant: 'warning' });
+            return;
+        }
+        setTesting(true);
+        try {
+            const { data } = await axios.post('/api/v1/admin/discord/test');
+            enqueueSnackbar(data?.message || 'Test message sent', { variant: 'success' });
+        } catch (err) {
+            enqueueSnackbar(err?.response?.data?.message || 'Discord test failed', { variant: 'error' });
+        } finally {
+            setTesting(false);
+        }
+    };
+
+    const configured = storedMasked || (touched && webhookInput.trim() !== '');
+
+    return (
+        <div className="flex flex-col gap-4">
+            <Card>
+                <SectionHeading icon={<Bell size={16} />}>Discord Notifications</SectionHeading>
+                <p className="text-xs text-gray-500 -mt-2 mb-1 leading-relaxed">
+                    Every product you add, update or remove is posted to a Discord channel as a rich
+                    embed — with the full details and product images. Create a webhook in your Discord
+                    server: <span className="font-medium text-gray-600">Channel → Edit Channel → Integrations → Webhooks → New Webhook</span>,
+                    then copy the <span className="font-medium text-gray-600">Webhook URL</span> below.
+                </p>
+
+                <div className="flex flex-col gap-3">
+                    <ToggleField
+                        label="Enable Discord Notifications"
+                        description="Turn all product alerts on or off"
+                        value={d.enabled !== false}
+                        onChange={(v) => set('discord', 'enabled', v)}
+                    />
+
+                    <div>
+                        <label className={labelCls}>Discord Webhook URL</label>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <input
+                                type="text"
+                                value={touched ? webhookInput : (storedMasked ? MASK_STRING : '')}
+                                onFocus={() => { if (!touched) { setTouched(true); setWebhookInput(''); } }}
+                                onChange={(e) => { setTouched(true); setWebhookInput(e.target.value); }}
+                                placeholder="https://discord.com/api/webhooks/1234567890/AbCd…"
+                                className={`${inputCls} font-mono text-xs`}
+                                spellCheck={false}
+                                autoComplete="off"
+                            />
+                            <button
+                                type="button"
+                                onClick={saveWebhook}
+                                disabled={testing || !touched || !webhookInput.trim()}
+                                className="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-40 whitespace-nowrap flex items-center justify-center gap-1.5"
+                            >
+                                <Save size={14} /> Save
+                            </button>
+                        </div>
+                        <p className="text-[11px] text-gray-400 mt-1">
+                            {storedMasked
+                                ? 'A webhook is saved. Paste a new one above to replace it.'
+                                : 'No webhook saved yet.'}
+                        </p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={sendTest}
+                            disabled={testing}
+                            className={`px-4 py-2 rounded-xl text-sm font-semibold border flex items-center gap-1.5 ${
+                                configured
+                                    ? 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                                    : 'border-gray-200 text-gray-400 cursor-not-allowed'
+                            }`}
+                        >
+                            {testing ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                            Send test message
+                        </button>
+                        {storedMasked && (
+                            <span className="text-xs text-emerald-600 flex items-center gap-1">
+                                <CheckCircle2 size={13} /> Webhook saved
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </Card>
+
+            <Card>
+                <SectionHeading icon={<Bell size={16} />}>What to send</SectionHeading>
+                <div className="flex flex-col gap-3">
+                    <ToggleField
+                        label="New Product Added"
+                        description="Full embed: title, price, offer price, stock, category, brand, rating, description and all images"
+                        value={d.notifyOnCreate !== false}
+                        onChange={(v) => set('discord', 'notifyOnCreate', v)}
+                    />
+                    <ToggleField
+                        label="Product Updated"
+                        description="Posted when a product is edited (✏️ tag)"
+                        value={d.notifyOnUpdate !== false}
+                        onChange={(v) => set('discord', 'notifyOnUpdate', v)}
+                    />
+                    <ToggleField
+                        label="Product Removed"
+                        description="Posted when a product is deleted (🗑️ tag)"
+                        value={d.notifyOnDelete !== false}
+                        onChange={(v) => set('discord', 'notifyOnDelete', v)}
+                    />
+                </div>
+                <div className="mt-3 rounded-xl bg-blue-50 border border-blue-100 p-3 flex gap-2">
+                    <AlertCircle size={15} className="text-blue-500 shrink-0 mt-0.5" />
+                    <p className="text-[11px] text-blue-700 leading-relaxed">
+                        Alert toggles save with the page-wide <span className="font-semibold">Save</span> button
+                        at the top. The webhook URL saves immediately with its own Save button.
+                    </p>
+                </div>
+            </Card>
+        </div>
+    );
+};
+
 // ─── Main Component ────────────────────────────────────────────────────────────
 const WebsiteConfig = () => {
     const { enqueueSnackbar } = useSnackbar();
@@ -1729,6 +1911,9 @@ const WebsiteConfig = () => {
         }
         if (activeCategory === 'imgbb') {
             return <ImgBBSettings />;
+        }
+        if (activeCategory === 'discord') {
+            return <DiscordPanel config={config} set={set} onSecretChange={onSecretChange} />;
         }
         const sectionFields = fieldIndex.filter((f) => f.sectionId === activeCategory);
         if (sectionFields.length === 0) return null;

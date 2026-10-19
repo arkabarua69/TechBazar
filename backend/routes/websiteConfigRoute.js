@@ -12,6 +12,7 @@ const {
     importConfig,
     testImgbbKey,
     uploadImage,
+    testDiscordWebhook,
 } = require('../controllers/websiteConfigController');
 const { getSocialCallbackUrls } = require('../controllers/oauthController');
 
@@ -32,5 +33,8 @@ router.route('/admin/imgbb/upload').post(isAuthenticatedUser, authorizeRoles('ad
 
 // Social login — exact redirect URIs to register with each provider
 router.route('/admin/sociallogin/callback-urls').get(isAuthenticatedUser, authorizeRoles('admin'), getSocialCallbackUrls);
+
+// Discord notifications — verify the webhook
+router.route('/admin/discord/test').post(isAuthenticatedUser, authorizeRoles('admin'), testDiscordWebhook);
 
 module.exports = router;
