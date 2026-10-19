@@ -7,6 +7,7 @@ import ImgBBSettings from './ImgBBSettings';
 import ImgBBUploader from './ImgBBUploader';
 import { DEFAULT_SITE_CONFIG } from '../../utils/siteConfig';
 import { useSiteConfig } from '../../context/SiteConfigContext';
+import { API_ORIGIN } from '../../utils/apiOrigin';
 import {
     Globe,
     Layout,
@@ -265,7 +266,12 @@ const CallbackUrlsInfo = () => {
     const [urls, setUrls] = useState(null);
     const [copied, setCopied] = useState('');
     useEffect(() => {
-        axios.get('/api/v1/admin/sociallogin/callback-urls', { headers: { Accept: 'application/json' } })
+        axios.get('/api/v1/admin/sociallogin/callback-urls', {
+            headers: { Accept: 'application/json' },
+            // Tell the server which origin the OAuth popup actually uses
+            // (:4000 in dev, the live site in production).
+            params: { origin: API_ORIGIN || window.location.origin },
+        })
             .then((res) => setUrls(res.data))
             .catch(() => setUrls(null));
     }, []);

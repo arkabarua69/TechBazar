@@ -92,6 +92,20 @@ const sanitizeRedirect = (value) => {
     return 'account';
 };
 
+// Normalise a browser-supplied origin to "scheme://host" (drops any path,
+// query or trailing slash). Returns '' when it is not a valid http(s) origin.
+const sanitizeOrigin = (value) => {
+    const v = String(value || '').trim();
+    if (!v) return '';
+    try {
+        const u = new URL(v);
+        if (u.protocol !== 'http:' && u.protocol !== 'https:') return '';
+        return `${u.protocol}//${u.host}`;
+    } catch (_) {
+        return '';
+    }
+};
+
 const signState = (payload) =>
     jwt.sign(
         { ...payload, n: crypto.randomBytes(8).toString('hex') },
@@ -251,16 +265,26 @@ const exchangeCode = async (provider, creds, code, redirectUri) => {
 };
 
 // ─── Find / create / link the user ────────────────────────────────────────────
+
+// Copy the provider's profile picture onto the user. A photo the user uploaded
+// themselves keeps priority — we only (re)apply the provider picture when the
+// avatar is empty, is the site default, or was itself set from a provider.
+const applyProviderAvatar = (user, profile) => {
+    if (!profile.avatarUrl) return false;
+    const currentId = String((user.avatar && user.avatar.public_id) || '');
+    const isProviderManaged = !user.avatar || !user.avatar.url || currentId.endsWith('_avatar');
+    if (!isProviderManaged) return false;
+    user.avatar = { public_id: `${profile.provider}_avatar`, url: profile.avatarUrl };
+    return true;
+};
+
 const findOrCreateOAuthUser = async (profile) => {
     const email = String(profile.email || '').trim().toLowerCase();
 
     // 1. Already linked to this provider account?
     let user = await User.findOne({ provider: profile.provider, providerId: profile.providerId });
     if (user) {
-        if ((!user.avatar || !user.avatar.url) && profile.avatarUrl) {
-            user.avatar = { public_id: `${profile.provider}_avatar`, url: profile.avatarUrl };
-            await user.save();
-        }
+        if (applyProviderAvatar(user, profile)) await user.save();
         return user;
     }
 
@@ -275,9 +299,7 @@ const findOrCreateOAuthUser = async (profile) => {
             }
             existing.provider = profile.provider;
             existing.providerId = profile.providerId;
-            if ((!existing.avatar || !existing.avatar.url) && profile.avatarUrl) {
-                existing.avatar = { public_id: `${profile.provider}_avatar`, url: profile.avatarUrl };
-            }
+            applyProviderAvatar(existing, profile);
             await existing.save();
             return existing;
         }
@@ -303,7 +325,10 @@ const findOrCreateOAuthUser = async (profile) => {
 
 // ─── Public: which providers are available ────────────────────────────────────
 // GET /api/v1/auth/providers
-// Returns only non-sensitive data (enabled flags + public client ids).
+// Returns only non-sensitive data (enabled flags + public client ids). The
+// optional `baseUrl` mirrors the admin "Callback Base URL" override so the
+// browser can open the OAuth popup on exactly the origin whose redirect URI the
+// admin registered with each provider.
 exports.getProviders = asyncErrorHandler(async (req, res) => {
     const cfg = await getSocialLoginConfig();
     const describe = (key, idKey, secretKey) => ({
@@ -312,6 +337,7 @@ exports.getProviders = asyncErrorHandler(async (req, res) => {
     });
     res.status(200).json({
         success: true,
+        baseUrl: String(cfg.callbackBaseUrl || '').trim().replace(/\/+$/, ''),
         providers: {
             google: describe('googleEnabled', 'googleClientId', 'googleClientSecret'),
             facebook: describe('facebookEnabled', 'facebookAppId', 'facebookAppSecret'),
@@ -409,10 +435,14 @@ exports.oauthCallback = async (req, res) => {
 };
 
 // ─── Admin: exact redirect URIs to register with each provider ────────────────
-// GET /api/v1/admin/sociallogin/callback-urls
+// GET /api/v1/admin/sociallogin/callback-urls?origin=<frontend origin>
+// The dev server serves the SPA on :3000 while the API runs on :4000, so the
+// admin UI passes the origin the OAuth popup will actually use. An explicit
+// "Callback Base URL" always wins, then the supplied origin, then the request.
 exports.getSocialCallbackUrls = asyncErrorHandler(async (req, res) => {
     const cfg = await getSocialLoginConfig();
-    const base = getBaseUrl(req, cfg);
+    const configured = String(cfg.callbackBaseUrl || '').trim().replace(/\/+$/, '');
+    const base = configured || sanitizeOrigin(req.query.origin) || getBaseUrl(req, cfg);
     res.status(200).json({
         success: true,
         base,

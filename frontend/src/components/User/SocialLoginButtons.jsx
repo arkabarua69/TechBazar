@@ -3,6 +3,7 @@ import { useDispatch } from 'react-redux';
 import { useSnackbar } from 'notistack';
 import axios from 'axios';
 import { loadUser } from '../../actions/userAction';
+import { API_ORIGIN } from '../../utils/apiOrigin';
 
 /**
  * Social login buttons (Google / Facebook / Discord).
@@ -44,12 +45,20 @@ const SocialLoginButtons = ({ redirect = 'account' }) => {
     const dispatch = useDispatch();
     const { enqueueSnackbar } = useSnackbar();
     const [providers, setProviders] = useState(null);
+    // Where the OAuth popup should open. Empty string = same origin (prod);
+    // the API origin on :4000 in dev; or the admin "Callback Base URL" override.
+    const [baseUrl, setBaseUrl] = useState(API_ORIGIN);
     const popupRef = useRef(null);
 
     useEffect(() => {
         let alive = true;
         axios.get('/api/v1/auth/providers')
-            .then(({ data }) => { if (alive) setProviders(data?.providers || {}); })
+            .then(({ data }) => {
+                if (!alive) return;
+                setProviders(data?.providers || {});
+                const override = String(data?.baseUrl || '').trim().replace(/\/+$/, '');
+                setBaseUrl(override || API_ORIGIN);
+            })
             .catch(() => { if (alive) setProviders({}); });
         return () => { alive = false; };
     }, []);
@@ -87,7 +96,7 @@ const SocialLoginButtons = ({ redirect = 'account' }) => {
 
     const handleClick = useCallback((provider) => {
         const target = redirect || 'account';
-        const url = `/api/v1/auth/${provider}/start?redirect=${encodeURIComponent(target)}`;
+        const url = `${baseUrl}/api/v1/auth/${provider}/start?redirect=${encodeURIComponent(target)}`;
         const w = 520;
         const h = 640;
         let top = 0;
@@ -108,7 +117,7 @@ const SocialLoginButtons = ({ redirect = 'account' }) => {
         }
         popupRef.current = popup;
         popup.focus?.();
-    }, [redirect]);
+    }, [redirect, baseUrl]);
 
     const enabled = providers
         ? Object.keys(PROVIDER_META).filter((key) => providers[key]?.enabled)
