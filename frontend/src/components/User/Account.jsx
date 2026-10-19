@@ -201,8 +201,8 @@ const Account = () => {
 
                 {/* Sign-in & security */}
                 <section className="surface p-4 sm:p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="font-bold text-base sm:text-lg" style={{ color: 'var(--color-text-primary)' }}>Sign-in & Security</h2>
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                        <h2 className="font-bold text-base sm:text-lg" style={{ color: 'var(--color-text-primary)' }}>Sign-in &amp; Security</h2>
                         <div className="flex items-center gap-4">
                             <Link to="/account/update" className="text-sm font-semibold hover:underline" style={{ color: 'var(--color-accent)' }}>Edit</Link>
                             <Link to="/password/update" className="text-sm font-semibold hover:underline" style={{ color: 'var(--color-accent)' }}>Change Password</Link>

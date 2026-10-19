@@ -18,7 +18,7 @@ const Cart = () => {
         <>
             <MetaData title="Shopping Cart" />
             <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)' }}>
-                <div className="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-8">
+                <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-6 sm:pt-8 pb-24 lg:pb-8">
                     <h1
                         className="font-bold text-xl sm:text-2xl mb-5"
                         style={{ color: 'var(--color-text-primary)' }}
@@ -102,8 +102,9 @@ const Cart = () => {
             {/* Mobile sticky checkout bar */}
             {cartItems.length > 0 && (
                 <div
-                    className="lg:hidden fixed bottom-16 left-0 right-0 z-30 border-t px-4 py-3 flex items-center justify-between gap-3"
+                    className="lg:hidden fixed left-0 right-0 z-30 border-t px-4 py-3 flex items-center justify-between gap-3"
                     style={{
+                        bottom: 'calc(71px + env(safe-area-inset-bottom))',
                         backgroundColor: 'var(--color-surface)',
                         borderColor: 'var(--color-border)',
                         boxShadow: '0 -4px 16px rgba(0,0,0,0.08)',

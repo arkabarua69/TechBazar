@@ -64,12 +64,12 @@ const Shipping = () => {
                                     <Field label="Full Address" value={address} onChange={setAddress}
                                         placeholder="House, Road, Area" />
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <Field label="City / Upazila" value={city} onChange={setCity} placeholder="City" />
                                         <Field label="Postal Code" value={pincode} onChange={setPincode} type="number" placeholder="1200" />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {/* Division (State) */}
                                         <div className="flex flex-col gap-1.5">
                                             <label className="text-xs font-semibold uppercase tracking-wider"

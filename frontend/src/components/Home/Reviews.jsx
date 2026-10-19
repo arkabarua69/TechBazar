@@ -41,11 +41,11 @@ title="What our customers say"
                                     {initials(review.name)}
                                 </span>
                             )}
-                            <span className="flex flex-col">
-                                <span className="text-sm font-semibold text-slate-800">{review.name}</span>
-                                <span className="text-xs text-slate-500">{review.district}</span>
+                            <span className="flex flex-col min-w-0">
+                                <span className="text-sm font-semibold text-slate-800 truncate">{review.name}</span>
+                                <span className="text-xs text-slate-500 truncate">{review.district}</span>
                             </span>
-                            <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-green-700 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">
+                            <span className="ml-auto shrink-0 whitespace-nowrap text-[10px] font-bold uppercase tracking-wide text-green-700 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">
                                 Verified Buyer
                             </span>
                         </figcaption>

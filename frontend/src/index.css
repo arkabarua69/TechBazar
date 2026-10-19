@@ -65,11 +65,24 @@ body {
   overflow-x: hidden;
 }
 
-/* Header offset — announcement bar ~2rem + navbar ~3.5rem + category strip ~2.5rem */
-body { padding-top: 1.75rem; }
-@media (min-width: 640px)  { body { padding-top: 2rem; } }
+/* Header offset — mobile top bar (~80px) / desktop header (~128px).
+   App.js refines this after mount; this is just the first-paint fallback. */
+body { padding-top: 5rem; }
+@media (min-width: 640px)  { body { padding-top: 5rem; } }
 @media (min-width: 768px)  { body { padding-top: 8rem; } }
-@media (max-width: 767px)  { body { padding-bottom: 4.5rem; } }
+@media (max-width: 767px)  { body { padding-bottom: 5.25rem; } }
+
+/* ── Native mobile-app feel ── */
+html { -webkit-text-size-adjust: 100%; }
+body { overscroll-behavior-y: none; }
+a, button, [role="button"], input, label, select, textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+button, a { touch-action: manipulation; }
+.no-scrollbar, .overflow-x-auto { -webkit-overflow-scrolling: touch; }
+
+/* Respect iOS safe areas for fixed bottom UI */
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 
 /* Admin page — no global padding */
 .admin-page { padding-top: 0 !important; padding-bottom: 0 !important; }

@@ -85,7 +85,7 @@ const PrimaryDropDownMenu = ({ setTogglePrimaryDropDown, user }) => {
                 boxShadow: '0 16px 40px rgba(232,75,15,0.15)',
             }}
         >
-            {user.role === 'admin' &&
+            {user?.role === 'admin' &&
                 <Link
                     className="flex gap-3 items-center px-4 py-2.5 text-sm font-medium transition-colors"
                     style={{ color: 'var(--color-text-primary)' }}

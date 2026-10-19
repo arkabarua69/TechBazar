@@ -15,7 +15,7 @@ const OrderConfirm = () => {
         <>
         <MetaData title="Order Confirmation" />
 
-        <main className="w-full sm:w-11/12 mx-auto flex flex-col gap-4 px-3 sm:px-4 pb-10 mt-3 sm:mt-6">
+        <main className="w-full sm:w-11/12 mx-auto flex flex-col gap-4 px-3 sm:px-4 pb-24 mt-3 sm:mt-6">
 
             {/* <!-- row --> */}
             <div className="flex flex-col sm:flex-row gap-4 w-full">
@@ -31,7 +31,7 @@ const OrderConfirm = () => {
                         </div>
                         <div className="flex flex-wrap justify-between items-center gap-3 border-t border-line px-6 py-4">
                             <p className="text-sm text-slate-600">Order confirmation email will be sent to <span className="font-medium text-slate-800">{user.email}</span></p>
-                            <button onClick={() => { navigate('/process/payment') }} className="btn-accent px-6 py-2.5 text-sm font-bold uppercase rounded-lg">continue</button>
+                            <button onClick={() => { navigate('/process/payment') }} className="btn-accent w-full sm:w-auto px-6 py-2.5 text-sm font-bold uppercase rounded-lg">continue</button>
                         </div>
                     </Stepper>
                 </div>

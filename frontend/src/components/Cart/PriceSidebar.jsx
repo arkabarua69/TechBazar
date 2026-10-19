@@ -60,7 +60,7 @@ const PriceSidebar = ({ cartItems, onCheckout }) => {
                     {onCheckout && cartItems.length > 0 && (
                         <button
                             onClick={onCheckout}
-                            className="btn-accent w-full py-3 text-sm font-semibold mt-1"
+                            className="btn-accent w-full py-3 text-sm font-semibold mt-1 hidden lg:flex"
                         >
                             Place Order
                         </button>

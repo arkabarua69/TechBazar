@@ -121,7 +121,7 @@ const PhoenixCard = ({ product }) => {
                 {/* Wishlist */}
                 <button
                     onClick={e => { e.preventDefault(); setWished(v => !v); }}
-                    className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                    className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
                     style={{ border: '1px solid var(--color-border)' }}
                 >
                     <FavoriteIcon sx={{ fontSize: '16px', color: wished ? 'var(--color-accent)' : '#9ca3af' }} />

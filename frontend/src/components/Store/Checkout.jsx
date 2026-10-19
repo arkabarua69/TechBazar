@@ -160,7 +160,7 @@ const Checkout = () => {
     }
 
     return (
-        <main className="w-full mt-4 md:mt-6 bg-cloud min-h-screen pb-10">
+        <main className="w-full mt-4 md:mt-6 bg-cloud min-h-screen pb-28 lg:pb-10">
             <MetaData title="Checkout" />
 
             <div className="w-11/12 lg:w-10/12 xl:w-8/12 m-auto mt-4">
@@ -352,12 +352,32 @@ const Checkout = () => {
                             </div>
 
                             <button type="submit" disabled={placing}
-                                className={`w-full mt-5 py-3 rounded-lg text-sm font-semibold ${placing ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'btn-accent'}`}>
+                                className={`w-full mt-5 py-3 rounded-lg text-sm font-semibold hidden lg:flex items-center justify-center ${placing ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'btn-accent'}`}>
                                 {placing ? 'Placing order…' : 'Place Order'}
                             </button>
                             <p className="text-[11px] text-slate-500 text-center mt-3">Guest order — no login required.</p>
                         </div>
                     </aside>
+
+                    {/* ── mobile sticky place-order bar ── */}
+                    <div
+                        className="lg:hidden fixed left-0 right-0 z-30 border-t px-4 py-3 flex items-center justify-between gap-3"
+                        style={{
+                            bottom: 'calc(71px + env(safe-area-inset-bottom))',
+                            backgroundColor: 'var(--color-surface)',
+                            borderColor: 'var(--color-border)',
+                            boxShadow: '0 -4px 16px rgba(0,0,0,0.08)',
+                        }}
+                    >
+                        <div className="flex flex-col">
+                            <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Pay now (advance)</span>
+                            <span className="font-bold text-base" style={{ color: 'var(--color-text-primary)' }}>Tk {deliveryCharge}</span>
+                        </div>
+                        <button type="submit" disabled={placing}
+                            className={`px-6 py-2.5 rounded-lg text-sm font-semibold shrink-0 ${placing ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'btn-accent'}`}>
+                            {placing ? 'Placing…' : 'Place Order'}
+                        </button>
+                    </div>
                 </form>
             </div>
         </main>

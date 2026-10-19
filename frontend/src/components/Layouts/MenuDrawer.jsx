@@ -108,10 +108,12 @@ const MenuDrawer = ({ open, onClose }) => {
                                     <PersonOutlineIcon sx={{ fontSize: '20px', color: 'var(--color-accent)' }} />
                                     {user && user.name ? user.name : 'My Account'}
                                 </Link>
-                                <Link to="/admin/dashboard" className={rowClass}>
-                                    <AdminPanelSettingsIcon sx={{ fontSize: '20px', color: 'var(--color-accent)' }} />
-                                    Admin Dashboard
-                                </Link>
+                                {user?.role === 'admin' && (
+                                    <Link to="/admin/dashboard" className={rowClass}>
+                                        <AdminPanelSettingsIcon sx={{ fontSize: '20px', color: 'var(--color-accent)' }} />
+                                        Admin Dashboard
+                                    </Link>
+                                )}
                                 <button onClick={handleLogout} className={rowClass}>
                                     <LogoutIcon sx={{ fontSize: '20px', color: '#ef4444' }} />
                                     Logout

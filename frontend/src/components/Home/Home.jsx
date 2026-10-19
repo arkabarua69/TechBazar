@@ -17,8 +17,8 @@ import { useSiteConfig } from '../../context/SiteConfigContext';
 // Section header matching MegaMart style:
 // "Grab the best deal on <colored keyword>" + "View All >"
 const SectionHeader = ({ title, accent, viewAllLink = '/products' }) => (
-    <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base sm:text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+    <div className="flex items-center justify-between gap-2 mb-4">
+        <h2 className="text-base sm:text-lg font-bold min-w-0" style={{ color: 'var(--color-text-primary)' }}>
             {title}{' '}
             {accent && (
                 <span style={{ color: 'var(--color-accent)' }}>{accent}</span>
@@ -26,7 +26,7 @@ const SectionHeader = ({ title, accent, viewAllLink = '/products' }) => (
         </h2>
         <Link
             to={viewAllLink}
-            className="flex items-center gap-1 text-sm font-semibold transition-colors"
+            className="flex items-center gap-1 text-sm font-semibold shrink-0 whitespace-nowrap transition-colors"
             style={{ color: 'var(--color-accent)' }}
         >
             View All
@@ -102,10 +102,7 @@ const Home = () => {
                 </section>
 
                 {/* How to Order */}
-                <section
-                    className="rounded-2xl p-5 sm:p-8 mb-6"
-                    style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
-                >
+                <section className="mb-6">
                     <SectionHeader title="How to" accent="Order" viewAllLink="/track" />
                     <HowToOrder steps={config.howToOrder} />
                 </section>

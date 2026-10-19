@@ -25,9 +25,9 @@ const Hero = ({ hero = {} }) => {
                     : { backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }
             }
         >
-            <div className="relative p-3 sm:p-4 text-white w-full">
+            <div className={`relative p-3 sm:p-4 w-full ${card.image ? 'text-white' : 'text-slate-900'}`}>
                 <p className="font-bold text-sm sm:text-base leading-tight">{card.title}</p>
-                <p className="text-xs text-white/80 mt-0.5 line-clamp-1">{card.subtitle}</p>
+                <p className={`text-xs mt-0.5 line-clamp-1 ${card.image ? 'text-white/80' : 'text-slate-500'}`}>{card.subtitle}</p>
                 <span
                     className="inline-flex items-center gap-1 text-[11px] font-semibold mt-2 rounded-full px-2.5 py-1 transition-all"
                     style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}
@@ -82,14 +82,14 @@ const Hero = ({ hero = {} }) => {
                     {/* Prev / Next arrows */}
                     <button
                         onClick={() => setSlide((s) => (s - 1 + dots) % dots)}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 text-white hidden sm:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
                         aria-label="Previous"
                     >
                         <ChevronLeftIcon sx={{ fontSize: '20px' }} />
                     </button>
                     <button
                         onClick={() => setSlide((s) => (s + 1) % dots)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 text-white hidden sm:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
                         aria-label="Next"
                     >
                         <ChevronRightIcon sx={{ fontSize: '20px' }} />

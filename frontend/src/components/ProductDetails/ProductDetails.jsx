@@ -251,7 +251,7 @@ if (activeColor) lines.push(`Color: ${activeColor}`);
 
                                     {/* thumbnail strip — contain so full thumb is visible */}
                                     {images.length > 1 && (
-                                        <div className="flex gap-2 overflow-x-auto pb-1">
+                                        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                                             {images.map((img, i) => (
                                                 <button
                                                     key={i}
@@ -443,7 +443,7 @@ if (activeColor) lines.push(`Color: ${activeColor}`);
 
                             {/* ── info tabs: description / specifications / in the box ── */}
                             <section className="surface">
-                                <div className="flex gap-1 sm:gap-2 border-b border-line overflow-x-auto px-2 sm:px-4">
+                                <div className="flex gap-1 sm:gap-2 border-b border-line overflow-x-auto no-scrollbar px-2 sm:px-4">
                                     {infoTabs.map((t) => (
                                         <button
                                             key={t.id}

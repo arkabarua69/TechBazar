@@ -83,7 +83,7 @@ const TrackOrder = () => {
     };
 
     return (
-        <main className="w-full mt-4 md:mt-6 pb-10">
+        <main className="w-full mt-4 md:mt-6 pb-24">
             <div className="w-full sm:w-10/12 lg:w-6/12 mx-auto px-3 sm:px-4 flex flex-col gap-4">
 
                 {/* search card */}
@@ -112,9 +112,9 @@ const TrackOrder = () => {
                                 onChange={(e) => setValue(e.target.value)}
                                 inputMode={mode === 'phone' ? 'tel' : 'text'}
                                 placeholder={mode === 'phone' ? 'e.g. 01712345678' : 'e.g. grp-xxxx-xxxx'}
-                                className="flex-1 input-field"
+                                className="flex-1 min-w-0 input-field"
                             />
-                            <button type="submit" disabled={loading} className="btn-accent px-4 py-2.5 text-sm font-semibold rounded-lg flex items-center gap-1.5 disabled:opacity-60">
+                            <button type="submit" disabled={loading} className="btn-accent px-4 py-2.5 text-sm font-semibold rounded-lg flex items-center gap-1.5 shrink-0 disabled:opacity-60">
                                 <SearchIcon sx={{ fontSize: '18px' }} />
                                 {loading ? 'Searching…' : 'Search'}
                             </button>

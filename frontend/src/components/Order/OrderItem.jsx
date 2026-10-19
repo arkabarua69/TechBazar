@@ -37,14 +37,14 @@ const OrderItem = ({ orderId, name, image, price, quantity, createdAt, delivered
     return (
         <Link
             to={`/order_details/${orderId}`}
-            className="border-b px-4 sm:px-5 py-4 flex flex-col sm:flex-row gap-3 transition-colors duration-150"
+            className="border-b px-4 sm:px-5 py-4 flex flex-row gap-3 transition-colors duration-150"
             style={{ borderColor: 'var(--color-border)' }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-bg)'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
         >
             {/* Thumbnail */}
             <div
-                className="w-full sm:w-20 h-20 rounded-xl overflow-hidden border shrink-0 flex items-center justify-center"
+                className="w-20 h-20 rounded-xl overflow-hidden border shrink-0 flex items-center justify-center"
                 style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-bg)' }}
             >
                 <img draggable="false" src={image} alt={name} className="h-full w-full object-contain p-2" />

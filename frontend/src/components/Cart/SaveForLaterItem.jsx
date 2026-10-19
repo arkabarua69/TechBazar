@@ -23,15 +23,15 @@ const SaveForLaterItem = ({ product, name, seller, price, cuttedPrice, image, st
     return (
         <div className="flex flex-col gap-3 py-5 pl-2 sm:pl-6 border-b border-line" key={product}>
 
-            <div className="flex flex-col sm:flex-row gap-5 items-stretch w-full" href="#">
+            <div className="flex flex-row gap-3 sm:gap-5 items-stretch w-full" href="#">
                 {/* <!-- product image --> */}
-                <div className="w-full sm:w-28 h-28 flex-shrink-0 bg-cloud border border-line rounded-xl overflow-hidden flex items-center justify-center">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 bg-cloud border border-line rounded-xl overflow-hidden flex items-center justify-center">
                     <img draggable="false" className="h-full w-full object-contain p-2" src={image} alt={name} />
                 </div>
                 {/* <!-- product image --> */}
 
                 {/* <!-- description --> */}
-                <div className="flex flex-col gap-1 sm:gap-5 w-full p-1 pr-6">
+                <div className="flex flex-col gap-1 sm:gap-5 w-full p-1 pr-1 sm:pr-6">
                     {/* <!-- product title --> */}
                     <div className="flex justify-between items-start pr-5">
                         <div className="flex flex-col gap-0.5 w-11/12 sm:w-full">

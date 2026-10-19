@@ -1,19 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import WorkIcon from '@mui/icons-material/Work';
-import StarsIcon from '@mui/icons-material/Stars';
-import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
-import HelpIcon from '@mui/icons-material/Help';
 import PhoneIcon from '@mui/icons-material/Phone';
 import AppleIcon from '@mui/icons-material/Apple';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import CopyrightIcon from '@mui/icons-material/Copyright';
-import paymentMethods from '../../../assets/images/payment-methods.svg';
 import { useLocation } from 'react-router-dom';
 import { useSiteConfig } from '../../../context/SiteConfigContext';
 import { DEFAULT_SITE_CONFIG } from '../../../utils/siteConfig';
-
-const SHORTCUT_ICONS = { Work: WorkIcon, Stars: StarsIcon, CardGiftcard: CardGiftcardIcon, Help: HelpIcon };
 
 const FooterLink = ({ item }) =>
     item.internal ? (
@@ -34,7 +27,6 @@ const Footer = () => {
     const footer = config.content?.footer || DEFAULT_SITE_CONFIG.content.footer;
     const columns = footer.columns || [];
     const company = footer.company || {};
-    const shortcuts = footer.shortcuts || [];
     const since = footer.since || 2007;
     const brandName = config.branding?.name || 'Store';
 
@@ -46,27 +38,6 @@ const Footer = () => {
 
     return (
         <footer style={{ backgroundColor: 'var(--color-footer)', color: 'var(--color-footer-text)' }}>
-
-            {/* ── Shortcut strip ── */}
-            <div className="border-b" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
-                <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4 flex flex-wrap items-center justify-between gap-3">
-                    {shortcuts.map((s, i) => {
-                        const Icon = SHORTCUT_ICONS[s.icon] || WorkIcon;
-                        const inner = (
-                            <span className="flex items-center gap-2 text-sm font-medium transition-opacity hover:opacity-100" style={{ color: 'var(--color-footer-text)', opacity: 0.75 }}>
-                                <Icon sx={{ fontSize: '18px', color: 'var(--color-accent)' }} />
-                                {s.label}
-                            </span>
-                        );
-                        return s.href?.startsWith('/') ? (
-                            <Link key={i} to={s.href}>{inner}</Link>
-                        ) : (
-                            <a key={i} href={s.href || '/policy'} target="_blank" rel="noreferrer">{inner}</a>
-                        );
-                    })}
-                    <img draggable="false" src={paymentMethods} alt="Payment Methods" className="h-6 opacity-60" />
-                </div>
-            </div>
 
             {/* ── Main columns ── */}
             <div className="max-w-7xl mx-auto px-4 lg:px-6 py-8 sm:py-10">

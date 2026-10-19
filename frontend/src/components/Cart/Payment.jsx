@@ -143,7 +143,7 @@ const Payment = () => {
                         <Stepper activeStep={3}>
                             <div className="w-full">
 
-                                <form onSubmit={(e) => submitHandler(e)} autoComplete="off" className="flex flex-col justify-start gap-4 w-full mx-8 my-4 overflow-hidden">
+                                <form onSubmit={(e) => submitHandler(e)} autoComplete="off" className="flex flex-col justify-start gap-4 w-full mx-0 sm:mx-8 my-4 overflow-hidden">
                                     <div className="surface p-4 sm:p-5">
                                         <FormControl>
                                             <RadioGroup
@@ -165,7 +165,7 @@ const Payment = () => {
                                         </FormControl>
                                     </div>
 
-                                    <input type="submit" value={`Pay Tk ${totalPrice.toLocaleString()}`} disabled={payDisable ? true : false} className={`${payDisable ? "bg-slate-200 text-slate-500 cursor-not-allowed" : "btn-accent cursor-pointer"} w-1/2 sm:w-1/4 my-2 py-3 text-sm font-bold rounded-lg uppercase outline-none`} />
+                                    <input type="submit" value={`Pay Tk ${totalPrice.toLocaleString()}`} disabled={payDisable ? true : false} className={`${payDisable ? "bg-slate-200 text-slate-500 cursor-not-allowed" : "btn-accent cursor-pointer"} w-full sm:w-1/4 my-2 py-3 text-sm font-bold rounded-lg uppercase outline-none`} />
 
                                 </form>
 

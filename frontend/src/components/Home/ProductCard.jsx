@@ -1,13 +1,15 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 import StarIcon from '@mui/icons-material/Star';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import CheckIcon from '@mui/icons-material/Check';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useState } from 'react';
 import { getDiscount } from '../../utils/functions';
 import { addItemsToCart } from '../../actions/cartAction';
+import { addToWishlist, removeFromWishlist } from '../../actions/wishlistAction';
 
 // MegaMart-style product card:
 //   image with corner OFF% badge · save amount · title · rating · price row
@@ -17,7 +19,9 @@ const ProductCard = ({ product }) => {
     const { enqueueSnackbar } = useSnackbar();
     const [added, setAdded] = useState(false);
 
+    const { wishlistItems } = useSelector((state) => state.wishlist);
     const { _id, name, images, ratings, numOfReviews, price, cuttedPrice, brand, stock } = product || {};
+    const inWishlist = wishlistItems?.some((i) => i.product === _id);
 
     const discount = Number(getDiscount(price, cuttedPrice)) || 0;
     const saveAmount = cuttedPrice && price ? cuttedPrice - price : 0;
@@ -90,11 +94,23 @@ const ProductCard = ({ product }) => {
 
                 {/* Wishlist icon */}
                 <button
-                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-white shadow-sm"
-                    onClick={(e) => { e.preventDefault(); }}
-                    aria-label="Add to wishlist"
+                    className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all duration-200 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 ${inWishlist ? 'bg-[var(--color-accent)]' : 'bg-white hover:bg-white/90'}`}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (inWishlist) {
+                            dispatch(removeFromWishlist(_id));
+                            enqueueSnackbar('Removed from wishlist', { variant: 'success' });
+                        } else {
+                            dispatch(addToWishlist(_id));
+                            enqueueSnackbar('Added to wishlist', { variant: 'success' });
+                        }
+                    }}
+                    aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
                 >
-                    <FavoriteBorderIcon sx={{ fontSize: '14px', color: 'var(--color-accent)' }} />
+                    {inWishlist
+                        ? <FavoriteIcon sx={{ fontSize: '16px', color: '#fff' }} />
+                        : <FavoriteBorderIcon sx={{ fontSize: '16px', color: 'var(--color-accent)' }} />}
                 </button>
             </Link>
 
