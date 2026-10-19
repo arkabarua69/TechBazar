@@ -11,6 +11,7 @@ import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import SettingsIcon from '@mui/icons-material/Settings';
 import CategoryIcon from '@mui/icons-material/Category';
 import StorageIcon from '@mui/icons-material/Storage';
+import HomeIcon from '@mui/icons-material/Home';
 import CloseIcon from '@mui/icons-material/Close';
 import CopyrightIcon from '@mui/icons-material/Copyright';
 import Avatar from '@mui/material/Avatar';
@@ -38,6 +39,7 @@ const Sidebar = ({ setToggleSidebar }) => {
     };
 
     const navMenu = [
+        { icon: <HomeIcon />,        label: t('view_store'),  ref: '/',                   id: 'home' },
         { icon: <EqualizerIcon />,   label: t('dashboard'),    ref: '/admin/dashboard',    id: 'dashboard' },
         { icon: <ShoppingBagIcon />, label: t('orders'),       ref: '/admin/orders',       id: 'orders' },
         { icon: <InventoryIcon />,   label: t('products'),     ref: '/admin/products',     id: 'products' },

@@ -9,6 +9,7 @@ export const SUPPORTED_LANGS = [LANG_EN, LANG_BN];
 export const translations = {
     [LANG_EN]: {
         // sidebar nav
+        view_store: 'View Store',
         dashboard: 'Dashboard',
         orders: 'Orders',
         products: 'Products',
@@ -153,6 +154,7 @@ export const translations = {
 
     [LANG_BN]: {
         // sidebar nav
+        view_store: 'View Store',
         dashboard: 'Dashboard',
         orders: 'Orders',
         products: 'Products',
@@ -300,6 +302,7 @@ export const translations = {
 // flat map for sidebar nav labels
 export const navLabels = {
     [LANG_EN]: {
+        view_store: 'View Store',
         dashboard: 'Dashboard',
         orders: 'Orders',
         products: 'Products',
@@ -315,6 +318,7 @@ export const navLabels = {
         logout: 'Logout',
     },
     [LANG_BN]: {
+        view_store: 'View Store',
         dashboard: 'Dashboard',
         orders: 'Orders',
         products: 'Products',
