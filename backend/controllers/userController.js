@@ -5,6 +5,7 @@ const ErrorHandler = require('../utils/errorHandler');
 const sendEmail = require('../utils/sendEmail');
 const crypto = require('crypto');
 const { uploadToImgBBCompat } = require('../utils/imgbb');
+const { notifyAuthEvent, logEvent } = require('../utils/discordNotify');
 
 // Register User
 exports.registerUser = asyncErrorHandler(async (req, res, next) => {
@@ -30,6 +31,7 @@ exports.registerUser = asyncErrorHandler(async (req, res, next) => {
     }
 
     const user = await User.create({ name, email, gender, password, avatar: avatarData });
+    notifyAuthEvent('register', user.toObject ? user.toObject() : user).catch(() => {});
     sendToken(user, 201, res);
 });
 
@@ -51,11 +53,15 @@ exports.loginUser = asyncErrorHandler(async (req, res, next) => {
         return next(new ErrorHandler("Invalid email or password", 401));
     }
 
+    notifyAuthEvent('login', user.toObject()).catch(() => {});
     sendToken(user, 200, res);
 });
 
 // Logout User
 exports.logoutUser = asyncErrorHandler(async (req, res, next) => {
+    if (req.user) {
+        notifyAuthEvent('logout', req.user.toObject ? req.user.toObject() : req.user).catch(() => {});
+    }
     res.cookie("token", null, {
         expires: new Date(Date.now()),
         httpOnly: true,
@@ -87,6 +93,8 @@ exports.forgotPassword = asyncErrorHandler(async (req, res, next) => {
 
     const resetToken = await user.getResetPasswordToken();
     await user.save({ validateBeforeSave: false });
+
+    notifyAuthEvent('password_reset', user.toObject()).catch(() => {});
 
     const resetPasswordUrl = `https://${req.get("host")}/password/reset/${resetToken}`;
 
@@ -134,6 +142,7 @@ exports.resetPassword = asyncErrorHandler(async (req, res, next) => {
     user.resetPasswordExpire = undefined;
     await user.save();
 
+    notifyAuthEvent('password_changed', user.toObject()).catch(() => {});
     sendToken(user, 200, res);
 });
 
@@ -152,6 +161,7 @@ exports.updatePassword = asyncErrorHandler(async (req, res, next) => {
 
     user.password = req.body.newPassword;
     await user.save();
+    notifyAuthEvent('password_changed', user.toObject()).catch(() => {});
     sendToken(user, 200, res);
 });
 
@@ -212,6 +222,17 @@ exports.updateUserRole = asyncErrorHandler(async (req, res, next) => {
         return next(new ErrorHandler(`User not found with id: ${req.params.id}`, 404));
     }
 
+    logEvent('user_role_updated', {
+        title: '🛡️ User role updated',
+        color: 0x8b5cf6,
+        fields: [
+            { name: '👤 User', value: user.name || '—', inline: true },
+            { name: '📧 Email', value: user.email || '—', inline: true },
+            { name: '🎚️ New role', value: user.role || '—', inline: true },
+            { name: '🛠️ By', value: req.user?.email || 'admin', inline: true },
+        ],
+    }).catch(() => {});
+
     res.status(200).json({ success: true });
 });
 
@@ -222,7 +243,18 @@ exports.deleteUser = asyncErrorHandler(async (req, res, next) => {
         return next(new ErrorHandler(`User not found with id: ${req.params.id}`, 404));
     }
 
+    const snapshot = user.toObject();
     await user.deleteOne();
+
+    logEvent('user_deleted', {
+        title: '🗑️ User account deleted',
+        color: 0xef4444,
+        fields: [
+            { name: '👤 User', value: snapshot.name || '—', inline: true },
+            { name: '📧 Email', value: snapshot.email || '—', inline: true },
+            { name: '🛠️ By', value: req.user?.email || 'admin', inline: true },
+        ],
+    }).catch(() => {});
 
     res.status(200).json({
         success: true,

@@ -32,8 +32,13 @@ const ENCRYPTED_PATHS = new Set([
     'socialLogin.googleClientSecret',
     'socialLogin.facebookAppSecret',
     'socialLogin.discordClientSecret',
-    // Discord product-notification webhook (anyone with it can post)
+    // Discord notification webhooks (anyone with one can post to that channel)
     'discord.webhookUrl',
+    'discord.webhooks.main',
+    'discord.webhooks.orders',
+    'discord.webhooks.logs',
+    'discord.webhooks.products',
+    'discord.webhooks.reviews',
     // Not encrypted at rest, but treated as a secret: it must never be sent
     // back to the browser nor overwritten by an unrelated config save.
     'database.mongoUri',
@@ -226,12 +231,21 @@ const DEFAULT_CONFIG = {
         enabled: true,
     },
 
-    // Discord notifications — new/updated/removed products are posted to a
-    // channel through this webhook. The URL is a secret (anyone who has it can
-    // post to the channel), so it is encrypted at rest.
+    // Discord notifications — every important store event (orders, logins,
+    // products, reviews, errors) is posted to a Discord channel as a rich
+    // embed. Each channel role may have its own webhook; a role without one
+    // falls back to `main`. The URLs are secrets (anyone who has one can post
+    // to that channel), so they are encrypted at rest.
     discord: {
         enabled: true,
-        webhookUrl: '',          // Will be encrypted
+        webhookUrl: '',          // legacy alias of webhooks.main — Will be encrypted
+        webhooks: {
+            main: '',            // fallback for every channel without its own webhook
+            orders: '',          // new orders, cancellations, status changes
+            logs: '',            // logins, registrations, admin actions, errors
+            products: '',        // product added / updated / removed
+            reviews: '',         // new and removed reviews
+        },
         notifyOnCreate: true,
         notifyOnUpdate: true,
         notifyOnDelete: true,
@@ -461,7 +475,7 @@ const websiteConfigSchema = new mongoose.Schema({
         },
     },
 
-    // Discord notifications (webhook URL is encrypted)
+    // Discord notifications (webhook URLs are encrypted)
     discord: {
         enabled: { type: Boolean, default: DEFAULT_CONFIG.discord.enabled },
         webhookUrl: {
@@ -469,6 +483,13 @@ const websiteConfigSchema = new mongoose.Schema({
             default: DEFAULT_CONFIG.discord.webhookUrl,
             set: encrypt,
             get: decrypt
+        },
+        webhooks: {
+            main: { type: String, default: DEFAULT_CONFIG.discord.webhooks.main, set: encrypt, get: decrypt },
+            orders: { type: String, default: DEFAULT_CONFIG.discord.webhooks.orders, set: encrypt, get: decrypt },
+            logs: { type: String, default: DEFAULT_CONFIG.discord.webhooks.logs, set: encrypt, get: decrypt },
+            products: { type: String, default: DEFAULT_CONFIG.discord.webhooks.products, set: encrypt, get: decrypt },
+            reviews: { type: String, default: DEFAULT_CONFIG.discord.webhooks.reviews, set: encrypt, get: decrypt },
         },
         notifyOnCreate: { type: Boolean, default: DEFAULT_CONFIG.discord.notifyOnCreate },
         notifyOnUpdate: { type: Boolean, default: DEFAULT_CONFIG.discord.notifyOnUpdate },
@@ -568,6 +589,38 @@ websiteConfigSchema.statics.updateConfig = async function(newConfig, userId) {
 
         for (const [field, value] of Object.entries(values)) {
             const path = `${section}.${field}`;
+
+            // Nested group (e.g. discord.webhooks.main): the schema path lives
+            // one level deeper, so recurse instead of silently dropping it.
+            if (
+                value && typeof value === 'object' && !Array.isArray(value) &&
+                !allowedPaths.has(path) &&
+                allowedPaths.has(`${path}.${Object.keys(value)[0] || ''}`)
+            ) {
+                for (const [subField, subValue] of Object.entries(value)) {
+                    const subPath = `${path}.${subField}`;
+                    if (!allowedPaths.has(subPath)) continue;
+                    if (isMaskValue(subValue)) continue;
+                    // Explicit null clears an encrypted value; '' means "keep".
+                    if (subValue === null) {
+                        if (currentConfig[section][field][subField]) {
+                            const oldSub = currentConfig[section][field][subField];
+                            currentConfig[section][field][subField] = '';
+                            trackChanges(subPath, oldSub, '');
+                        }
+                        continue;
+                    }
+                    if (subValue === '' && ENCRYPTED_PATHS.has(subPath)) continue;
+
+                    const oldSub = currentConfig[section][field]?.[subField];
+                    if (serialize(oldSub) === serialize(subValue)) continue;
+
+                    currentConfig[section][field][subField] = subValue;
+                    trackChanges(subPath, oldSub, subValue);
+                }
+                continue;
+            }
+
             if (!allowedPaths.has(path)) continue;
 
             // The admin UI sends a bullet placeholder for secrets it never

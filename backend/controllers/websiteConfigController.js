@@ -51,6 +51,8 @@ const syncToStorefront = async (cfg = {}) => {
     // ── Identity (header, footer, page titles) ──────────────────────────────
     if (general.siteName !== undefined) set('branding.name', String(general.siteName).slice(0, 60));
     if (general.tagline !== undefined) set('branding.tagline', String(general.tagline).slice(0, 160));
+    // Full site title → homepage browser tab / social preview title.
+    if (general.siteTitle !== undefined) set('seo.siteTitle', String(general.siteTitle || '').trim().slice(0, 160));
     if (branding.logoUrl !== undefined) set('branding.logoUrl', branding.logoUrl);
     if (branding.faviconUrl !== undefined) set('branding.faviconUrl', branding.faviconUrl);
 
@@ -374,11 +376,14 @@ const testImgbbKey = asyncErrorHandler(async (req, res, next) => {
 // Sends a small confirmation embed to the configured webhook so the admin can
 // verify the setup immediately.
 const testDiscordWebhook = asyncErrorHandler(async (req, res, next) => {
+    // Optional ?role=orders|logs|products|reviews|main — defaults to main
+    const role = String(req.body?.role || req.query?.role || 'main').toLowerCase();
+    const allowed = ['main', 'orders', 'logs', 'products', 'reviews'];
     try {
-        await sendTestNotification();
+        await sendTestNotification(allowed.includes(role) ? role : 'main');
         res.status(200).json({
             success: true,
-            message: 'Test message sent — check your Discord channel.',
+            message: `Test message sent to the "${role}" channel — check Discord.`,
         });
     } catch (err) {
         return next(new ErrorHandler(`Discord test failed: ${err.message}`, 400));

@@ -3,7 +3,7 @@ const asyncErrorHandler = require('../middlewares/asyncErrorHandler');
 const SearchFeatures = require('../utils/searchFeatures');
 const ErrorHandler = require('../utils/errorHandler');
 const { uploadToImgBBCompat } = require('../utils/imgbb');
-const { notifyProductEvent } = require('../utils/discordNotify');
+const { notifyProductEvent, notifyReviewEvent, logEvent } = require('../utils/discordNotify');
 
 // An image value may arrive as:
 //   • an already-hosted http(s) URL (uploaded client-side via the ImgBB uploader
@@ -130,6 +130,15 @@ exports.createProduct = asyncErrorHandler(async (req, res, next) => {
     // Post the new product to the Discord channel (best-effort — never blocks
     // or fails the request). Fire-and-forget so the admin response is instant.
     notifyProductEvent('created', product.toObject()).catch(() => {});
+    logEvent('product_created', {
+        title: '🆕 Product created',
+        color: 0x22c55e,
+        fields: [
+            { name: '📦 Product', value: product.name || '—' },
+            { name: '💰 Price', value: product.price ? `৳${Number(product.price).toLocaleString('en-US')}` : '—', inline: true },
+            { name: '🛠️ By', value: req.user?.email || 'admin', inline: true },
+        ],
+    }).catch(() => {});
 
     res.status(201).json({
         success: true,
@@ -183,7 +192,17 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
     });
 
     // Discord: product updated (best-effort, non-blocking)
-    if (product) notifyProductEvent('updated', product.toObject()).catch(() => {});
+    if (product) {
+        notifyProductEvent('updated', product.toObject()).catch(() => {});
+        logEvent('product_updated', {
+            title: '✏️ Product updated',
+            color: 0x3b82f6,
+            fields: [
+                { name: '📦 Product', value: product.name || '—' },
+                { name: '🛠️ By', value: req.user?.email || 'admin', inline: true },
+            ],
+        }).catch(() => {});
+    }
 
     res.status(200).json({
         success: true,
@@ -205,6 +224,14 @@ exports.deleteProduct = asyncErrorHandler(async (req, res, next) => {
 
     // Discord: product removed (best-effort, non-blocking)
     notifyProductEvent('deleted', snapshot).catch(() => {});
+    logEvent('product_deleted', {
+        title: '🗑️ Product deleted',
+        color: 0xef4444,
+        fields: [
+            { name: '📦 Product', value: snapshot.name || '—' },
+            { name: '🛠️ By', value: req.user?.email || 'admin', inline: true },
+        ],
+    }).catch(() => {});
 
     res.status(200).json({
         success: true,
@@ -270,6 +297,12 @@ exports.createProductReview = asyncErrorHandler(async (req, res, next) => {
 
     await product.save({ validateBeforeSave: false });
 
+    // Discord: new/updated review (best-effort)
+    notifyReviewEvent(existingReviewIndex >= 0 ? 'updated' : 'created', {
+        product: { name: product.name, image: product.images?.[0]?.url },
+        review,
+    }).catch(() => {});
+
     res.status(200).json({ success: true });
 });
 
@@ -297,6 +330,9 @@ exports.deleteReview = asyncErrorHandler(async (req, res, next) => {
         (rev) => rev._id.toString() !== req.query.id.toString()
     );
 
+    // Capture the removed review for the Discord embed before overwriting.
+    const removed = product.reviews.find((rev) => rev._id.toString() === req.query.id.toString());
+
     const avg = reviews.reduce((sum, rev) => sum + rev.rating, 0);
     const ratings = reviews.length > 0 ? avg / reviews.length : 0;
 
@@ -305,6 +341,12 @@ exports.deleteReview = asyncErrorHandler(async (req, res, next) => {
         { reviews, ratings: Number(ratings), numOfReviews: reviews.length },
         { new: true, runValidators: true }
     );
+
+    // Discord: review removed (best-effort)
+    notifyReviewEvent('deleted', {
+        product: { name: product.name, image: product.images?.[0]?.url },
+        review: removed,
+    }).catch(() => {});
 
     res.status(200).json({ success: true });
 });

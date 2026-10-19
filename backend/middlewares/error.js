@@ -1,4 +1,5 @@
 const ErrorHandler = require("../utils/errorHandler");
+const { notifyErrorEvent } = require("../utils/discordNotify");
 
 module.exports = (err, req, res, next) => {
     err.statusCode = err.statusCode || 500;
@@ -24,6 +25,17 @@ module.exports = (err, req, res, next) => {
     // JWT malformed — check name (not code)
     if (err.name === "JsonWebTokenError") {
         err = new ErrorHandler("Invalid token. Please login again", 401);
+    }
+
+    // Discord alert for genuine server faults only (5xx). Client errors (4xx)
+    // are expected and would only spam the channel. Best-effort, never awaited.
+    if (err.statusCode >= 500) {
+        notifyErrorEvent(err, {
+            statusCode: err.statusCode,
+            method: req?.method,
+            url: req?.originalUrl || req?.url,
+            user: req?.user,
+        }).catch(() => {});
     }
 
     // Don't leak stack traces in production

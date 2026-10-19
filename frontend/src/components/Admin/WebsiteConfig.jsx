@@ -77,13 +77,18 @@ const SECRET_FIELDS = new Set([
     'socialLogin.facebookAppSecret',
     'socialLogin.discordClientSecret',
     'discord.webhookUrl',
+    'discord.webhooks.main',
+    'discord.webhooks.orders',
+    'discord.webhooks.logs',
+    'discord.webhooks.products',
+    'discord.webhooks.reviews',
     'database.mongoUri',
 ]);
 // ─── Field Components ─────────────────────────────────────────────────────────
 const inputCls =
     'border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 w-full bg-white';
 const labelCls = 'text-xs font-medium text-gray-500 mb-1 block';
-const TextField = ({ label, value, onChange, placeholder = '' }) => (
+const TextField = ({ label, value, onChange, placeholder = '', hint = '' }) => (
     <div>
         <label className={labelCls}>{label}</label>
         <input
@@ -93,6 +98,7 @@ const TextField = ({ label, value, onChange, placeholder = '' }) => (
             placeholder={placeholder}
             className={inputCls}
         />
+        {hint ? <p className="mt-1 text-[11px] leading-snug text-gray-400">{hint}</p> : null}
     </div>
 );
 const NumberField = ({ label, value, onChange, min, max, placeholder = '' }) => (
@@ -333,7 +339,7 @@ const buildFieldIndex = (config, handlers) => {
     // general
     add('general', 'siteName', 'Site Name', <TextField key="siteName" label="Site Name" value={config.general?.siteName} onChange={(v) => set('general', 'siteName', v)} />);
     add('general', 'tagline', 'Tagline', <TextField key="tagline" label="Tagline" value={config.general?.tagline} onChange={(v) => set('general', 'tagline', v)} placeholder="e.g. Best prices, fast delivery" />);
-    add('general', 'siteTitle', 'Site Title', <TextField key="siteTitle" label="Site Title" value={config.general?.siteTitle} onChange={(v) => set('general', 'siteTitle', v)} />);
+    add('general', 'siteTitle', 'Site Title', <TextField key="siteTitle" label="Site Title" value={config.general?.siteTitle} onChange={(v) => set('general', 'siteTitle', v)} placeholder="e.g. GeForce HuB — Online Shopping" hint="Shown in the homepage browser tab and social previews. Leave empty to keep the default page title." />);
     add('general', 'siteDescription', 'Site Description', <TextareaField key="siteDescription" label="Site Description" value={config.general?.siteDescription} onChange={(v) => set('general', 'siteDescription', v)} />);
     add('general', 'siteUrl', 'Site URL', <TextField key="siteUrl" label="Site URL" value={config.general?.siteUrl} onChange={(v) => set('general', 'siteUrl', v)} />);
     add('general', 'contactEmail', 'Contact Email', <TextField key="contactEmail" label="Contact Email" value={config.general?.contactEmail} onChange={(v) => set('general', 'contactEmail', v)} />);
@@ -409,9 +415,13 @@ const buildFieldIndex = (config, handlers) => {
     add('socialLogin', 'discordClientId', 'Discord Client ID', <TextField key="discordClientId" label="Discord Client ID" value={config.socialLogin?.discordClientId} onChange={(v) => set('socialLogin', 'discordClientId', v)} placeholder="1234567890123456789" />);
     add('socialLogin', 'discordClientSecret', 'Discord Client Secret', <SecretField key="discordClientSecret" label="Discord Client Secret" section="socialLogin" field="discordClientSecret" value={config.socialLogin?.discordClientSecret} onSecretChange={onSecretChange} />);
     add('socialLogin', 'callbackBaseUrl', 'Callback Base URL', <TextField key="callbackBaseUrl" label="Callback Base URL (optional)" value={config.socialLogin?.callbackBaseUrl} onChange={(v) => set('socialLogin', 'callbackBaseUrl', v)} placeholder="Leave empty to auto-detect, e.g. https://your-site.com" />);
-    // discord (product notifications)
-    add('discord', 'webhookUrl', 'Discord Webhook URL', <SecretField key="webhookUrl" label="Discord Webhook URL" section="discord" field="webhookUrl" value={config.discord?.webhookUrl} onSecretChange={onSecretChange} />);
-    add('discord', 'enabled', 'Discord Alerts', <ToggleField key="enabled" label="Enable Discord Notifications" description="Post product updates to your Discord channel" value={config.discord?.enabled} onChange={(v) => set('discord', 'enabled', v)} />);
+    // discord (multi-channel notifications)
+    add('discord', 'enabled', 'Discord Alerts', <ToggleField key="enabled" label="Enable Discord Notifications" description="Master switch for every Discord channel" value={config.discord?.enabled} onChange={(v) => set('discord', 'enabled', v)} />);
+    DISCORD_CHANNELS.forEach((role) => {
+        add('discord', `webhooks.${role.key}`, `${role.label} webhook`, (
+            <DiscordChannelRow key={role.key} role={role} config={config} set={set} />
+        ));
+    });
     add('discord', 'notifyOnCreate', 'New Products', <ToggleField key="notifyOnCreate" label="New Product Added" description="Post an embed with full details and images when a product is added" value={config.discord?.notifyOnCreate} onChange={(v) => set('discord', 'notifyOnCreate', v)} />);
     add('discord', 'notifyOnUpdate', 'Product Updates', <ToggleField key="notifyOnUpdate" label="Product Updated" description="Post when a product is edited" value={config.discord?.notifyOnUpdate} onChange={(v) => set('discord', 'notifyOnUpdate', v)} />);
     add('discord', 'notifyOnDelete', 'Product Removed', <ToggleField key="notifyOnDelete" label="Product Removed" description="Post when a product is deleted" value={config.discord?.notifyOnDelete} onChange={(v) => set('discord', 'notifyOnDelete', v)} />);
@@ -1579,147 +1589,194 @@ const HomepagePanel = ({ registerSave, registerReset, onSavingChange }) => {
     );
 };
 // ─── Discord notifications panel ──────────────────────────────────────────────
-// Lets the admin paste the channel webhook and verify it with a test message.
-// The URL is a secret: the server never sends it back, so an untouched field
-// shows the bullet placeholder and an empty value keeps the stored one.
-const DiscordPanel = ({ config, set, onSecretChange }) => {
+// Multi-channel logging: each role (orders / logs / products / reviews) can
+// have its own webhook, falling back to the main one. URLs are secrets — the
+// server never sends them back, so an untouched field shows the bullet
+// placeholder and an empty value keeps the stored one.
+const DISCORD_CHANNELS = [
+    { key: 'main',     label: 'Main / Fallback', emoji: '📡', hint: 'Used for any channel that has no webhook of its own.' },
+    { key: 'orders',   label: 'Orders',          emoji: '🛒', hint: 'New orders, cancellations, status changes, payment verification.' },
+    { key: 'logs',     label: 'Activity Log',    emoji: '📝', hint: 'Register / login / logout, product add-edit-delete, chat messages, errors.' },
+    { key: 'products', label: 'Products',        emoji: '📦', hint: 'Full product embed with images when a product is added / updated / removed.' },
+    { key: 'reviews',  label: 'Reviews',         emoji: '⭐', hint: 'New and removed product reviews with rating and comment.' },
+];
+
+const MASK_RE = /^[•*]{4,}$/;
+const isMask = (value) => value === MASK_STRING || MASK_RE.test(String(value || ''));
+
+const DiscordChannelRow = ({ role, config, set }) => {
     const { enqueueSnackbar } = useSnackbar();
     const { reloadConfig } = useSiteConfig();
-    const [testing, setTesting] = useState(false);
-    const [webhookInput, setWebhookInput] = useState('');
+    const [busy, setBusy] = useState(false);
     const [touched, setTouched] = useState(false);
+    const [value, setValue] = useState('');
 
-    const d = config.discord || {};
-    const storedMasked = d.webhookUrl === MASK_STRING || /^[•*]{4,}$/.test(String(d.webhookUrl || ''));
+    const stored = config.discord?.webhooks?.[role.key] ?? '';
+    const storedMasked = isMask(stored);
 
-    const saveWebhook = async () => {
-        const value = webhookInput.trim();
-        if (!value) {
-            enqueueSnackbar('Paste your Discord webhook URL first', { variant: 'warning' });
+    const save = async () => {
+        const url = value.trim();
+        if (!url) {
+            enqueueSnackbar('Paste a Discord webhook URL first', { variant: 'warning' });
             return false;
         }
-        if (!/^https:\/\/(canary\.|ptb\.)?discord(app)?\.com\/api\/webhooks\//i.test(value)) {
+        if (!/^https:\/\/(canary\.|ptb\.)?discord(app)?\.com\/api\/webhooks\//i.test(url)) {
             enqueueSnackbar('That does not look like a Discord webhook URL (https://discord.com/api/webhooks/…)', { variant: 'error' });
             return false;
         }
-        setTesting(true);
+        setBusy(true);
         try {
-            await axios.put('/api/v1/admin/websiteconfig', { config: { discord: { webhookUrl: value } } });
-            set('discord', 'webhookUrl', MASK_STRING);
+            await axios.put('/api/v1/admin/websiteconfig', {
+                config: { discord: { webhooks: { [role.key]: url } } },
+            });
+            set('discord', 'webhooks', { ...(config.discord?.webhooks || {}), [role.key]: MASK_STRING });
             setTouched(false);
-            setWebhookInput('');
+            setValue('');
             reloadConfig();
-            enqueueSnackbar('Webhook saved', { variant: 'success' });
+            enqueueSnackbar(`${role.label} webhook saved`, { variant: 'success' });
             return true;
         } catch (err) {
             enqueueSnackbar(err?.response?.data?.message || 'Could not save the webhook', { variant: 'error' });
             return false;
         } finally {
-            setTesting(false);
+            setBusy(false);
+        }
+    };
+
+    const clear = async () => {
+        setBusy(true);
+        try {
+            await axios.put('/api/v1/admin/websiteconfig', {
+                config: { discord: { webhooks: { [role.key]: null } } },
+            });
+            set('discord', 'webhooks', { ...(config.discord?.webhooks || {}), [role.key]: '' });
+            setTouched(false);
+            setValue('');
+            reloadConfig();
+            enqueueSnackbar(`${role.label} webhook cleared`, { variant: 'success' });
+        } catch (err) {
+            enqueueSnackbar(err?.response?.data?.message || 'Could not clear the webhook', { variant: 'error' });
+        } finally {
+            setBusy(false);
         }
     };
 
     const sendTest = async () => {
-        // If the admin typed a new URL but has not saved it yet, save first so
-        // the test uses the value they are looking at.
-        if (touched && webhookInput.trim()) {
-            const ok = await saveWebhook();
+        if (touched && value.trim()) {
+            const ok = await save();
             if (!ok) return;
         }
-        if (!storedMasked && !(touched && webhookInput.trim())) {
-            enqueueSnackbar('Save a webhook URL first', { variant: 'warning' });
-            return;
-        }
-        setTesting(true);
+        setBusy(true);
         try {
-            const { data } = await axios.post('/api/v1/admin/discord/test');
+            const { data } = await axios.post('/api/v1/admin/discord/test', { role: role.key });
             enqueueSnackbar(data?.message || 'Test message sent', { variant: 'success' });
         } catch (err) {
             enqueueSnackbar(err?.response?.data?.message || 'Discord test failed', { variant: 'error' });
         } finally {
-            setTesting(false);
+            setBusy(false);
         }
     };
 
-    const configured = storedMasked || (touched && webhookInput.trim() !== '');
+    return (
+        <div className="rounded-xl border border-gray-200 p-3 flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5">
+                    <span>{role.emoji}</span>
+                    <span className="text-sm font-semibold text-gray-800">{role.label}</span>
+                </div>
+                {storedMasked ? (
+                    <span className="text-[11px] text-emerald-600 flex items-center gap-1">
+                        <CheckCircle2 size={12} /> Connected
+                    </span>
+                ) : (
+                    <span className="text-[11px] text-gray-400">Not set</span>
+                )}
+            </div>
+            <p className="text-[11px] text-gray-400 -mt-1">{role.hint}</p>
+
+            <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                    type="text"
+                    value={touched ? value : (storedMasked ? MASK_STRING : '')}
+                    onFocus={() => { if (!touched) { setTouched(true); setValue(''); } }}
+                    onChange={(e) => { setTouched(true); setValue(e.target.value); }}
+                    placeholder="https://discord.com/api/webhooks/…"
+                    className={`${inputCls} font-mono text-xs`}
+                    spellCheck={false}
+                    autoComplete="off"
+                />
+                <button
+                    type="button"
+                    onClick={save}
+                    disabled={busy || !touched || !value.trim()}
+                    className="px-3 py-2 rounded-xl text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-40 whitespace-nowrap flex items-center justify-center gap-1.5"
+                >
+                    <Save size={13} /> Save
+                </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+                <button
+                    type="button"
+                    onClick={sendTest}
+                    disabled={busy}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 text-gray-700 hover:bg-gray-50 flex items-center gap-1.5"
+                >
+                    {busy ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+                    Send test
+                </button>
+                {storedMasked && (
+                    <button
+                        type="button"
+                        onClick={clear}
+                        disabled={busy}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-100 text-red-500 hover:bg-red-50 flex items-center gap-1.5"
+                    >
+                        <Trash2 size={12} /> Remove
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const DiscordPanel = ({ config, set }) => {
+    const d = config.discord || {};
 
     return (
         <div className="flex flex-col gap-4">
             <Card>
                 <SectionHeading icon={<Bell size={16} />}>Discord Notifications</SectionHeading>
                 <p className="text-xs text-gray-500 -mt-2 mb-1 leading-relaxed">
-                    Every product you add, update or remove is posted to a Discord channel as a rich
-                    embed — with the full details and product images. Create a webhook in your Discord
-                    server: <span className="font-medium text-gray-600">Channel → Edit Channel → Integrations → Webhooks → New Webhook</span>,
-                    then copy the <span className="font-medium text-gray-600">Webhook URL</span> below.
+                    Every important store event is posted to Discord as a rich embed. Give each type its
+                    own channel so orders, activity and products stay separate. Create a webhook per
+                    channel in Discord: <span className="font-medium text-gray-600">Channel → Edit Channel → Integrations → Webhooks → New Webhook</span>,
+                    then paste the <span className="font-medium text-gray-600">Webhook URL</span> below.
+                    Any channel left empty falls back to <span className="font-medium text-gray-600">Main</span>.
                 </p>
 
-                <div className="flex flex-col gap-3">
+                <div className="mb-3">
                     <ToggleField
                         label="Enable Discord Notifications"
-                        description="Turn all product alerts on or off"
+                        description="Master switch for every channel below"
                         value={d.enabled !== false}
                         onChange={(v) => set('discord', 'enabled', v)}
                     />
+                </div>
 
-                    <div>
-                        <label className={labelCls}>Discord Webhook URL</label>
-                        <div className="flex flex-col sm:flex-row gap-2">
-                            <input
-                                type="text"
-                                value={touched ? webhookInput : (storedMasked ? MASK_STRING : '')}
-                                onFocus={() => { if (!touched) { setTouched(true); setWebhookInput(''); } }}
-                                onChange={(e) => { setTouched(true); setWebhookInput(e.target.value); }}
-                                placeholder="https://discord.com/api/webhooks/1234567890/AbCd…"
-                                className={`${inputCls} font-mono text-xs`}
-                                spellCheck={false}
-                                autoComplete="off"
-                            />
-                            <button
-                                type="button"
-                                onClick={saveWebhook}
-                                disabled={testing || !touched || !webhookInput.trim()}
-                                className="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-40 whitespace-nowrap flex items-center justify-center gap-1.5"
-                            >
-                                <Save size={14} /> Save
-                            </button>
-                        </div>
-                        <p className="text-[11px] text-gray-400 mt-1">
-                            {storedMasked
-                                ? 'A webhook is saved. Paste a new one above to replace it.'
-                                : 'No webhook saved yet.'}
-                        </p>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                        <button
-                            type="button"
-                            onClick={sendTest}
-                            disabled={testing}
-                            className={`px-4 py-2 rounded-xl text-sm font-semibold border flex items-center gap-1.5 ${
-                                configured
-                                    ? 'border-gray-200 text-gray-700 hover:bg-gray-50'
-                                    : 'border-gray-200 text-gray-400 cursor-not-allowed'
-                            }`}
-                        >
-                            {testing ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                            Send test message
-                        </button>
-                        {storedMasked && (
-                            <span className="text-xs text-emerald-600 flex items-center gap-1">
-                                <CheckCircle2 size={13} /> Webhook saved
-                            </span>
-                        )}
-                    </div>
+                <div className="flex flex-col gap-3">
+                    {DISCORD_CHANNELS.map((role) => (
+                        <DiscordChannelRow key={role.key} role={role} config={config} set={set} />
+                    ))}
                 </div>
             </Card>
 
             <Card>
-                <SectionHeading icon={<Bell size={16} />}>What to send</SectionHeading>
+                <SectionHeading icon={<Bell size={16} />}>Product embed options</SectionHeading>
                 <div className="flex flex-col gap-3">
                     <ToggleField
                         label="New Product Added"
-                        description="Full embed: title, price, offer price, stock, category, brand, rating, description and all images"
+                        description="Full embed: price, stock, category, brand, rating, description and all images"
                         value={d.notifyOnCreate !== false}
                         onChange={(v) => set('discord', 'notifyOnCreate', v)}
                     />
@@ -1739,9 +1796,20 @@ const DiscordPanel = ({ config, set, onSecretChange }) => {
                 <div className="mt-3 rounded-xl bg-blue-50 border border-blue-100 p-3 flex gap-2">
                     <AlertCircle size={15} className="text-blue-500 shrink-0 mt-0.5" />
                     <p className="text-[11px] text-blue-700 leading-relaxed">
-                        Alert toggles save with the page-wide <span className="font-semibold">Save</span> button
-                        at the top. The webhook URL saves immediately with its own Save button.
+                        Webhook URLs save instantly with their own <span className="font-semibold">Save</span> button.
+                        The master switch and product toggles save with the page-wide{' '}
+                        <span className="font-semibold">Save</span> button at the top.
                     </p>
+                </div>
+            </Card>
+
+            <Card>
+                <SectionHeading icon={<Bell size={16} />}>What goes where</SectionHeading>
+                <div className="text-xs text-gray-600 flex flex-col gap-1.5">
+                    <div><span className="font-semibold">🛒 Orders</span> — new order, cancelled, forwarded, failed, fulfilment change, payment verified.</div>
+                    <div><span className="font-semibold">📝 Activity Log</span> — register, login, logout, password reset/changed, product add/edit/delete, chat messages, server errors (5xx).</div>
+                    <div><span className="font-semibold">📦 Products</span> — full product card with images on add / update / remove.</div>
+                    <div><span className="font-semibold">⭐ Reviews</span> — new review, review updated, review removed.</div>
                 </div>
             </Card>
         </div>
@@ -1913,7 +1981,7 @@ const WebsiteConfig = () => {
             return <ImgBBSettings />;
         }
         if (activeCategory === 'discord') {
-            return <DiscordPanel config={config} set={set} onSecretChange={onSecretChange} />;
+            return <DiscordPanel config={config} set={set} />;
         }
         const sectionFields = fieldIndex.filter((f) => f.sectionId === activeCategory);
         if (sectionFields.length === 0) return null;

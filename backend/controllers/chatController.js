@@ -2,6 +2,7 @@ const ChatConversation = require('../models/chatModel');
 const { ChatMessage } = require('../models/chatModel');
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
+const { logEvent } = require('../utils/discordNotify');
 
 // ── helpers ───────────────────────────────────────────────────────────
 
@@ -129,6 +130,17 @@ const sendVisitorMessage = async (req, res) => {
             $set: { lastMessage: text, lastMessageAt: new Date(), status: 'open' },
             $inc: { unreadAdmin: 1 },
         });
+
+        // Discord: a customer message — heads-up in the log channel
+        logEvent('chat_message', {
+            title: '💬 New chat message',
+            color: 0x06b6d4,
+            fields: [
+                { name: '👤 From', value: `${convo.name || 'Guest'}${convo.email ? ` · ${convo.email}` : ''}` },
+                { name: '💬 Message', value: text },
+            ],
+            footer: `conversation ${convo._id}`,
+        }).catch(() => {});
 
         return res.status(201).json({ success: true, message: doc });
     } catch (err) {

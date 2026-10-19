@@ -3,6 +3,7 @@ const Order = require('../models/orderModel');
 const Product = require('../models/productModel');
 const ErrorHandler = require('../utils/errorHandler');
 const sendEmail = require('../utils/sendEmail');
+const { notifyOrderEvent } = require('../utils/discordNotify');
 
 // Create New Order
 exports.newOrder = asyncErrorHandler(async (req, res, next) => {
@@ -40,6 +41,9 @@ exports.newOrder = asyncErrorHandler(async (req, res, next) => {
     }).catch((err) => {
         console.error(`Order confirmation email failed for order ${order._id}:`, err.message);
     });
+
+    // Discord: new order (best-effort, non-blocking)
+    notifyOrderEvent('created', { ...order.toObject(), customer: { ...shippingInfo, name: req.user.name, email: req.user.email } }).catch(() => {});
 
     res.status(201).json({
         success: true,
@@ -117,6 +121,12 @@ exports.updateOrder = asyncErrorHandler(async (req, res, next) => {
 
     await order.save({ validateBeforeSave: false });
 
+    // Discord: order status changed (best-effort)
+    notifyOrderEvent('status', { ...order.toObject(), customer: { name: order.shippingInfo?.address, phone: order.shippingInfo?.phoneNo } }, {
+        by: req.user?.email,
+        status: `Processing → ${status}`,
+    }).catch(() => {});
+
     res.status(200).json({ success: true });
 });
 
@@ -137,7 +147,14 @@ exports.deleteOrder = asyncErrorHandler(async (req, res, next) => {
         return next(new ErrorHandler("Order Not Found", 404));
     }
 
+    const snapshot = order.toObject();
     await order.deleteOne();
+
+    // Discord: order deleted (best-effort)
+    notifyOrderEvent('cancelled', { ...snapshot, customer: { name: snapshot.shippingInfo?.address, phone: snapshot.shippingInfo?.phoneNo } }, {
+        by: req.user?.email,
+        status: 'deleted',
+    }).catch(() => {});
 
     res.status(200).json({
         success: true,

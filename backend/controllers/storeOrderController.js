@@ -3,6 +3,7 @@ const StoreOrder = require('../models/storeOrderModel');
 const Product = require('../models/productModel');
 const { getDeliveryCharges, forwardOrderToStore, isConfigured } = require('../services/businessKoro');
 const { syncCatalog } = require('../services/catalogSync');
+const { notifyOrderEvent } = require('../utils/discordNotify');
 
 const BENGALI_DIGITS = '০১২৩৪৫৬৭৮৯';
 
@@ -164,6 +165,27 @@ const createStoreOrder = async (req, res) => {
 
         const itemsTotal = docs.reduce((sum, d) => sum + d.pricing.total, 0);
 
+        // Discord: announce the new order in the orders channel (best-effort).
+        // One message per order group, listing every line item.
+        notifyOrderEvent('created', {
+            _id: groupId,
+            groupId,
+            customer: customerDoc,
+            payment: paymentDoc,
+            delivery: deliveryDoc,
+            status: 'PENDING_APPROVAL',
+            pricing: {
+                quantity: docs.reduce((sum, d) => sum + d.pricing.quantity, 0),
+                total: itemsTotal + deliveryCharge,
+            },
+            orderItems: docs.map((d) => ({
+                name: d.product.name,
+                price: d.pricing.sellingPrice,
+                quantity: d.pricing.quantity,
+            })),
+            product: { name: docs[0]?.product?.name, image: docs[0]?.product?.image },
+        }).catch(() => {});
+
         return res.status(201).json({
             success: true,
             message: 'Order recorded. It will be forwarded after approval.',
@@ -275,12 +297,21 @@ const approveStoreOrder = async (req, res) => {
             order.bkError = undefined;
             await order.save();
 
+            // Discord: order forwarded to Business Koro
+            notifyOrderEvent('forwarded', order.toObject(), { by: req.user?.email }).catch(() => {});
+
             return res.status(200).json({ success: true, order, upstream: body });
         } catch (err) {
             order.status = 'FORWARD_FAILED';
             order.bkError = err.message;
             order.bkErrorDetail = err.upstream ? JSON.stringify(err.upstream).slice(0, 500) : undefined;
             await order.save();
+
+            // Discord: forwarding failed — worth an alert
+            notifyOrderEvent('failed', order.toObject(), {
+                by: req.user?.email,
+                fields: [{ name: '❗ Reason', value: err.message }],
+            }).catch(() => {});
 
             console.log(`Store order forward failed: ${err.message}`);
             return res.status(err.status || 502).json({ success: false, message: err.message, upstream: err.upstream });
@@ -307,6 +338,9 @@ const cancelStoreOrder = async (req, res) => {
         order.status = 'CANCELLED';
         order.fulfilment = 'CANCELLED';
         await order.save();
+
+        // Discord: order cancelled by an admin
+        notifyOrderEvent('cancelled', order.toObject(), { by: req.user?.email }).catch(() => {});
 
         return res.status(200).json({ success: true, order });
     } catch (err) {
@@ -399,6 +433,9 @@ const updateFulfilmentStatus = async (req, res) => {
         const order = await StoreOrder.findById(req.params.id);
         if (!order) return res.status(404).json({ success: false, message: 'Order not found.' });
 
+        const previousFulfilment = order.fulfilment;
+        let verifiedChanged = false;
+
         if (fulfilment !== undefined) {
             if (!UPDATEABLE_FULFILMENT.includes(fulfilment)) {
                 return res.status(400).json({ success: false, message: 'Invalid status.' });
@@ -409,11 +446,24 @@ const updateFulfilmentStatus = async (req, res) => {
             order.fulfilment = fulfilment;
         }
         if (paymentVerified !== undefined) {
+            verifiedChanged = order.payment.verified !== !!paymentVerified;
             order.payment.verified = !!paymentVerified;
             order.payment.verifiedAt = paymentVerified ? new Date() : undefined;
         }
 
         await order.save();
+
+        // Discord: fulfilment change / payment verification (best-effort)
+        if (fulfilment !== undefined && fulfilment !== previousFulfilment) {
+            notifyOrderEvent('status', order.toObject(), {
+                by: req.user?.email,
+                status: `${previousFulfilment} → ${fulfilment}`,
+            }).catch(() => {});
+        }
+        if (verifiedChanged && order.payment.verified) {
+            notifyOrderEvent('payment_verified', order.toObject(), { by: req.user?.email }).catch(() => {});
+        }
+
         return res.status(200).json({ success: true, order });
     } catch (err) {
         console.log(`Update fulfilment status error: ${err.message}`);
