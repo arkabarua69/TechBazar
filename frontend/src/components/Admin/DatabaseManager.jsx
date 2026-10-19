@@ -10,6 +10,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import TableRowsIcon from '@mui/icons-material/TableRows';
 import { Database, Table2, HardDrive, Layers, RefreshCw, Plus, ChevronRight, ArrowLeft, Search, Pencil, Trash2 } from 'lucide-react';
+import MetaData from '../Layouts/MetaData';
 
 /* ─── helpers ─────────────────────────────────────────────── */
 const fmt = (bytes) => {
@@ -565,6 +566,7 @@ const DatabaseManager = () => {
 
     return (
         <div className="flex flex-col gap-4 sm:gap-6">
+            <MetaData title="Database" />
             <CreateCollectionModal
                 open={createOpen}
                 onClose={() => setCreateOpen(false)}

@@ -17,3 +17,7 @@ frontend/build
 *.pid
 
 *.log
+*.err
+.pw-profile
+.playwright-cli
+backend.local.err

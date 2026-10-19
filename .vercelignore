@@ -6,3 +6,5 @@ frontend/build
 .vercel
 backend/config/config.env
 *.log
+*.err
+.playwright-cli

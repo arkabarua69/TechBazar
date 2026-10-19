@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { emptyCart } from '../../actions/cartAction';
 import { clearErrors, getPaymentStatus, newOrder } from '../../actions/orderAction';
 import Loader from '../Layouts/Loader';
+import MetaData from '../Layouts/MetaData';
 
 const OrderStatus = () => {
 
@@ -75,6 +76,7 @@ const OrderStatus = () => {
 
     return (
         <main className="w-full sm:w-11/12 mx-auto flex flex-col gap-4 px-3 sm:px-4 pb-10 mt-3 sm:mt-6">
+            <MetaData title="Order Status" />
             <div className="surface overflow-hidden">
                 <Loader />
             </div>

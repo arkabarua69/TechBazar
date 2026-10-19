@@ -29,6 +29,8 @@ const Footer = () => {
     const company = footer.company || {};
     const since = footer.since || 2007;
     const brandName = config.branding?.name || 'Store';
+    const currentYear = new Date().getFullYear();
+    const copyrightYears = since < currentYear ? `${since}–${currentYear}` : `${currentYear}`;
 
     useEffect(() => {
         setAdminRoute(location.pathname.startsWith('/admin'));
@@ -36,8 +38,14 @@ const Footer = () => {
 
     if (adminRoute) return null;
 
+    // product pages have their own fixed Buy Now / Add to Cart bar on mobile
+    const isProductRoute = location.pathname.startsWith('/product/');
+
     return (
-        <footer style={{ backgroundColor: 'var(--color-footer)', color: 'var(--color-footer-text)' }}>
+        <footer
+            className={isProductRoute ? 'pb-40 md:pb-0' : ''}
+            style={{ backgroundColor: 'var(--color-footer)', color: 'var(--color-footer-text)' }}
+        >
 
             {/* ── Main columns ── */}
             <div className="max-w-7xl mx-auto px-4 lg:px-6 py-8 sm:py-10">
@@ -88,7 +96,7 @@ const Footer = () => {
             {/* ── Copyright bar ── */}
             <div className="border-t text-center py-4 text-xs" style={{ borderColor: 'rgba(255,255,255,0.07)', color: 'var(--color-footer-text)', opacity: 0.5 }}>
                 <CopyrightIcon sx={{ fontSize: '13px', verticalAlign: 'middle', marginRight: '4px' }} />
-                {since}–{new Date().getFullYear()} All rights reserved · {company.name || brandName}
+                {copyrightYears} All rights reserved · {company.name || brandName}
             </div>
         </footer>
     );

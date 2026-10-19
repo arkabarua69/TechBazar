@@ -9,6 +9,8 @@
     "start:local": "node local-db.js",
     "seed": "node seed.js",
     "migrate:hero": "node scripts/migrate-hero-banners.js",
+    "fix:avatars": "node scripts/fix-default-avatars.js",
+    "sitemap": "node scripts/generate-sitemap.js",
     "frontend": "npm start --prefix frontend",
     "dev": "concurrently \"npm run server\" \"npm run frontend\"",
     "render-postbuild": "NPM_CONFIG_PRODUCTION=false && npm install --prefix frontend && npm run build --prefix frontend"

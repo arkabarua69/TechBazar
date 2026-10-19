@@ -17,7 +17,7 @@ exports.registerUser = asyncErrorHandler(async (req, res, next) => {
     // Default avatar
     let avatarData = {
         public_id: "avatars/default_avatar",
-        url: "https://res.cloudinary.com/demosite/image/upload/v1/avatars/default_avatar.png",
+        url: "/avatar-placeholder.svg",
     };
 
     if (req.body.avatar && req.body.avatar.trim() !== "") {

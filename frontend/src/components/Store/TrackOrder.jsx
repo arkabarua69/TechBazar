@@ -7,6 +7,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import MetaData from '../Layouts/MetaData';
 
 const FULFILMENT_STEPS = [
     { key: 'PLACED', label: 'Order Received' },
@@ -84,6 +85,7 @@ const TrackOrder = () => {
 
     return (
         <main className="w-full mt-4 md:mt-6 pb-24">
+            <MetaData title="Track Order" description="Track your order by phone number or order group ID." />
             <div className="w-full sm:w-10/12 lg:w-6/12 mx-auto px-3 sm:px-4 flex flex-col gap-4">
 
                 {/* search card */}
