@@ -4,6 +4,17 @@
   "outputDirectory": "frontend/build",
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/index" },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|FacebookExternalHit|whatsapp|WhatsApp|twitterbot|Twitterbot|telegrambot|TelegramBot|linkedinbot|LinkedInBot|slackbot|Slackbot|discordbot|Discordbot|pinterest|Pinterest|redditbot|Redditbot|embedly|Embedly|iframely|Iframely|skypeuripreview|SkypeUriPreview|vkShare).*"
+        }
+      ],
+      "destination": "/api/index?path=/$1"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

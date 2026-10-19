@@ -113,6 +113,13 @@ const DEFAULT_CONFIG = {
     seo: {
         titleTemplate: '%s | My Store',
         description:   'My Store — shop the latest products at affordable prices with cash on delivery nationwide.',
+        // Open Graph / social-share settings. Mirrored from the admin
+        // WebsiteConfig → SEO section by websiteConfigController.
+        siteUrl:       '',
+        metaKeywords:  'electronics, gadgets, smartphones, laptops, tech',
+        metaRobots:    'index, follow',
+        metaOgImage:   '',
+        metaOgType:    'website',
     },
     navigation: {
         tabs: [
@@ -270,6 +277,11 @@ const siteConfigSchema = new mongoose.Schema({
     seo: {
         titleTemplate: { type: String, default: DEFAULT_CONFIG.seo.titleTemplate },
         description:   { type: String, default: DEFAULT_CONFIG.seo.description },
+        siteUrl:       { type: String, default: DEFAULT_CONFIG.seo.siteUrl },
+        metaKeywords:  { type: String, default: DEFAULT_CONFIG.seo.metaKeywords },
+        metaRobots:    { type: String, default: DEFAULT_CONFIG.seo.metaRobots },
+        metaOgImage:   { type: String, default: DEFAULT_CONFIG.seo.metaOgImage },
+        metaOgType:    { type: String, default: DEFAULT_CONFIG.seo.metaOgType },
     },
     navigation: {
         tabs: {

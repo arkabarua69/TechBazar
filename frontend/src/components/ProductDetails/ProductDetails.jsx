@@ -202,7 +202,12 @@ if (activeColor) lines.push(`Color: ${activeColor}`);
                 <div className="text-center py-12 text-slate-500">Product not found</div>
             ) : (
                 <>
-                    <MetaData title={`${product.name}`} />
+                    <MetaData
+                        title={product.name}
+                        description={product.description}
+                        image={images[0]?.url}
+                        type="product"
+                    />
                     <main className="mt-4 sm:mt-0">
 
                         <div className="w-full sm:w-11/12 mx-auto px-3 sm:px-4 flex flex-col gap-4 pb-6">

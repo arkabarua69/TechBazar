@@ -53,12 +53,11 @@ const Home = () => {
     }, [dispatch, error, enqueueSnackbar]);
 
     const productList = products || [];
-    const brandName = siteConfig.branding?.name || 'Store';
     const config = siteConfig; // homepage sections come from the shared config
 
     return (
         <>
-            <MetaData title={`${brandName} — Online Shopping for Mobiles, Electronics, Fashion, Appliances & More`} />
+            <MetaData title="Online Shopping for Mobiles, Electronics, Fashion, Appliances & More" />
 
             {/* ── Hero banner ── full container width */}
             <section style={{ backgroundColor: 'var(--color-bg-alt, var(--color-bg))' }}>

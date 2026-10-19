@@ -319,7 +319,7 @@ const CallbackUrlsInfo = () => {
 // We use this for search only; normal rendering is done directly.
 const buildFieldIndex = (config, handlers) => {
     if (!config) return [];
-    const { set, onSecretChange } = handlers;
+    const { set, onSecretChange, onAutoSaveSeo = async () => {} } = handlers;
     const index = [];
     const add = (sectionId, fieldKey, fieldLabel, element) => {
         index.push({ sectionId, fieldKey, fieldLabel, element });
@@ -350,7 +350,16 @@ const buildFieldIndex = (config, handlers) => {
     add('seo', 'metaRobots', 'Meta Robots', <SelectField key="metaRobots" label="Meta Robots" value={config.seo?.metaRobots} onChange={(v) => set('seo', 'metaRobots', v)} options={[{value:'index, follow',label:'index, follow'},{value:'noindex, nofollow',label:'noindex, nofollow'},{value:'index, nofollow',label:'index, nofollow'},{value:'noindex, follow',label:'noindex, follow'}]} />);
     add('seo', 'googleAnalyticsId', 'Google Analytics ID', <TextField key="googleAnalyticsId" label="Google Analytics ID" value={config.seo?.googleAnalyticsId} onChange={(v) => set('seo', 'googleAnalyticsId', v)} placeholder="G-XXXXXXXXXX" />);
     add('seo', 'googleTagManagerId', 'Google Tag Manager ID', <TextField key="googleTagManagerId" label="Google Tag Manager ID" value={config.seo?.googleTagManagerId} onChange={(v) => set('seo', 'googleTagManagerId', v)} placeholder="GTM-XXXXXXX" />);
-    add('seo', 'metaOgImage', 'OG Image URL', <TextField key="metaOgImage" label="OG Image URL" value={config.seo?.metaOgImage} onChange={(v) => set('seo', 'metaOgImage', v)} />);
+    add('seo', 'metaOgImage', 'OG Image', (
+        <ImgBBUploader
+            key="metaOgImage"
+            label="OG Image — social share preview (recommended 1200×630)"
+            currentUrl={config.seo?.metaOgImage || ''}
+            onUploaded={(url) => set('seo', 'metaOgImage', url)}
+            onAutoSave={(url) => onAutoSaveSeo('metaOgImage', url)}
+            previewClass="max-h-40 max-w-full object-contain rounded-lg"
+        />
+    ));
     add('seo', 'metaOgType', 'OG Type', <SelectField key="metaOgType" label="OG Type" value={config.seo?.metaOgType} onChange={(v) => set('seo', 'metaOgType', v)} options={[{value:'website',label:'website'},{value:'article',label:'article'},{value:'product',label:'product'}]} />);
     // email
     add('email', 'smtpHost', 'SMTP Host', <TextField key="smtpHost" label="SMTP Host" value={config.email?.smtpHost} onChange={(v) => set('email', 'smtpHost', v)} />);
@@ -1609,7 +1618,21 @@ const WebsiteConfig = () => {
             [`${section}.${field}`]: value,
         }));
     }, []);
-    const handlers = { set, onSecretChange };
+    // Keep a ref to the latest config so single-field auto-saves don't race
+    // React state updates (used by the OG image uploader).
+    const configRef = useRef(null);
+    useEffect(() => {
+        configRef.current = config;
+    }, [config]);
+    // Persist one SEO field immediately (OG image upload → live right away).
+    const autoSaveSeoField = useCallback(async (field, value) => {
+        set('seo', field, value);
+        if (!configRef.current) return;
+        const seo = { ...(configRef.current.seo || {}), [field]: value };
+        await axios.put('/api/v1/admin/websiteconfig', { config: { seo } });
+        reloadConfig(); // mirrors into SiteConfig → header/meta update live
+    }, [set, reloadConfig]);
+    const handlers = { set, onSecretChange, onAutoSaveSeo: autoSaveSeoField };
     // ── Build field index for search ──────────────────────────────────────────────
     const fieldIndex = config ? buildFieldIndex(config, handlers) : [];
     // ── Search filtering ──────────────────────────────────────────────────────────

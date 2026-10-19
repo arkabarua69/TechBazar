@@ -4,6 +4,7 @@ const ErrorHandler = require('../utils/errorHandler');
 const asyncErrorHandler = require('../middlewares/asyncErrorHandler');
 const { uploadToImgBB, sanitizeKey } = require('../utils/imgbb');
 const { isSensitivePath, MASK } = require('../models/websiteConfigModel');
+const { invalidateOgCache } = require('../utils/ogMeta');
 
 // Placeholder written in place of any real secret before it leaves the server.
 const maskSecrets = (obj) => {
@@ -43,6 +44,7 @@ const syncToStorefront = async (cfg = {}) => {
         payment = {},
         shipping = {},
         social = {},
+        seo = {},
     } = cfg;
 
     // ── Identity (header, footer, page titles) ──────────────────────────────
@@ -55,6 +57,13 @@ const syncToStorefront = async (cfg = {}) => {
     if (general.contactPhone !== undefined) set('support.hotline', general.contactPhone);
     if (social.whatsappNumber !== undefined) set('support.whatsapp', social.whatsappNumber);
     if (general.siteDescription !== undefined) set('seo.description', general.siteDescription);
+
+    // ── SEO / Open Graph (used by MetaData + the crawler preview endpoint) ──
+    if (general.siteUrl !== undefined) set('seo.siteUrl', String(general.siteUrl || '').trim().slice(0, 300));
+    if (seo.metaKeywords !== undefined) set('seo.metaKeywords', String(seo.metaKeywords || '').trim().slice(0, 500));
+    if (seo.metaRobots !== undefined) set('seo.metaRobots', String(seo.metaRobots || '').trim().slice(0, 80));
+    if (seo.metaOgImage !== undefined) set('seo.metaOgImage', String(seo.metaOgImage || '').trim().slice(0, 1000));
+    if (seo.metaOgType !== undefined) set('seo.metaOgType', String(seo.metaOgType || '').trim().slice(0, 40));
 
     // ── Payment numbers + delivery charges shown at checkout ────────────────
     if (payment.bKashNumber !== undefined) set('payment.bKashNumber', payment.bKashNumber);
@@ -157,6 +166,10 @@ const updateWebsiteConfig = asyncErrorHandler(async (req, res, next) => {
     // Mirror storefront-facing fields into SiteConfig so the public site updates
     await syncToStorefront(sanitizedConfig);
 
+    // Social previews are cached briefly — drop it so the new OG image is used
+    // on the very next share/crawl.
+    invalidateOgCache();
+
     // Clear any related caches (implement based on your caching strategy)
     // Example: clearRedisCache('website-config');
     
@@ -178,6 +191,7 @@ const resetWebsiteConfig = asyncErrorHandler(async (req, res, next) => {
     
     // Delete any previous configurations
     await WebsiteConfig.deleteMany({ _id: { $ne: defaultConfig._id } });
+    invalidateOgCache();
     
     res.status(200).json({
         success: true,
@@ -229,6 +243,7 @@ const getPublicConfig = asyncErrorHandler(async (req, res, next) => {
             siteName: configObj.general?.siteName,
             siteTitle: configObj.general?.siteTitle,
             siteDescription: configObj.general?.siteDescription,
+            siteUrl: configObj.general?.siteUrl,
             contactEmail: configObj.general?.contactEmail,
             contactPhone: configObj.general?.contactPhone,
             currency: configObj.general?.currency,
@@ -241,6 +256,7 @@ const getPublicConfig = asyncErrorHandler(async (req, res, next) => {
             metaKeywords: configObj.seo?.metaKeywords,
             metaRobots: configObj.seo?.metaRobots,
             googleAnalyticsId: configObj.seo?.googleAnalyticsId,
+            metaOgImage: configObj.seo?.metaOgImage,
             metaOgType: configObj.seo?.metaOgType,
         },
         social: configObj.social,
