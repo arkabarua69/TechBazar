@@ -1,6 +1,6 @@
 const express = require('express');
 const { getAllProducts, getProductDetails, updateProduct, deleteProduct, getProductReviews, deleteReview, createProductReview, createProduct, getAdminProducts, getProducts, toggleFeaturedProduct } = require('../controllers/productController');
-const { getGallery } = require('../controllers/galleryController');
+const { getGallery, deleteGalleryImage, downloadGalleryImage } = require('../controllers/galleryController');
 const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 
 const router = express.Router();
@@ -10,6 +10,12 @@ router.route('/products/all').get(getProducts);
 
 // Public image gallery — all ImgBB-hosted images aggregated
 router.route('/gallery').get(getGallery);
+
+// Public: download a gallery image (proxied with an attachment header)
+router.route('/gallery/download').get(downloadGalleryImage);
+
+// Admin-only: remove an image from the gallery (clears every reference)
+router.route('/admin/gallery').delete(isAuthenticatedUser, authorizeRoles("admin"), deleteGalleryImage);
 
 router.route('/admin/products').get(isAuthenticatedUser, authorizeRoles("admin"), getAdminProducts);
 router.route('/admin/product/new').post(isAuthenticatedUser, authorizeRoles("admin"), createProduct);

@@ -38,6 +38,11 @@ import {
     Send,
     CheckCircle2,
     AlertCircle,
+    RadioTower,
+    ShoppingCart,
+    ScrollText,
+    Package,
+    Star,
 } from 'lucide-react';
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MASK_STRING = '••••••••••••••••••••';
@@ -1594,11 +1599,11 @@ const HomepagePanel = ({ registerSave, registerReset, onSavingChange }) => {
 // server never sends them back, so an untouched field shows the bullet
 // placeholder and an empty value keeps the stored one.
 const DISCORD_CHANNELS = [
-    { key: 'main',     label: 'Main / Fallback', emoji: '📡', hint: 'Used for any channel that has no webhook of its own.' },
-    { key: 'orders',   label: 'Orders',          emoji: '🛒', hint: 'New orders, cancellations, status changes, payment verification.' },
-    { key: 'logs',     label: 'Activity Log',    emoji: '📝', hint: 'Register / login / logout, product add-edit-delete, chat messages, errors.' },
-    { key: 'products', label: 'Products',        emoji: '📦', hint: 'Full product embed with images when a product is added / updated / removed.' },
-    { key: 'reviews',  label: 'Reviews',         emoji: '⭐', hint: 'New and removed product reviews with rating and comment.' },
+    { key: 'main',     label: 'Main / Fallback', Icon: RadioTower,   hint: 'Used for any channel that has no webhook of its own.' },
+    { key: 'orders',   label: 'Orders',          Icon: ShoppingCart, hint: 'New orders, cancellations, status changes, payment verification.' },
+    { key: 'logs',     label: 'Activity Log',    Icon: ScrollText,   hint: 'Register / login / logout, product add-edit-delete, chat messages, errors.' },
+    { key: 'products', label: 'Products',        Icon: Package,      hint: 'Full product embed with images when a product is added / updated / removed.' },
+    { key: 'reviews',  label: 'Reviews',         Icon: Star,         hint: 'New and removed product reviews with rating and comment.' },
 ];
 
 const MASK_RE = /^[•*]{4,}$/;
@@ -1680,8 +1685,10 @@ const DiscordChannelRow = ({ role, config, set }) => {
     return (
         <div className="rounded-xl border border-gray-200 p-3 flex flex-col gap-2">
             <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5">
-                    <span>{role.emoji}</span>
+                <div className="flex items-center gap-2">
+                    <span className="w-7 h-7 rounded-lg bg-gray-100 text-gray-500 flex items-center justify-center shrink-0">
+                        <role.Icon size={14} />
+                    </span>
                     <span className="text-sm font-semibold text-gray-800">{role.label}</span>
                 </div>
                 {storedMasked ? (
@@ -1782,13 +1789,13 @@ const DiscordPanel = ({ config, set }) => {
                     />
                     <ToggleField
                         label="Product Updated"
-                        description="Posted when a product is edited (✏️ tag)"
+                        description="Posted when a product is edited"
                         value={d.notifyOnUpdate !== false}
                         onChange={(v) => set('discord', 'notifyOnUpdate', v)}
                     />
                     <ToggleField
                         label="Product Removed"
-                        description="Posted when a product is deleted (🗑️ tag)"
+                        description="Posted when a product is deleted"
                         value={d.notifyOnDelete !== false}
                         onChange={(v) => set('discord', 'notifyOnDelete', v)}
                     />
@@ -1805,11 +1812,23 @@ const DiscordPanel = ({ config, set }) => {
 
             <Card>
                 <SectionHeading icon={<Bell size={16} />}>What goes where</SectionHeading>
-                <div className="text-xs text-gray-600 flex flex-col gap-1.5">
-                    <div><span className="font-semibold">🛒 Orders</span> — new order, cancelled, forwarded, failed, fulfilment change, payment verified.</div>
-                    <div><span className="font-semibold">📝 Activity Log</span> — register, login, logout, password reset/changed, product add/edit/delete, chat messages, server errors (5xx).</div>
-                    <div><span className="font-semibold">📦 Products</span> — full product card with images on add / update / remove.</div>
-                    <div><span className="font-semibold">⭐ Reviews</span> — new review, review updated, review removed.</div>
+                <div className="text-xs text-gray-600 flex flex-col gap-2">
+                    <div className="flex items-start gap-2">
+                        <ShoppingCart size={14} className="text-gray-400 shrink-0 mt-0.5" />
+                        <div><span className="font-semibold text-gray-800">Orders</span> — new order, cancelled, forwarded, failed, fulfilment change, payment verified.</div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                        <ScrollText size={14} className="text-gray-400 shrink-0 mt-0.5" />
+                        <div><span className="font-semibold text-gray-800">Activity Log</span> — register, login, logout, password reset/changed, product add/edit/delete, chat messages, server errors (5xx).</div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                        <Package size={14} className="text-gray-400 shrink-0 mt-0.5" />
+                        <div><span className="font-semibold text-gray-800">Products</span> — full product card with images on add / update / remove.</div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                        <Star size={14} className="text-gray-400 shrink-0 mt-0.5" />
+                        <div><span className="font-semibold text-gray-800">Reviews</span> — new review, review updated, review removed.</div>
+                    </div>
                 </div>
             </Card>
         </div>

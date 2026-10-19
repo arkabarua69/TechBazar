@@ -80,6 +80,8 @@ const buildOgMeta = async ({ pathname = '/', origin = '' } = {}) => {
     const seo = config.seo || {};
     const branding = config.branding || {};
     const siteName = oneLine(branding.name, 80) || 'Store';
+    // Full default title set in Admin → Config → General → Site Title.
+    const siteTitle = oneLine(seo.siteTitle, 160);
 
     // Prefer the admin-configured public URL when present (for canonical URLs),
     // otherwise fall back to the origin of the incoming request.
@@ -118,7 +120,7 @@ const buildOgMeta = async ({ pathname = '/', origin = '' } = {}) => {
     const template = seo.titleTemplate || `%s | ${siteName}`;
     const title = pageTitle
         ? (template.includes('%s') ? template.replace('%s', pageTitle) : pageTitle)
-        : siteName;
+        : (siteTitle || siteName);
 
     if (!image) {
         const banners = Array.isArray(config.hero?.banners) ? config.hero.banners : [];

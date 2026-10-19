@@ -41,6 +41,7 @@ const NewProduct = () => {
 
     const [highlights, setHighlights] = useState([]);
     const [colors, setColors] = useState("");
+    const [sizes, setSizes] = useState("");
     const [inTheBox, setInTheBox] = useState("");
     const [highlightInput, setHighlightInput] = useState("");
     const [specs, setSpecs] = useState([]);
@@ -111,6 +112,11 @@ const NewProduct = () => {
         colors.split(",").forEach((c) => {
             const v = c.trim();
             if (v) formData.append("colors", v);
+        });
+
+        sizes.split(",").forEach((s) => {
+            const v = s.trim();
+            if (v) formData.append("sizes", v);
         });
 
         inTheBox.split(",").forEach((b) => {
@@ -290,6 +296,16 @@ const NewProduct = () => {
                             value={colors}
                             onChange={(e) => setColors(e.target.value)}
                             helperText="Shown as color variants on the product page — e.g. Black, Silver"
+                        />
+                        <TextField
+                            label="Sizes (comma separated, optional)"
+                            type="text"
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            value={sizes}
+                            onChange={(e) => setSizes(e.target.value)}
+                            helperText="Shown as size options on the product page — e.g. S, M, L, XL"
                         />
                         <TextField
                             label="In the Box (comma separated, optional)"

@@ -19,19 +19,26 @@ const absoluteUrl = (url) => {
 };
 
 const MetaData = ({ title, description, image, type, url }) => {
-    const { config } = useSiteConfig();
+    const { config, ready } = useSiteConfig();
     const seo = config.seo || {};
     const brand = config.branding?.name || 'Store';
+    // Admin → Config → General → Site Title. Used as the homepage browser-tab
+    // title and as the fallback when a page has no title of its own.
+    const siteTitle = String(seo.siteTitle || '').replace(/\s+/g, ' ').trim().slice(0, 160);
 
     let clean = title || '';
     const suffix = ` | ${brand}`;
     if (clean.endsWith(suffix)) clean = clean.slice(0, -suffix.length);
 
-    // No page title → use the brand name instead of a dangling " | Brand".
+    // No page title → use the site title / brand name instead of a dangling " | Brand".
     const template = seo.titleTemplate || `%s | ${brand}`;
-    const fullTitle = clean
-        ? (template.includes('%s') ? template.replace('%s', clean) : clean)
-        : (seo.siteName || brand);
+    const defaultTitle = siteTitle || seo.siteName || brand;
+    const isHome = typeof window !== 'undefined' && (window.location.pathname.replace(/\/+$/, '') || '/') === '/';
+    const fullTitle = isHome && siteTitle
+        ? siteTitle
+        : clean
+            ? (template.includes('%s') ? template.replace('%s', clean) : clean)
+            : defaultTitle;
 
     const metaDescription = String(description || seo.description || '').replace(/\s+/g, ' ').trim().slice(0, 300);
 
@@ -47,8 +54,12 @@ const MetaData = ({ title, description, image, type, url }) => {
     const ogType = type || seo.metaOgType || 'website';
     const robots = seo.metaRobots || 'index, follow';
 
+    // Hold off until the real site config is in — keeps the static <title>
+    // from index.html instead of flashing the placeholder defaults.
+    if (!ready) return null;
+
     return (
-        <Helmet>
+        <Helmet defer={false}>
             <title>{fullTitle}</title>
             {metaDescription ? <meta name="description" content={metaDescription} /> : null}
             {seo.metaKeywords ? <meta name="keywords" content={seo.metaKeywords} /> : null}

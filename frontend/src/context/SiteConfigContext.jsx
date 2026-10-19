@@ -8,6 +8,7 @@ import { DEFAULT_SITE_CONFIG } from '../utils/siteConfig';
 const SiteConfigContext = createContext({
     config: DEFAULT_SITE_CONFIG,
     reloadConfig: () => {},
+    ready: true,
 });
 
 // Map theme keys → CSS variable names
@@ -94,6 +95,9 @@ const deepMerge = (base, override) => {
 
 export const SiteConfigProvider = ({ children }) => {
     const [config, setConfig] = useState(DEFAULT_SITE_CONFIG);
+    // False until the first GET /siteconfig settles. MetaData waits for this
+    // so the browser tab never flashes the placeholder defaults ("My Store").
+    const [ready, setReady] = useState(false);
 
     const reloadConfig = useCallback(() => {
         axios.get('/api/v1/siteconfig', { headers: { Accept: 'application/json' } })
@@ -107,7 +111,8 @@ export const SiteConfigProvider = ({ children }) => {
             })
             .catch(() => {
                 applyTheme(DEFAULT_SITE_CONFIG.theme);
-            });
+            })
+            .finally(() => setReady(true));
     }, []);
 
     // Apply orange defaults IMMEDIATELY on first paint — before API returns.
@@ -134,7 +139,7 @@ export const SiteConfigProvider = ({ children }) => {
     }, [faviconUrl]);
 
     return (
-        <SiteConfigContext.Provider value={{ config, reloadConfig }}>
+        <SiteConfigContext.Provider value={{ config, reloadConfig, ready }}>
             {children}
         </SiteConfigContext.Provider>
     );

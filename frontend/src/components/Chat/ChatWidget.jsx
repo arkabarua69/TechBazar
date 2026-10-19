@@ -166,13 +166,15 @@ const ChatWidget = () => {
     // admin has its own layout — no widget there (after all hooks!)
     if (pathname.startsWith('/admin')) return null;
 
+    // Same fixed position on every storefront page so the launcher never
+    // jumps around (bottom nav + product purchase bar both stay clear of it).
     return (
         <>
             {/* ── launcher ── */}
             <button
                 onClick={toggle}
                 aria-label={open ? 'Close live chat' : 'Open live chat'}
-                className="fixed right-4 bottom-[86px] md:bottom-6 z-50 w-14 h-14 rounded-full bg-primary-accent text-white shadow-[0_8px_24px_rgba(232,75,15,0.40)] flex items-center justify-center transition active:scale-95 hover:bg-primary-hover"
+                className="fixed right-4 bottom-[150px] md:bottom-6 z-50 w-14 h-14 rounded-full bg-primary-accent text-white shadow-[0_8px_24px_rgba(232,75,15,0.40)] flex items-center justify-center transition active:scale-95 hover:bg-primary-hover"
             >
                 {open ? <CloseIcon /> : <ChatIcon />}
                 {!open && unread > 0 && (
@@ -184,7 +186,7 @@ const ChatWidget = () => {
 
             {/* ── panel ── */}
             {open && (
-                <div className="fixed right-4 bottom-[152px] md:bottom-24 z-50 w-[calc(100vw-2rem)] sm:w-[370px] h-[65vh] max-h-[540px] bg-white rounded-2xl shadow-2xl border border-line flex flex-col overflow-hidden">
+                <div className="fixed right-4 bottom-[216px] md:bottom-24 z-50 w-[calc(100vw-2rem)] sm:w-[370px] h-[65vh] max-h-[540px] bg-white rounded-2xl shadow-2xl border border-line flex flex-col overflow-hidden">
 
                     {/* header */}
                     <div className="bg-primary-blue text-white px-4 py-3 flex items-center gap-3">

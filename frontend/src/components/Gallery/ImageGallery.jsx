@@ -1,7 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import DownloadIcon from '@mui/icons-material/Download';
 import MetaData from '../Layouts/MetaData';
 import { useSnackbar } from 'notistack';
 
@@ -33,7 +36,7 @@ const formatBytes = (b) => {
 };
 
 // ── Lightbox ──────────────────────────────────────────────────────────────
-const Lightbox = ({ image, onClose, onPrev, onNext, hasPrev, hasNext }) => {
+const Lightbox = ({ image, onClose, onPrev, onNext, hasPrev, hasNext, canDelete, onDelete, onDownload }) => {
     useEffect(() => {
         const onKey = (e) => {
             if (e.key === 'Escape') onClose();
@@ -138,6 +141,20 @@ const Lightbox = ({ image, onClose, onPrev, onNext, hasPrev, hasNext }) => {
                             View product →
                         </Link>
                     )}
+                    <button
+                        onClick={() => onDownload(image)}
+                        className="flex items-center gap-1 text-xs text-emerald-300 hover:text-emerald-200 underline transition-colors"
+                    >
+                        <DownloadIcon sx={{ fontSize: '14px' }} /> Download
+                    </button>
+                    {canDelete && (
+                        <button
+                            onClick={() => onDelete(image)}
+                            className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 underline transition-colors"
+                        >
+                            <DeleteOutlineIcon sx={{ fontSize: '14px' }} /> Remove image
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
@@ -158,6 +175,10 @@ const SkeletonCard = () => (
 // ── Main Gallery Component ─────────────────────────────────────────────────
 const ImageGallery = () => {
     const { enqueueSnackbar } = useSnackbar();
+    // Only signed-in admins may remove images — regular visitors never see
+    // the delete controls (and the API rejects them too).
+    const { user } = useSelector((state) => state.user);
+    const isAdmin = user?.role === 'admin';
 
     const [images, setImages]           = useState([]);
     const [loading, setLoading]         = useState(true);
@@ -165,6 +186,8 @@ const ImageGallery = () => {
     const [search, setSearch]           = useState('');
     const [lightboxIdx, setLightboxIdx] = useState(null);
     const [loadedSet, setLoadedSet]     = useState(new Set());
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleting, setDeleting]       = useState(false);
 
     // ── Fetch ────────────────────────────────────────────────────────────
     useEffect(() => {
@@ -174,6 +197,60 @@ const ImageGallery = () => {
             .catch(() => enqueueSnackbar('Could not load gallery', { variant: 'error' }))
             .finally(() => setLoading(false));
     }, [enqueueSnackbar]);
+
+    // ── Remove image (admin only) ────────────────────────────────────────
+    const confirmDelete = async () => {
+        if (!deleteTarget || deleting) return;
+        setDeleting(true);
+        try {
+            await axios.delete('/api/v1/admin/gallery', { data: { url: deleteTarget.url } });
+            setImages((prev) => prev.filter((img) => img.url !== deleteTarget.url));
+            setDeleteTarget(null);
+            setLightboxIdx(null);
+            enqueueSnackbar('Image removed', { variant: 'success' });
+        } catch (err) {
+            enqueueSnackbar(
+                err.response?.data?.message || 'Could not remove image',
+                { variant: 'error' }
+            );
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    // ── Download image (public) ──────────────────────────────────────────
+    const handleDownload = async (img) => {
+        if (!img?.url) return;
+        try {
+            const res = await axios.get('/api/v1/gallery/download', {
+                params: { url: img.url },
+                responseType: 'blob',
+            });
+
+            const disposition = res.headers['content-disposition'] || '';
+            const match = /filename="?([^";]+)"?/i.exec(disposition);
+            const fallbackName = `${(img.label || 'image').replace(/[^a-z0-9._-]+/gi, '-')}.jpg`;
+            const filename = match ? match[1] : fallbackName;
+
+            const objectUrl = URL.createObjectURL(res.data);
+            const link = document.createElement('a');
+            link.href = objectUrl;
+            link.download = filename;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            // Revoke after the download has had a moment to start.
+            setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+            enqueueSnackbar('Download started', { variant: 'success' });
+        } catch (err) {
+            const status = err.response?.status;
+            enqueueSnackbar(
+                status === 404 ? 'Image not found' : 'Could not download image',
+                { variant: 'error' }
+            );
+        }
+    };
 
     // ── Filtered list ─────────────────────────────────────────────────────
     const filtered = images.filter((img) => {
@@ -301,12 +378,15 @@ const ImageGallery = () => {
                                 const sm = SOURCE_META[img.source] || { label: img.source, color: 'bg-gray-100 text-gray-600' };
                                 const isLoaded = loadedSet.has(img.url);
                                 return (
-                                    <button
+                                    <div
                                         key={img.url}
-                                        onClick={() => openLightbox(idx)}
-                                        className="group text-left bg-white rounded-2xl overflow-hidden border border-gray-200 hover:border-orange-400 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                                        aria-label={`View ${img.label}`}
+                                        className="group relative bg-white rounded-2xl overflow-hidden border border-gray-200 hover:border-orange-400 hover:shadow-lg transition-all duration-200"
                                     >
+                                        <button
+                                            onClick={() => openLightbox(idx)}
+                                            className="block w-full text-left focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                            aria-label={`View ${img.label}`}
+                                        >
                                         {/* Image wrapper — fixed aspect ratio */}
                                         <div className="relative overflow-hidden bg-gray-100" style={{ paddingBottom: '75%' }}>
                                             {!isLoaded && (
@@ -360,7 +440,8 @@ const ImageGallery = () => {
                                                 </p>
                                             )}
                                         </div>
-                                    </button>
+                                        </button>
+                                    </div>
                                 );
                             })}
                         </div>
@@ -392,7 +473,58 @@ const ImageGallery = () => {
                     onNext={nextImage}
                     hasPrev={lightboxIdx > 0}
                     hasNext={lightboxIdx < filtered.length - 1}
+                    canDelete={isAdmin}
+                    onDelete={(img) => setDeleteTarget(img)}
+                    onDownload={handleDownload}
                 />
+            )}
+
+            {/* ── Remove confirmation (admin only) ──────────────────────── */}
+            {deleteTarget && (
+                <div
+                    className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/70"
+                    onClick={() => { if (!deleting) setDeleteTarget(null); }}
+                    role="dialog"
+                    aria-modal="true"
+                >
+                    <div
+                        className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-bold text-gray-900">Remove this image?</h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                            <span className="font-medium text-gray-700">{deleteTarget.label}</span> will be
+                            removed from the gallery and from every place it is used (product photos,
+                            banners, logo, OG image). This cannot be undone.
+                        </p>
+                        <div className="mt-4 flex items-center gap-3">
+                            <img
+                                src={deleteTarget.thumbUrl || deleteTarget.url}
+                                alt=""
+                                className="w-20 h-16 object-cover rounded-xl border border-gray-200 bg-gray-50"
+                            />
+                            <p className="text-xs text-gray-400 break-all line-clamp-2">{deleteTarget.url}</p>
+                        </div>
+                        <div className="mt-5 flex justify-end gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setDeleteTarget(null)}
+                                disabled={deleting}
+                                className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={confirmDelete}
+                                disabled={deleting}
+                                className="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
+                            >
+                                {deleting ? 'Removing…' : 'Remove image'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </>
     );

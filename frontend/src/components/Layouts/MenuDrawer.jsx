@@ -8,6 +8,7 @@ import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import ChatIcon from '@mui/icons-material/Chat';
+import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import GavelIcon from '@mui/icons-material/Gavel';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
@@ -149,6 +150,14 @@ const MenuDrawer = ({ open, onClose }) => {
                         <Link to="/cart" className={rowClass}>
                             <ShoppingCartIcon sx={{ fontSize: '20px', color: 'var(--color-accent)' }} />
                             Cart
+                        </Link>
+                    </div>
+
+                    {/* explore */}
+                    <div className="border-b border-line py-2">
+                        <Link to="/gallery" className={rowClass}>
+                            <PhotoLibraryIcon sx={{ fontSize: '20px', color: 'var(--color-accent)' }} />
+                            Image Gallery
                         </Link>
                     </div>
 

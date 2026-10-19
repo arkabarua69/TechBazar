@@ -50,7 +50,7 @@ const BottomBar = () => {
         <>
             <MenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
 
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 pb-[env(safe-area-inset-bottom)]" style={{ backgroundColor: 'var(--color-header)', borderTop: '1px solid var(--color-border)' }}>
+            <nav data-mobile-bottom-nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 pb-[env(safe-area-inset-bottom)]" style={{ backgroundColor: 'var(--color-header)', borderTop: '1px solid var(--color-border)' }}>
                 <ul className="grid" style={{ gridTemplateColumns: `repeat(${withMenu.length}, minmax(0, 1fr))` }}>
                     {withMenu.map((item, i) => {
                         // ── centre Menu — highlighted circle ──

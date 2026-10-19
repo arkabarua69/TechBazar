@@ -82,6 +82,7 @@ export const DEFAULT_SITE_CONFIG = {
     },
     seo: {
         titleTemplate: '%s | My Store',
+        siteTitle: '',
         description: 'My Store — shop the latest products at affordable prices with cash on delivery nationwide.',
         siteUrl: '',
         metaKeywords: 'electronics, gadgets, smartphones, laptops, tech',

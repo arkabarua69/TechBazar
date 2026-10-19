@@ -26,6 +26,7 @@ const UpdateProduct = () => {
 
     const [highlights, setHighlights] = useState([]);
     const [colors, setColors] = useState("");
+    const [sizes, setSizes] = useState("");
     const [inTheBox, setInTheBox] = useState("");
     const [highlightInput, setHighlightInput] = useState("");
     const [specs, setSpecs] = useState([]);
@@ -109,6 +110,11 @@ const UpdateProduct = () => {
             if (v) formData.append("colors", v);
         });
 
+        sizes.split(",").forEach((s) => {
+            const v = s.trim();
+            if (v) formData.append("sizes", v);
+        });
+
         inTheBox.split(",").forEach((b) => {
             const v = b.trim();
             if (v) formData.append("inTheBox", v);
@@ -139,6 +145,7 @@ const UpdateProduct = () => {
             setHighlights(product.highlights);
             setSpecs(product.specifications);
             setColors(product.colors?.join(", ") || "");
+            setSizes(product.sizes?.join(", ") || "");
             setInTheBox(product.inTheBox?.join(", ") || "");
             // Existing images (hosted URLs) pre-filled so they're kept unless removed.
             setImages((product.images || []).map((img) => img.url).filter(Boolean));
@@ -297,6 +304,16 @@ const UpdateProduct = () => {
                             value={colors}
                             onChange={(e) => setColors(e.target.value)}
                             helperText="Shown as color variants on the product page — e.g. Black, Silver"
+                        />
+                        <TextField
+                            label="Sizes (comma separated, optional)"
+                            type="text"
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            value={sizes}
+                            onChange={(e) => setSizes(e.target.value)}
+                            helperText="Shown as size options on the product page — e.g. S, M, L, XL"
                         />
                         <TextField
                             label="In the Box (comma separated, optional)"

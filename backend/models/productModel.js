@@ -81,6 +81,7 @@ const productSchema = new mongoose.Schema({
     },
     // optional product fields (admin-editable, shown on product page)
     colors: [String],
+    sizes: [String],
     inTheBox: [String],
     ratings: {
         type: Number,

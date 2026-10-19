@@ -112,6 +112,10 @@ const DEFAULT_CONFIG = {
     },
     seo: {
         titleTemplate: '%s | My Store',
+        // Full default title for the homepage (browser tab + social previews).
+        // Mirrored from WebsiteConfig.general.siteTitle; empty means "use the
+        // page's own title / brand name".
+        siteTitle:     '',
         description:   'My Store — shop the latest products at affordable prices with cash on delivery nationwide.',
         // Open Graph / social-share settings. Mirrored from the admin
         // WebsiteConfig → SEO section by websiteConfigController.
@@ -276,6 +280,7 @@ const siteConfigSchema = new mongoose.Schema({
     },
     seo: {
         titleTemplate: { type: String, default: DEFAULT_CONFIG.seo.titleTemplate },
+        siteTitle:     { type: String, default: DEFAULT_CONFIG.seo.siteTitle },
         description:   { type: String, default: DEFAULT_CONFIG.seo.description },
         siteUrl:       { type: String, default: DEFAULT_CONFIG.seo.siteUrl },
         metaKeywords:  { type: String, default: DEFAULT_CONFIG.seo.metaKeywords },
