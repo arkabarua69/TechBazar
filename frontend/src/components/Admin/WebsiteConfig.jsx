@@ -45,6 +45,7 @@ const CATEGORIES = [
     { id: 'cloud',     label: 'Cloud Storage',  Icon: Cloud,       count: 4  },
     { id: 'imgbb',     label: 'ImgBB Settings', Icon: Image,       count: null },
     { id: 'social',    label: 'Social Media',   Icon: Share2,      count: 6  },
+    { id: 'socialLogin', label: 'Social Login', Icon: Key,         count: 10 },
     { id: 'shipping',  label: 'Shipping',       Icon: Truck,       count: 5  },
     { id: 'security',  label: 'Security',       Icon: Shield,      count: 6  },
     { id: 'cache',     label: 'Cache',          Icon: Zap,         count: 4  },
@@ -66,6 +67,9 @@ const SECRET_FIELDS = new Set([
     'imgbb.apiKey',
     'apiKeys.otherApiKey1',
     'apiKeys.otherApiKey2',
+    'socialLogin.googleClientSecret',
+    'socialLogin.facebookAppSecret',
+    'socialLogin.discordClientSecret',
     'database.mongoUri',
 ]);
 // ─── Field Components ─────────────────────────────────────────────────────────
@@ -256,6 +260,54 @@ const Card = ({ children, className = '' }) => (
         {children}
     </div>
 );
+// ─── Social login: show the exact redirect URIs to register ───────────────────
+const CallbackUrlsInfo = () => {
+    const [urls, setUrls] = useState(null);
+    const [copied, setCopied] = useState('');
+    useEffect(() => {
+        axios.get('/api/v1/admin/sociallogin/callback-urls', { headers: { Accept: 'application/json' } })
+            .then((res) => setUrls(res.data))
+            .catch(() => setUrls(null));
+    }, []);
+    const copy = (key, value) => {
+        try {
+            navigator.clipboard.writeText(value);
+            setCopied(key);
+            setTimeout(() => setCopied(''), 1500);
+        } catch (_) {}
+    };
+    if (!urls) return null;
+    const rows = [
+        { key: 'google', label: 'Google redirect URI', value: urls.google },
+        { key: 'facebook', label: 'Facebook redirect URI', value: urls.facebook },
+        { key: 'discord', label: 'Discord redirect URI', value: urls.discord },
+    ];
+    return (
+        <div className="rounded-xl border border-orange-200 bg-orange-50/60 p-3">
+            <p className="text-xs font-semibold text-gray-700">Redirect URIs to register</p>
+            <p className="text-[11px] text-gray-500 mt-0.5 mb-2 leading-relaxed">
+                Paste the matching URI into each provider's developer console (Authorized redirect URI / OAuth2 redirect).
+            </p>
+            <div className="flex flex-col gap-2">
+                {rows.map(({ key, label, value }) => (
+                    <div key={key} className="flex items-center gap-2">
+                        <div className="min-w-0 flex-1">
+                            <p className="text-[10px] uppercase tracking-wide text-gray-400">{label}</p>
+                            <code className="block text-[11px] text-gray-700 break-all">{value}</code>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => copy(key, value)}
+                            className="shrink-0 text-[11px] font-semibold text-[#E84B0F] border border-[#E84B0F]/30 rounded-lg px-2 py-1 hover:bg-white transition-colors"
+                        >
+                            {copied === key ? 'Copied' : 'Copy'}
+                        </button>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
 // ─── Build the fields tree for search ─────────────────────────────────────────
 // Returns array of { sectionId, sectionLabel, fieldKey, fieldLabel, element(config, handlers) }
 // We use this for search only; normal rendering is done directly.
@@ -324,6 +376,18 @@ const buildFieldIndex = (config, handlers) => {
     add('social', 'youtubeUrl', 'YouTube URL', <TextField key="youtubeUrl" label="YouTube URL" value={config.social?.youtubeUrl} onChange={(v) => set('social', 'youtubeUrl', v)} />);
     add('social', 'linkedinUrl', 'LinkedIn URL', <TextField key="linkedinUrl" label="LinkedIn URL" value={config.social?.linkedinUrl} onChange={(v) => set('social', 'linkedinUrl', v)} />);
     add('social', 'whatsappNumber', 'WhatsApp Number', <TextField key="whatsappNumber" label="WhatsApp Number" value={config.social?.whatsappNumber} onChange={(v) => set('social', 'whatsappNumber', v)} placeholder="8801700000000" />);
+    // socialLogin (Google / Facebook / Discord OAuth)
+    add('socialLogin', 'callbackUrls', 'Redirect URIs', <CallbackUrlsInfo key="callbackUrls" />);
+    add('socialLogin', 'googleEnabled', 'Google Login', <ToggleField key="googleEnabled" label="Enable Google Login" description="Let customers sign in with their Google account" value={config.socialLogin?.googleEnabled} onChange={(v) => set('socialLogin', 'googleEnabled', v)} />);
+    add('socialLogin', 'googleClientId', 'Google Client ID', <TextField key="googleClientId" label="Google Client ID" value={config.socialLogin?.googleClientId} onChange={(v) => set('socialLogin', 'googleClientId', v)} placeholder="xxxxxxxx.apps.googleusercontent.com" />);
+    add('socialLogin', 'googleClientSecret', 'Google Client Secret', <SecretField key="googleClientSecret" label="Google Client Secret" section="socialLogin" field="googleClientSecret" value={config.socialLogin?.googleClientSecret} onSecretChange={onSecretChange} />);
+    add('socialLogin', 'facebookEnabled', 'Facebook Login', <ToggleField key="facebookEnabled" label="Enable Facebook Login" description="Let customers sign in with their Facebook account" value={config.socialLogin?.facebookEnabled} onChange={(v) => set('socialLogin', 'facebookEnabled', v)} />);
+    add('socialLogin', 'facebookAppId', 'Facebook App ID', <TextField key="facebookAppId" label="Facebook App ID" value={config.socialLogin?.facebookAppId} onChange={(v) => set('socialLogin', 'facebookAppId', v)} placeholder="1234567890" />);
+    add('socialLogin', 'facebookAppSecret', 'Facebook App Secret', <SecretField key="facebookAppSecret" label="Facebook App Secret" section="socialLogin" field="facebookAppSecret" value={config.socialLogin?.facebookAppSecret} onSecretChange={onSecretChange} />);
+    add('socialLogin', 'discordEnabled', 'Discord Login', <ToggleField key="discordEnabled" label="Enable Discord Login" description="Let customers sign in with their Discord account" value={config.socialLogin?.discordEnabled} onChange={(v) => set('socialLogin', 'discordEnabled', v)} />);
+    add('socialLogin', 'discordClientId', 'Discord Client ID', <TextField key="discordClientId" label="Discord Client ID" value={config.socialLogin?.discordClientId} onChange={(v) => set('socialLogin', 'discordClientId', v)} placeholder="1234567890123456789" />);
+    add('socialLogin', 'discordClientSecret', 'Discord Client Secret', <SecretField key="discordClientSecret" label="Discord Client Secret" section="socialLogin" field="discordClientSecret" value={config.socialLogin?.discordClientSecret} onSecretChange={onSecretChange} />);
+    add('socialLogin', 'callbackBaseUrl', 'Callback Base URL', <TextField key="callbackBaseUrl" label="Callback Base URL (optional)" value={config.socialLogin?.callbackBaseUrl} onChange={(v) => set('socialLogin', 'callbackBaseUrl', v)} placeholder="Leave empty to auto-detect, e.g. https://your-site.com" />);
     // shipping
     add('shipping', 'insideDhaka', 'Delivery – Inside Dhaka (Tk)', <NumberField key="insideDhaka" label="Delivery – Inside Dhaka (Tk)" value={config.shipping?.insideDhaka} onChange={(v) => set('shipping', 'insideDhaka', v)} min={0} />);
     add('shipping', 'outsideDhaka', 'Delivery – Outside Dhaka (Tk)', <NumberField key="outsideDhaka" label="Delivery – Outside Dhaka (Tk)" value={config.shipping?.outsideDhaka} onChange={(v) => set('shipping', 'outsideDhaka', v)} min={0} />);

@@ -85,6 +85,33 @@ const PrimaryDropDownMenu = ({ setTogglePrimaryDropDown, user }) => {
                 boxShadow: '0 16px 40px rgba(232,75,15,0.15)',
             }}
         >
+            {/* Account header — avatar + name + email */}
+            <div
+                className="flex items-center gap-3 px-4 py-3"
+                style={{ borderBottom: '1px solid var(--color-border)' }}
+            >
+                <div
+                    className="w-10 h-10 rounded-full overflow-hidden shrink-0 flex items-center justify-center"
+                    style={{ backgroundColor: 'var(--color-bg)' }}
+                >
+                    {user?.avatar?.url ? (
+                        <img src={user.avatar.url} alt={user.name} className="w-full h-full object-cover" draggable="false" />
+                    ) : (
+                        <AccountCircleIcon sx={{ fontSize: '28px', color: 'var(--color-accent)' }} />
+                    )}
+                </div>
+                <div className="min-w-0">
+                    <p className="text-sm font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>
+                        {user?.name || 'My Account'}
+                    </p>
+                    {user?.email && (
+                        <p className="text-xs truncate" style={{ color: 'var(--color-text-muted)' }}>
+                            {user.email}
+                        </p>
+                    )}
+                </div>
+            </div>
+
             {user?.role === 'admin' &&
                 <Link
                     className="flex gap-3 items-center px-4 py-2.5 text-sm font-medium transition-colors"

@@ -111,7 +111,7 @@ const updateWebsiteConfig = asyncErrorHandler(async (req, res, next) => {
     // Only allow updates to known sections
     const allowedSections = [
         'general', 'branding', 'seo', 'email', 'payment', 'cloud',
-        'social', 'shipping', 'security', 'cache', 'apiKeys', 'features', 'imgbb'
+        'social', 'socialLogin', 'shipping', 'security', 'cache', 'apiKeys', 'features', 'imgbb'
     ];
     
     for (const section of allowedSections) {

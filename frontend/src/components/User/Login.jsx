@@ -6,18 +6,7 @@ import { useSnackbar } from 'notistack';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import MetaData from '../Layouts/MetaData';
 import { useSiteConfig } from '../../context/SiteConfigContext';
-import AppleIcon from '@mui/icons-material/Apple';
-
-// Social login icon buttons (UI only — OAuth integration separate)
-const SocialBtn = ({ children, label }) => (
-    <button
-        type="button"
-        aria-label={label}
-        className="w-12 h-12 rounded-full border-2 border-gray-200 bg-white flex items-center justify-center hover:border-orange-400 hover:shadow-md transition-all duration-200 text-lg font-bold"
-    >
-        {children}
-    </button>
-);
+import SocialLoginButtons from './SocialLoginButtons';
 
 // Login page — reference design: peach background, white rounded card, orange-red accent
 const Login = () => {
@@ -131,19 +120,9 @@ const Login = () => {
                             </Link>
                         </p>
 
-                        {/* Divider */}
-                        <div className="flex items-center gap-3 my-5">
-                            <div className="flex-1 h-px bg-gray-200"></div>
-                            <span className="text-xs text-orange-500 font-medium">Or continue with</span>
-                            <div className="flex-1 h-px bg-gray-200"></div>
-                        </div>
-
-                        {/* Social icons */}
-                        <div className="flex items-center justify-center gap-4">
-                            <SocialBtn label="Google">G</SocialBtn>
-                            <SocialBtn label="Facebook">f</SocialBtn>
-                            <SocialBtn label="Apple"><AppleIcon sx={{ fontSize: '18px' }} /></SocialBtn>
-                        </div>
+                        {/* Social login — only providers configured in the admin
+                            panel (Google / Facebook / Discord) are shown. */}
+                        <SocialLoginButtons redirect={redirect} />
 
                     </div>
                 </div>

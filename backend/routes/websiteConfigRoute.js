@@ -13,6 +13,7 @@ const {
     testImgbbKey,
     uploadImage,
 } = require('../controllers/websiteConfigController');
+const { getSocialCallbackUrls } = require('../controllers/oauthController');
 
 // Public route - get non-sensitive configuration
 router.route('/websiteconfig/public').get(getPublicConfig);
@@ -28,5 +29,8 @@ router.route('/admin/websiteconfig/import').post(isAuthenticatedUser, authorizeR
 // ImgBB routes (admin only — key never exposed to public)
 router.route('/admin/imgbb/test').post(isAuthenticatedUser, authorizeRoles('admin'), testImgbbKey);
 router.route('/admin/imgbb/upload').post(isAuthenticatedUser, authorizeRoles('admin'), uploadImage);
+
+// Social login — exact redirect URIs to register with each provider
+router.route('/admin/sociallogin/callback-urls').get(isAuthenticatedUser, authorizeRoles('admin'), getSocialCallbackUrls);
 
 module.exports = router;

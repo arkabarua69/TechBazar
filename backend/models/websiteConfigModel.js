@@ -28,6 +28,10 @@ const ENCRYPTED_PATHS = new Set([
     'imgbb.apiKey',
     'apiKeys.otherApiKey1',
     'apiKeys.otherApiKey2',
+    // Social login (OAuth) provider secrets
+    'socialLogin.googleClientSecret',
+    'socialLogin.facebookAppSecret',
+    'socialLogin.discordClientSecret',
     // Not encrypted at rest, but treated as a secret: it must never be sent
     // back to the browser nor overwritten by an unrelated config save.
     'database.mongoUri',
@@ -167,6 +171,24 @@ const DEFAULT_CONFIG = {
         youtubeUrl: 'https://youtube.com',
         linkedinUrl: '',
         whatsappNumber: '8801700000000',
+    },
+
+    // Social login (OAuth) — Google / Facebook / Discord.
+    // Client IDs are public (sent to the browser); the secrets are encrypted
+    // at rest and never leave the server.
+    socialLogin: {
+        googleEnabled: false,
+        googleClientId: '',
+        googleClientSecret: '', // Will be encrypted
+        facebookEnabled: false,
+        facebookAppId: '',
+        facebookAppSecret: '', // Will be encrypted
+        discordEnabled: false,
+        discordClientId: '',
+        discordClientSecret: '', // Will be encrypted
+        // Optional override for the public site URL used to build OAuth
+        // redirect URIs. Leave empty to auto-detect from the request.
+        callbackBaseUrl: '',
     },
 
     // Shipping/Delivery
@@ -342,6 +364,35 @@ const websiteConfigSchema = new mongoose.Schema({
         youtubeUrl: { type: String, default: DEFAULT_CONFIG.social.youtubeUrl },
         linkedinUrl: { type: String, default: DEFAULT_CONFIG.social.linkedinUrl },
         whatsappNumber: { type: String, default: DEFAULT_CONFIG.social.whatsappNumber },
+    },
+
+    // Social login (OAuth) — secrets are encrypted at rest
+    socialLogin: {
+        googleEnabled: { type: Boolean, default: DEFAULT_CONFIG.socialLogin.googleEnabled },
+        googleClientId: { type: String, default: DEFAULT_CONFIG.socialLogin.googleClientId },
+        googleClientSecret: {
+            type: String,
+            default: DEFAULT_CONFIG.socialLogin.googleClientSecret,
+            set: encrypt,
+            get: decrypt,
+        },
+        facebookEnabled: { type: Boolean, default: DEFAULT_CONFIG.socialLogin.facebookEnabled },
+        facebookAppId: { type: String, default: DEFAULT_CONFIG.socialLogin.facebookAppId },
+        facebookAppSecret: {
+            type: String,
+            default: DEFAULT_CONFIG.socialLogin.facebookAppSecret,
+            set: encrypt,
+            get: decrypt,
+        },
+        discordEnabled: { type: Boolean, default: DEFAULT_CONFIG.socialLogin.discordEnabled },
+        discordClientId: { type: String, default: DEFAULT_CONFIG.socialLogin.discordClientId },
+        discordClientSecret: {
+            type: String,
+            default: DEFAULT_CONFIG.socialLogin.discordClientSecret,
+            set: encrypt,
+            get: decrypt,
+        },
+        callbackBaseUrl: { type: String, default: DEFAULT_CONFIG.socialLogin.callbackBaseUrl },
     },
 
     // Shipping/Delivery

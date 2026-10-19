@@ -37,12 +37,32 @@ const userSchema = new mongoose.Schema({
         default: "user",
         enum: ["user", "admin"],
     },
+    // Social login (OAuth) linkage. "local" = email/password account.
+    provider: {
+        type: String,
+        default: "local",
+    },
+    providerId: {
+        type: String,
+        default: "",
+    },
     createdAt: {
         type: Date,
         default: Date.now,
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+});
+
+// Never expose the password hash (or reset tokens) in API responses.
+userSchema.set("toJSON", {
+    transform: (doc, ret) => {
+        delete ret.password;
+        delete ret.resetPasswordToken;
+        delete ret.resetPasswordExpire;
+        delete ret.__v;
+        return ret;
+    },
 });
 
 userSchema.pre("save", async function (next) {

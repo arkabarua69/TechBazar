@@ -1,5 +1,6 @@
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
@@ -109,11 +110,22 @@ const Header = () => {
                 </Link>
               ) : (
                 <button
-                  className="flex items-center gap-1 text-sm font-semibold transition"
+                  className="flex items-center gap-2 text-sm font-semibold transition"
                   style={{ color: 'var(--color-text-primary)' }}
                   onClick={() => setTogglePrimaryDropDown(!togglePrimaryDropDown)}
                 >
-                  {user.name?.split(' ', 1)}
+                  {user?.avatar?.url ? (
+                    <img
+                      src={user.avatar.url}
+                      alt={user.name}
+                      draggable="false"
+                      className="w-8 h-8 rounded-full object-cover shrink-0"
+                      style={{ border: '1px solid var(--color-border)' }}
+                    />
+                  ) : (
+                    <AccountCircleIcon sx={{ fontSize: '26px', color: 'var(--color-accent)' }} />
+                  )}
+                  <span className="hidden lg:inline">{user.name?.split(' ', 1)}</span>
                   {togglePrimaryDropDown
                     ? <ExpandLessIcon sx={{ fontSize: '16px' }} />
                     : <ExpandMoreIcon sx={{ fontSize: '16px' }} />}

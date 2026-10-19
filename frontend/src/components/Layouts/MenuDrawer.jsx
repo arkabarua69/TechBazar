@@ -105,7 +105,16 @@ const MenuDrawer = ({ open, onClose }) => {
                         {isAuthenticated ? (
                             <>
                                 <Link to="/account" className={rowClass}>
-                                    <PersonOutlineIcon sx={{ fontSize: '20px', color: 'var(--color-accent)' }} />
+                                    {user?.avatar?.url ? (
+                                        <img
+                                            src={user.avatar.url}
+                                            alt={user.name}
+                                            draggable="false"
+                                            className="w-7 h-7 rounded-full object-cover shrink-0"
+                                        />
+                                    ) : (
+                                        <PersonOutlineIcon sx={{ fontSize: '20px', color: 'var(--color-accent)' }} />
+                                    )}
                                     {user && user.name ? user.name : 'My Account'}
                                 </Link>
                                 {user?.role === 'admin' && (

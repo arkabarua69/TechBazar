@@ -7,6 +7,7 @@ import BackdropLoader from '../Layouts/BackdropLoader';
 import MetaData from '../Layouts/MetaData';
 import { useSiteConfig } from '../../context/SiteConfigContext';
 import PersonIcon from '@mui/icons-material/Person';
+import SocialLoginButtons from './SocialLoginButtons';
 
 const Register = () => {
     const { config } = useSiteConfig();
@@ -170,6 +171,10 @@ const Register = () => {
                                 Create Account
                             </button>
                         </form>
+
+                        {/* Social sign-up — providers configured in the admin
+                            panel (Google / Facebook / Discord). */}
+                        <SocialLoginButtons redirect="/" />
 
                         <p className="text-center text-sm text-gray-500 mt-4">
                             Already have an account?{' '}
