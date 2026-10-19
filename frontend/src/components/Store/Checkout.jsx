@@ -10,10 +10,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import PaymentsIcon from '@mui/icons-material/Payments';
 import { emptyCart } from '../../actions/cartAction';
-
-const DIVISIONS = [
-    'Dhaka', 'Chattogram', 'Rajshahi', 'Khulna', 'Barishal', 'Sylhet', 'Rangpur', 'Mymensingh',
-];
+import { BD_DIVISIONS, getDistricts, getAreas, isInsideDhaka } from '../../utils/bdLocations';
 
 const Checkout = () => {
 
@@ -64,6 +61,23 @@ const Checkout = () => {
     }, []);
 
     const setField = (key) => (e) => setCustomer({ ...customer, [key]: e.target.value });
+
+    // Cascading Division → District → Area selects. Changing a level clears the
+    // levels below it so the options always match the parent selection.
+    const onDivisionChange = (e) => {
+        const division = e.target.value;
+        setCustomer((c) => ({ ...c, division, district: '', area: '' }));
+        setZone(division === 'Dhaka' ? 'inside-dhaka' : 'outside-dhaka');
+    };
+
+    const onDistrictChange = (e) => {
+        const district = e.target.value;
+        setCustomer((c) => ({ ...c, district, area: '' }));
+        setZone(isInsideDhaka(customer.division, district) ? 'inside-dhaka' : 'outside-dhaka');
+    };
+
+    const districts = getDistricts(customer.division);
+    const areas = getAreas(customer.division, customer.district);
 
     const submitHandler = async (e) => {
         e.preventDefault();
@@ -193,21 +207,27 @@ const Checkout = () => {
                                 </div>
                                 <div className="flex flex-col gap-1">
                                     <label className="text-xs font-medium text-slate-500">Division *</label>
-                                    <select required value={customer.division} onChange={setField('division')}
+                                    <select required value={customer.division} onChange={onDivisionChange}
                                         className="border border-line rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-primary-accent">
                                         <option value="">Select division</option>
-                                        {DIVISIONS.map((d) => <option key={d} value={d}>{d}</option>)}
+                                        {BD_DIVISIONS.map((d) => <option key={d} value={d}>{d} Division</option>)}
                                     </select>
                                 </div>
                                 <div className="flex flex-col gap-1">
-                                    <label className="text-xs font-medium text-slate-500">District / city *</label>
-                                    <input required value={customer.district} onChange={setField('district')} placeholder="e.g. Dhaka"
-                                        className="border border-line rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary-accent" />
+                                    <label className="text-xs font-medium text-slate-500">District *</label>
+                                    <select required value={customer.district} onChange={onDistrictChange} disabled={!customer.division}
+                                        className="border border-line rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-primary-accent disabled:bg-slate-50 disabled:text-slate-400">
+                                        <option value="">{customer.division ? 'Select district' : 'Select division first'}</option>
+                                        {districts.map((d) => <option key={d} value={d}>{d}</option>)}
+                                    </select>
                                 </div>
                                 <div className="sm:col-span-2 flex flex-col gap-1">
                                     <label className="text-xs font-medium text-slate-500">Area / thana</label>
-                                    <input value={customer.area} onChange={setField('area')} placeholder="e.g. Mirpur"
-                                        className="border border-line rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary-accent" />
+                                    <select value={customer.area} onChange={setField('area')} disabled={!customer.district}
+                                        className="border border-line rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-primary-accent disabled:bg-slate-50 disabled:text-slate-400">
+                                        <option value="">{customer.district ? 'Select area / thana (optional)' : 'Select district first'}</option>
+                                        {areas.map((a) => <option key={a} value={a}>{a}</option>)}
+                                    </select>
                                 </div>
                             </div>
 

@@ -16,7 +16,6 @@ import CopyrightIcon from '@mui/icons-material/Copyright';
 import Avatar from '@mui/material/Avatar';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from '../../../i18n/LanguageContext';
-import LanguageToggle from '../LanguageToggle';
 import './Sidebar.css';
 import { useSnackbar } from 'notistack';
 import { logoutUser } from '../../../actions/userAction';
@@ -101,11 +100,6 @@ const Sidebar = ({ setToggleSidebar }) => {
                         <CloseIcon sx={{ fontSize: '18px' }} />
                     </button>
                 )}
-            </div>
-
-            {/* Language toggle */}
-            <div className="px-4 mb-2">
-                <LanguageToggle />
             </div>
 
             {/* Nav items */}

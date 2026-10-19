@@ -39,11 +39,6 @@ const MobileTopBar = () => {
     const brandName = config.branding?.name || 'Store';
     const logoUrl   = config.branding?.logoUrl || '';
 
-    // category rail (admin-editable)
-    const categories = (Array.isArray(config.categories) && config.categories.length)
-        ? config.categories
-        : (DEFAULT_SITE_CONFIG.categories || []);
-
     // hide on admin pages
     if (pathname.startsWith('/admin')) return null;
 
@@ -119,24 +114,6 @@ const MobileTopBar = () => {
                     >
                         <SearchIcon sx={{ fontSize: '20px', color: 'var(--color-accent)' }} />
                     </button>
-                </div>
-            )}
-
-            {/* ── 2a-bis. Category rail (app-style horizontal chips) ───────── */}
-            {!searchOpen && categories.length > 0 && (
-                <div className="border-t overflow-x-auto no-scrollbar" style={{ borderColor: 'var(--color-border)' }}>
-                    <div className="flex gap-2 px-3 py-2 w-max">
-                        {categories.map((cat, i) => (
-                            <Link
-                                key={i}
-                                to={`/products?category=${encodeURIComponent(cat)}`}
-                                className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition active:scale-95"
-                                style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-secondary)' }}
-                            >
-                                {cat}
-                            </Link>
-                        ))}
-                    </div>
                 </div>
             )}
 

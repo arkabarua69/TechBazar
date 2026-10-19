@@ -3,6 +3,24 @@ const { DEFAULT_CONFIG, DEFAULT_THEME } = require('../models/siteConfigModel');
 
 const str = (v) => (typeof v === 'string' ? v.trim() : '');
 
+// A hero banner is { image, badge, title, subtitle, buttonLabel, buttonLink }
+// with its own copy — including its own CTA button.
+// Older documents stored a plain image URL string — normalise those so the
+// client always receives objects.
+const normalizeBanner = (b) => {
+    if (typeof b === 'string') return { image: str(b).slice(0, 500), badge: '', title: '', subtitle: '', buttonLabel: '', buttonLink: '' };
+    const o = (b && typeof b === 'object') ? b : {};
+    return {
+        image:       str(o.image).slice(0, 500),
+        badge:       str(o.badge).slice(0, 80),
+        title:       str(o.title).slice(0, 160),
+        subtitle:    str(o.subtitle).slice(0, 300),
+        buttonLabel: str(o.buttonLabel).slice(0, 80),
+        buttonLink:  str(o.buttonLink).slice(0, 500),
+    };
+};
+const normalizeBanners = (list) => (Array.isArray(list) ? list.slice(0, 3).map(normalizeBanner) : []);
+
 // GET /api/v1/siteconfig  (public - homepage content)
 const getSiteConfig = async (req, res) => {
     try {
@@ -11,6 +29,8 @@ const getSiteConfig = async (req, res) => {
         // merge defaults so fields added later (e.g. categories) are
         // still returned for documents saved before the field existed
         const config = { ...DEFAULT_CONFIG, ...doc.toObject() };
+        // Normalise legacy string banners into { image, badge, title, subtitle }
+        config.hero = { ...(config.hero || {}), banners: normalizeBanners(config.hero?.banners) };
         return res.status(200).json({ success: true, config, isDefault: false });
     } catch (err) {
         return res.status(500).json({ success: false, message: err.message });
@@ -45,13 +65,10 @@ const updateSiteConfig = async (req, res) => {
                     ...(body.hero?.sideBottom || {}),
                 },
             };
-            // Up to 3 rotating banner images. Positions are preserved so the
-            // admin slots stay stable; empty slots simply aren't rendered.
-            if (Array.isArray(body.hero.banners)) {
-                update.hero.banners = body.hero.banners
-                    .slice(0, 3)
-                    .map((u) => String(u || '').trim().slice(0, 500));
-            }
+            // Up to 3 rotating banners. Each banner is { image, badge, title,
+            // subtitle }. Positions are preserved so the admin slots stay
+            // stable; empty slots simply aren't rendered.
+            update.hero.banners = normalizeBanners(update.hero.banners);
         }
 
         if (body.announcement !== undefined) {
@@ -212,7 +229,9 @@ const updateSiteConfig = async (req, res) => {
             runValidators: true,
         });
 
-        return res.status(200).json({ success: true, config: doc.toObject() });
+        const saved = doc.toObject();
+        saved.hero = { ...(saved.hero || {}), banners: normalizeBanners(saved.hero?.banners) };
+        return res.status(200).json({ success: true, config: saved });
     } catch (err) {
         return res.status(400).json({ success: false, message: err.message });
     }

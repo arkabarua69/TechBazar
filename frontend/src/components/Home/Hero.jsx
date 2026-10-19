@@ -14,9 +14,11 @@ const Hero = ({ hero = {} }) => {
     const sideBottom = hero.sideBottom || {};
 
     const banners = useMemo(() => {
-        const list = (Array.isArray(hero.banners) ? hero.banners : []).filter(Boolean);
+        const list = (Array.isArray(hero.banners) ? hero.banners : [])
+            .map((b) => (typeof b === 'string' ? { image: b } : (b || {})))
+            .filter((b) => b.image);
         if (list.length) return list;
-        return hero.image ? [hero.image] : [];
+        return hero.image ? [{ image: hero.image }] : [];
     }, [hero.banners, hero.image]);
 
     const total = banners.length;
@@ -35,6 +37,15 @@ const Hero = ({ hero = {} }) => {
     }, [total]);
 
     const go = (dir) => setSlide((s) => (s + dir + total) % total);
+
+    // Each banner carries its own copy; fall back to the shared hero copy when
+    // a field is left empty (keeps older/single-image heroes working).
+    const active = banners[slide] || {};
+    const badge = active.badge || hero.badge;
+    const title = active.title || hero.title;
+    const subtitle = active.subtitle || hero.subtitle;
+    const buttonLabel = active.buttonLabel || hero.buttonLabel || 'Shop Now';
+    const buttonLink = active.buttonLink || hero.buttonLink || '/products';
 
     const QuickCard = ({ card, className = '' }) => (
         <Link
@@ -73,7 +84,7 @@ const Hero = ({ hero = {} }) => {
                     style={
                         total
                             ? {
-                                backgroundImage: `linear-gradient(100deg, rgba(2,6,23,.92) 30%, rgba(2,6,23,.5) 65%, rgba(2,6,23,.1)), url(${banners[slide]})`,
+                                backgroundImage: `linear-gradient(100deg, rgba(2,6,23,.92) 30%, rgba(2,6,23,.5) 65%, rgba(2,6,23,.1)), url(${banners[slide].image})`,
                                 backgroundSize: 'cover',
                                 backgroundPosition: 'center',
                             }
@@ -82,26 +93,26 @@ const Hero = ({ hero = {} }) => {
                 >
                     {/* Content */}
                     <div className="relative p-5 sm:p-8 lg:p-10 max-w-xl text-white">
-                        {hero.badge && (
+                        {badge && (
                             <span
                                 className="inline-flex w-fit items-center text-[11px] font-bold uppercase tracking-widest rounded-full px-3 py-1.5 mb-3"
                                 style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}
                             >
-                                {hero.badge}
+                                {badge}
                             </span>
                         )}
                         <h1 className="font-bold text-2xl sm:text-3xl lg:text-4xl xl:text-5xl leading-tight">
-                            {hero.title}
+                            {title}
                         </h1>
                         <p className="text-white/80 text-sm sm:text-base mt-2 max-w-md">
-                            {hero.subtitle}
+                            {subtitle}
                         </p>
                         <Link
-                            to={hero.buttonLink || '/products'}
+                            to={buttonLink}
                             className="inline-flex items-center gap-2 mt-5 px-6 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-200 hover:-translate-y-0.5"
                             style={{ backgroundColor: 'var(--color-accent)', color: '#fff', boxShadow: '0 4px 14px rgba(232,75,15,0.4)' }}
                         >
-                            {hero.buttonLabel || 'Shop Now'}
+                            {buttonLabel}
                         </Link>
                     </div>
 

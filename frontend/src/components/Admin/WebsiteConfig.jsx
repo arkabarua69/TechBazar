@@ -1057,10 +1057,26 @@ const HomepagePanel = ({ registerSave, registerReset, onSavingChange }) => {
             .then((res) => {
                 if (res.data?.config) {
                     const merged = { ...JSON.parse(JSON.stringify(DEFAULT_SITE_CONFIG)), ...JSON.parse(JSON.stringify(res.data.config)) };
-                    // Seed the banner slots from the legacy single image so an
-                    // existing hero shows up as "Banner 1".
-                    if (merged.hero && !(Array.isArray(merged.hero.banners) && merged.hero.banners.some(Boolean))) {
-                        merged.hero.banners = merged.hero.image ? [merged.hero.image] : [];
+                    // Banners are objects { image, badge, title, subtitle }.
+                    // Normalise legacy string entries, and seed the first slot
+                    // from the legacy single image so an existing hero shows up.
+                    if (merged.hero) {
+                        const toBanner = (b) => (typeof b === 'string'
+                            ? { image: b, badge: '', title: '', subtitle: '', buttonLabel: '', buttonLink: '' }
+                            : { image: b?.image || '', badge: b?.badge || '', title: b?.title || '', subtitle: b?.subtitle || '', buttonLabel: b?.buttonLabel || '', buttonLink: b?.buttonLink || '' });
+                        let banners = (Array.isArray(merged.hero.banners) ? merged.hero.banners : []).map(toBanner);
+                        if (!banners.some((b) => b.image)) banners = merged.hero.image ? [toBanner(merged.hero.image)] : [];
+                        // Show the current live text in every slot: blank banner
+                        // fields inherit the shared hero copy (the storefront
+                        // does the same fallback), so saving persists real copy.
+                        merged.hero.banners = banners.map((b) => ({
+                            ...b,
+                            badge: b.badge || merged.hero.badge || '',
+                            title: b.title || merged.hero.title || '',
+                            subtitle: b.subtitle || merged.hero.subtitle || '',
+                            buttonLabel: b.buttonLabel || merged.hero.buttonLabel || 'Shop Now',
+                            buttonLink: b.buttonLink || merged.hero.buttonLink || '/products',
+                        }));
                     }
                     setHpConfig(merged);
                 }
@@ -1091,6 +1107,15 @@ const HomepagePanel = ({ registerSave, registerReset, onSavingChange }) => {
     // Persist the hero banner list immediately (used by each banner uploader).
     const setHeroBanners = (banners) =>
         setHpConfig((prev) => ({ ...prev, hero: { ...prev.hero, banners } }));
+
+    // Update one field (image/badge/title/subtitle) of a single banner.
+    const setHeroBannerField = (index, field, value) =>
+        setHpConfig((prev) => {
+            const banners = JSON.parse(JSON.stringify(prev.hero?.banners || []));
+            while (banners.length <= index) banners.push({ image: '', badge: '', title: '', subtitle: '', buttonLabel: '', buttonLink: '' });
+            banners[index] = { ...banners[index], [field]: value };
+            return { ...prev, hero: { ...prev.hero, banners } };
+        });
 
     const autoSaveHeroBanners = async (banners) => {
         setHeroBanners(banners);
@@ -1187,7 +1212,9 @@ const HomepagePanel = ({ registerSave, registerReset, onSavingChange }) => {
 
     const a = hpConfig.announcement || {};
     const h = hpConfig.hero || {};
-    const heroBanners = Array.isArray(h.banners) && h.banners.length ? h.banners.slice(0, 3) : [''];
+    const heroBanners = Array.isArray(h.banners) && h.banners.length
+        ? h.banners.slice(0, 3)
+        : [{ image: '', badge: '', title: '', subtitle: '' }];
     const f = hpConfig.flashSale || {};
     const s = hpConfig.seo || {};
     const n = hpConfig.navigation || {};
@@ -1230,33 +1257,19 @@ const HomepagePanel = ({ registerSave, registerReset, onSavingChange }) => {
             <Card>
                 <SectionHeading icon={<Layout size={14} />}>Hero Section</SectionHeading>
 
-                {/* Copy: badge, title, subtitle */}
-                <div className="rounded-xl bg-gray-50 border border-gray-100 p-3 flex flex-col gap-3">
-                    <p className="text-[11px] font-bold text-[#E84B0F] uppercase tracking-wider flex items-center gap-1.5">
-                        <Eye size={12} /> Hero copy
-                    </p>
-                    <div className="grid sm:grid-cols-2 gap-3">
-                        <HomepageField label="Badge" value={h.badge} onChange={(v) => setHpSection('hero', 'badge', v)} />
-                        <HomepageField label="Title" value={h.title} onChange={(v) => setHpSection('hero', 'title', v)} />
-                        <div className="sm:col-span-2">
-                            <HomepageField label="Subtitle" textarea value={h.subtitle} onChange={(v) => setHpSection('hero', 'subtitle', v)} />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Banners — up to 3, shown as an auto-rotating slider */}
-                <div className="rounded-xl bg-gray-50 border border-dashed border-gray-300 p-3 mt-3">
+                {/* Banners — up to 3, each with its own copy, shown as an auto-rotating slider */}
+                <div className="rounded-xl bg-gray-50 border border-dashed border-gray-300 p-3">
                     <p className="text-[11px] font-bold text-[#E84B0F] uppercase tracking-wider flex items-center gap-1.5 mb-1">
                         <Image size={12} /> Hero banners
                     </p>
                     <p className="text-[11px] text-gray-400 mb-3">
-                        Add up to 3 banners — they rotate automatically on the homepage.
+                        Add up to 3 banners. Each banner has its own badge, title, subtitle, button label and button link — they rotate automatically on the homepage.
                     </p>
-                    <div className="grid gap-3 sm:grid-cols-3">
-                        {heroBanners.map((url, i) => (
-                            <div key={i} className="rounded-lg border border-gray-200 bg-white p-2 flex flex-col gap-1">
+                    <div className="flex flex-col gap-4">
+                        {heroBanners.map((banner, i) => (
+                            <div key={i} className="rounded-lg border border-gray-200 bg-white p-3 flex flex-col gap-3">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[11px] font-semibold text-gray-500">Banner {i + 1}</span>
+                                    <span className="text-xs font-semibold text-gray-600">Banner {i + 1}</span>
                                     {heroBanners.length > 1 && (
                                         <button
                                             type="button"
@@ -1268,38 +1281,41 @@ const HomepagePanel = ({ registerSave, registerReset, onSavingChange }) => {
                                     )}
                                 </div>
                                 <ImgBBUploader
-                                    label={`Banner ${i + 1}`}
-                                    currentUrl={url ?? ''}
+                                    label={`Banner ${i + 1} image`}
+                                    currentUrl={banner.image ?? ''}
                                     onUploaded={(u) => {
                                         const next = [...heroBanners];
-                                        next[i] = u;
+                                        next[i] = { ...next[i], image: u };
                                         setHeroBanners(next);
                                     }}
                                     onAutoSave={(u) => {
                                         const next = [...heroBanners];
-                                        next[i] = u;
+                                        next[i] = { ...next[i], image: u };
                                         autoSaveHeroBanners(next);
                                     }}
                                     previewClass="max-h-28 max-w-full object-cover rounded-lg w-full shadow-sm"
                                 />
+                                <div className="grid sm:grid-cols-2 gap-3">
+                                    <HomepageField label="Badge" value={banner.badge} onChange={(v) => setHeroBannerField(i, 'badge', v)} />
+                                    <HomepageField label="Title" value={banner.title} onChange={(v) => setHeroBannerField(i, 'title', v)} />
+                                    <div className="sm:col-span-2">
+                                        <HomepageField label="Subtitle" textarea value={banner.subtitle} onChange={(v) => setHeroBannerField(i, 'subtitle', v)} />
+                                    </div>
+                                    <HomepageField label="Button label" value={banner.buttonLabel} placeholder="Shop Now" onChange={(v) => setHeroBannerField(i, 'buttonLabel', v)} />
+                                    <HomepageField label="Button link" value={banner.buttonLink} placeholder="/products" onChange={(v) => setHeroBannerField(i, 'buttonLink', v)} />
+                                </div>
                             </div>
                         ))}
                     </div>
                     {heroBanners.length < 3 && (
                         <button
                             type="button"
-                            onClick={() => autoSaveHeroBanners([...heroBanners, ''])}
+                            onClick={() => autoSaveHeroBanners([...heroBanners, { image: '', badge: '', title: '', subtitle: '', buttonLabel: h?.buttonLabel || 'Shop Now', buttonLink: h?.buttonLink || '/products' }])}
                             className="mt-3 text-sm border border-dashed border-gray-400 rounded-xl px-3 py-1.5 hover:bg-gray-50"
                         >
                             + Add banner
                         </button>
                     )}
-                </div>
-
-                {/* CTA */}
-                <div className="grid sm:grid-cols-2 gap-3 mt-3">
-                    <HomepageField label="Button label" value={h.buttonLabel} onChange={(v) => setHpSection('hero', 'buttonLabel', v)} />
-                    <HomepageField label="Button link" value={h.buttonLink} onChange={(v) => setHpSection('hero', 'buttonLink', v)} />
                 </div>
 
                 {/* Side cards */}

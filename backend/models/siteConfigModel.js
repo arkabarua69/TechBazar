@@ -44,8 +44,11 @@ const DEFAULT_CONFIG = {
         title: 'Best Trending Gadgets',
         subtitle: 'Smartwatches, earbuds & the latest tech — affordable prices, delivered nationwide.',
         image: 'https://picsum.photos/seed/hero-gadget/900/600',
-        // Up to 3 rotating hero banners. When empty the storefront falls back
-        // to the single `image` above.
+        // Up to 3 rotating hero banners, each with its own copy:
+        //   { image, badge, title, subtitle, buttonLabel, buttonLink }
+        // When a banner text/button field is empty the storefront falls back to
+        // the shared hero copy above; when the list is empty it falls back to
+        // `image`.
         banners: [],
         buttonLabel: 'Shop Now',
         buttonLink: '/products',
@@ -202,7 +205,7 @@ const siteConfigSchema = new mongoose.Schema({
         title:       { type: String, default: DEFAULT_CONFIG.hero.title },
         subtitle:    { type: String, default: DEFAULT_CONFIG.hero.subtitle },
         image:       { type: String, default: DEFAULT_CONFIG.hero.image },
-        banners:     { type: [String], default: DEFAULT_CONFIG.hero.banners },
+        banners:     { type: [mongoose.Schema.Types.Mixed], default: DEFAULT_CONFIG.hero.banners },
         buttonLabel: { type: String, default: DEFAULT_CONFIG.hero.buttonLabel },
         buttonLink:  { type: String, default: DEFAULT_CONFIG.hero.buttonLink },
         sideTop: {
