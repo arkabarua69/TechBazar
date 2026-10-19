@@ -71,6 +71,9 @@ exports.getGallery = asyncErrorHandler(async (req, res) => {
         if (sc) {
             const hero = sc.hero || {};
             push(hero.image, { source: 'hero_banner',   label: 'Hero Banner',         sublabel: hero.title    || '' });
+            (hero.banners || []).forEach((banner, i) => {
+                push(banner, { source: 'hero_banner', label: `Hero Banner ${i + 1}`, sublabel: hero.title || '' });
+            });
             push(hero.sideTop?.image,    { source: 'hero_card', label: 'Hero Top Card',    sublabel: hero.sideTop?.title    || '' });
             push(hero.sideBottom?.image, { source: 'hero_card', label: 'Hero Bottom Card', sublabel: hero.sideBottom?.title || '' });
 

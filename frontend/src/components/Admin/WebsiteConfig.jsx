@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import MetaData from '../Layouts/MetaData';
@@ -1044,7 +1044,7 @@ const HomepageField = ({ label, value, onChange, textarea, type = 'text', placeh
     </div>
 );
 
-const HomepagePanel = () => {
+const HomepagePanel = ({ registerSave, registerReset, onSavingChange }) => {
     const { enqueueSnackbar } = useSnackbar();
     const { reloadConfig } = useSiteConfig();
     const [hpConfig, setHpConfig] = useState(null);
@@ -1056,7 +1056,13 @@ const HomepagePanel = () => {
         axios.get('/api/v1/siteconfig', { headers: { Accept: 'application/json' } })
             .then((res) => {
                 if (res.data?.config) {
-                    setHpConfig({ ...JSON.parse(JSON.stringify(DEFAULT_SITE_CONFIG)), ...JSON.parse(JSON.stringify(res.data.config)) });
+                    const merged = { ...JSON.parse(JSON.stringify(DEFAULT_SITE_CONFIG)), ...JSON.parse(JSON.stringify(res.data.config)) };
+                    // Seed the banner slots from the legacy single image so an
+                    // existing hero shows up as "Banner 1".
+                    if (merged.hero && !(Array.isArray(merged.hero.banners) && merged.hero.banners.some(Boolean))) {
+                        merged.hero.banners = merged.hero.image ? [merged.hero.image] : [];
+                    }
+                    setHpConfig(merged);
                 }
             })
             .catch(() => enqueueSnackbar('Using default homepage content', { variant: 'warning' }))
@@ -1072,22 +1078,30 @@ const HomepagePanel = () => {
             [section]: { ...prev[section], [group]: { ...prev[section]?.[group], [key]: value } },
         }));
 
-    // ── Auto-save a single image URL to siteconfig immediately ───────────────
+    // ── Auto-save a single nested image URL to siteconfig immediately ────────
     // Merges just the changed field so other settings are not overwritten
-    const autoSaveHpImage = async (section, key, url) => {
-        setHpSection(section, key, url);
-        await axios.put('/api/v1/admin/siteconfig',
-            { [section]: { [key]: url } },
-            { headers: { 'Content-Type': 'application/json', Accept: 'application/json' } }
-        );
-    };
-
     const autoSaveHpNested = async (section, group, key, url) => {
         setHpNested(section, group, key, url);
         await axios.put('/api/v1/admin/siteconfig',
             { [section]: { [group]: { [key]: url } } },
             { headers: { 'Content-Type': 'application/json', Accept: 'application/json' } }
         );
+    };
+
+    // Persist the hero banner list immediately (used by each banner uploader).
+    const setHeroBanners = (banners) =>
+        setHpConfig((prev) => ({ ...prev, hero: { ...prev.hero, banners } }));
+
+    const autoSaveHeroBanners = async (banners) => {
+        setHeroBanners(banners);
+        try {
+            await axios.put('/api/v1/admin/siteconfig',
+                { hero: { banners } },
+                { headers: { 'Content-Type': 'application/json', Accept: 'application/json' } });
+            reloadConfig();
+        } catch {
+            enqueueSnackbar('Image uploaded but could not save — press Save', { variant: 'warning' });
+        }
     };
 
     const setHpArrayItem = (arrayKey, index, field, value) =>
@@ -1148,6 +1162,19 @@ const HomepagePanel = () => {
         }
     };
 
+    // The Homepage tab has no save bar of its own — the page-wide Save/Reset
+    // buttons in the top bar drive these handlers instead.
+    useEffect(() => {
+        registerSave?.(saveHp);
+    });
+    useEffect(() => {
+        registerReset?.(resetHp);
+    });
+    useEffect(() => {
+        onSavingChange?.(hpSaving);
+    }, [hpSaving, onSavingChange]);
+    useEffect(() => () => onSavingChange?.(false), [onSavingChange]);
+
     if (hpLoading || !hpConfig) {
         return (
             <Card>
@@ -1160,6 +1187,7 @@ const HomepagePanel = () => {
 
     const a = hpConfig.announcement || {};
     const h = hpConfig.hero || {};
+    const heroBanners = Array.isArray(h.banners) && h.banners.length ? h.banners.slice(0, 3) : [''];
     const f = hpConfig.flashSale || {};
     const s = hpConfig.seo || {};
     const n = hpConfig.navigation || {};
@@ -1179,30 +1207,6 @@ const HomepagePanel = () => {
 
     return (
         <div className="flex flex-col gap-5">
-            {/* Save bar */}
-            <div className="flex items-center justify-between gap-3 bg-white border border-gray-200 rounded-2xl shadow-sm px-5 py-3">
-                <div>
-                    <p className="text-sm font-semibold text-gray-800">Homepage Settings</p>
-                    <p className="text-xs text-gray-400 mt-0.5">Changes apply to the landing page when you save.</p>
-                </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={resetHp}
-                        className="border border-gray-300 text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2"
-                    >
-                        <RotateCcw size={14} /> Reset
-                    </button>
-                    <button
-                        onClick={saveHp}
-                        disabled={hpSaving}
-                        className="bg-[#E84B0F] hover:bg-[#C63E0A] disabled:opacity-50 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2"
-                    >
-                        {hpSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                        {hpSaving ? 'Saving...' : 'Save Homepage'}
-                    </button>
-                </div>
-            </div>
-
             {/* Announcements */}
             <Card>
                 <SectionHeading>Announcements &amp; Trust Bar</SectionHeading>
@@ -1240,18 +1244,56 @@ const HomepagePanel = () => {
                     </div>
                 </div>
 
-                {/* Image */}
+                {/* Banners — up to 3, shown as an auto-rotating slider */}
                 <div className="rounded-xl bg-gray-50 border border-dashed border-gray-300 p-3 mt-3">
-                    <p className="text-[11px] font-bold text-[#E84B0F] uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                        <Image size={12} /> Hero image
+                    <p className="text-[11px] font-bold text-[#E84B0F] uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                        <Image size={12} /> Hero banners
                     </p>
-                    <ImgBBUploader
-                        label="Hero Image"
-                        currentUrl={h.image ?? ''}
-                        onUploaded={(url) => setHpSection('hero', 'image', url)}
-                        onAutoSave={(url) => autoSaveHpImage('hero', 'image', url)}
-                        previewClass="max-h-44 max-w-full object-cover rounded-lg w-full shadow-sm"
-                    />
+                    <p className="text-[11px] text-gray-400 mb-3">
+                        Add up to 3 banners — they rotate automatically on the homepage.
+                    </p>
+                    <div className="grid gap-3 sm:grid-cols-3">
+                        {heroBanners.map((url, i) => (
+                            <div key={i} className="rounded-lg border border-gray-200 bg-white p-2 flex flex-col gap-1">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[11px] font-semibold text-gray-500">Banner {i + 1}</span>
+                                    {heroBanners.length > 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => autoSaveHeroBanners(heroBanners.filter((_, idx) => idx !== i))}
+                                            className="text-[11px] text-red-500 hover:underline"
+                                        >
+                                            Remove
+                                        </button>
+                                    )}
+                                </div>
+                                <ImgBBUploader
+                                    label={`Banner ${i + 1}`}
+                                    currentUrl={url ?? ''}
+                                    onUploaded={(u) => {
+                                        const next = [...heroBanners];
+                                        next[i] = u;
+                                        setHeroBanners(next);
+                                    }}
+                                    onAutoSave={(u) => {
+                                        const next = [...heroBanners];
+                                        next[i] = u;
+                                        autoSaveHeroBanners(next);
+                                    }}
+                                    previewClass="max-h-28 max-w-full object-cover rounded-lg w-full shadow-sm"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    {heroBanners.length < 3 && (
+                        <button
+                            type="button"
+                            onClick={() => autoSaveHeroBanners([...heroBanners, ''])}
+                            className="mt-3 text-sm border border-dashed border-gray-400 rounded-xl px-3 py-1.5 hover:bg-gray-50"
+                        >
+                            + Add banner
+                        </button>
+                    )}
                 </div>
 
                 {/* CTA */}
@@ -1513,6 +1555,14 @@ const WebsiteConfig = () => {
     // null means "user cleared it back, keep existing" → send ""
     // actual string means "user typed a new value" → send it
     const [pendingSecrets, setPendingSecrets] = useState({});
+    // The Homepage tab renders its own panel; it registers its save/reset
+    // handlers here so the page-wide Save/Reset buttons can drive them.
+    const homepageSaveRef = useRef(null);
+    const homepageResetRef = useRef(null);
+    const [homepageSaving, setHomepageSaving] = useState(false);
+    useEffect(() => {
+        if (activeCategory !== 'homepage') setHomepageSaving(false);
+    }, [activeCategory]);
     // ── Fetch config ─────────────────────────────────────────────────────────────
     const fetchConfig = useCallback(async () => {
         setLoading(true);
@@ -1562,6 +1612,11 @@ const WebsiteConfig = () => {
     });
     // ── Save handler ──────────────────────────────────────────────────────────────
     const handleSave = async () => {
+        // The Homepage tab owns SiteConfig content; it registers its own save.
+        if (activeCategory === 'homepage') {
+            await homepageSaveRef.current?.();
+            return;
+        }
         if (!config) return;
         setSaving(true);
         try {
@@ -1596,6 +1651,11 @@ const WebsiteConfig = () => {
     // ── Reset handler ─────────────────────────────────────────────────────────────
     const handleReset = async () => {
         setShowResetModal(false);
+        // Reset just the homepage content when that tab is open.
+        if (activeCategory === 'homepage') {
+            await homepageResetRef.current?.();
+            return;
+        }
         setSaving(true);
         try {
             await axios.put('/api/v1/admin/websiteconfig/reset');
@@ -1617,7 +1677,13 @@ const WebsiteConfig = () => {
             return <DatabasePanel />;
         }
         if (activeCategory === 'homepage') {
-            return <HomepagePanel />;
+            return (
+                <HomepagePanel
+                    registerSave={(fn) => { homepageSaveRef.current = fn; }}
+                    registerReset={(fn) => { homepageResetRef.current = fn; }}
+                    onSavingChange={setHomepageSaving}
+                />
+            );
         }
         if (activeCategory === 'changelog') {
             return <ChangeLogPanel />;
@@ -1674,9 +1740,9 @@ const WebsiteConfig = () => {
         );
     }
     // ── Shared save-button state (used by the top bar + the mobile sticky bar) ──
-    const saveDisabled = saving || ['changelog', 'homepage', 'database', 'branding', 'imgbb'].includes(activeCategory);
-    const saveTitle = activeCategory === 'homepage' ? 'Use the Homepage save button'
-        : activeCategory === 'imgbb' ? 'Use the ImgBB Settings save button' : undefined;
+    const activeSaving = activeCategory === 'homepage' ? homepageSaving : saving;
+    const saveDisabled = activeSaving || ['changelog', 'database', 'branding', 'imgbb'].includes(activeCategory);
+    const saveTitle = activeCategory === 'imgbb' ? 'Use the ImgBB Settings save button' : undefined;
     // ── Main render ───────────────────────────────────────────────────────────────
     return (
         <>
@@ -1722,12 +1788,12 @@ const WebsiteConfig = () => {
                         title={saveTitle}
                         className="hidden sm:flex bg-[#E84B0F] hover:bg-[#C63E0A] disabled:opacity-50 text-white px-4 py-2 rounded-xl text-sm font-semibold items-center gap-2 transition-colors"
                     >
-                        {saving ? (
+                        {activeSaving ? (
                             <Loader2 size={15} className="animate-spin" />
                         ) : (
                             <Save size={15} />
                         )}
-                        {saving ? 'Saving…' : 'Save Changes'}
+                        {activeSaving ? 'Saving…' : 'Save Changes'}
                     </button>
                     {/* Reset (desktop) */}
                     <button
@@ -1818,8 +1884,8 @@ const WebsiteConfig = () => {
                         title={saveTitle}
                         className="flex-[2] flex items-center justify-center gap-1.5 bg-[#E84B0F] text-white rounded-xl text-sm font-bold py-2.5 disabled:opacity-50 active:scale-95 transition"
                     >
-                        {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
-                        {saving ? 'Saving…' : 'Save Changes'}
+                        {activeSaving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+                        {activeSaving ? 'Saving…' : 'Save Changes'}
                     </button>
                 </div>
             </div>

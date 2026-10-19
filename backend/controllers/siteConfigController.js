@@ -45,6 +45,13 @@ const updateSiteConfig = async (req, res) => {
                     ...(body.hero?.sideBottom || {}),
                 },
             };
+            // Up to 3 rotating banner images. Positions are preserved so the
+            // admin slots stay stable; empty slots simply aren't rendered.
+            if (Array.isArray(body.hero.banners)) {
+                update.hero.banners = body.hero.banners
+                    .slice(0, 3)
+                    .map((u) => String(u || '').trim().slice(0, 500));
+            }
         }
 
         if (body.announcement !== undefined) {

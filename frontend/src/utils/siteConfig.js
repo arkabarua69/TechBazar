@@ -15,6 +15,7 @@ export const DEFAULT_SITE_CONFIG = {
         title: 'Best Trending Gadgets',
         subtitle: 'Smartwatches, earbuds & the latest tech — affordable prices, delivered nationwide.',
         image: 'https://picsum.photos/seed/hero-gadget/900/600',
+        banners: [],
         buttonLabel: 'Shop Now',
         buttonLink: '/products',
         sideTop: {

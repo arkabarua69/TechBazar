@@ -1,15 +1,40 @@
 import { Link } from 'react-router-dom';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 // MegaMart layout:
 //  desktop → main banner (70%) + two stacked side cards (30%)
 //  mobile  → stacked banner with bottom cards row
+//
+// The main banner is a slider over `hero.banners` (up to 3 images). When no
+// banners are configured it falls back to the single `hero.image`.
 const Hero = ({ hero = {} }) => {
     const sideTop = hero.sideTop || {};
     const sideBottom = hero.sideBottom || {};
+
+    const banners = useMemo(() => {
+        const list = (Array.isArray(hero.banners) ? hero.banners : []).filter(Boolean);
+        if (list.length) return list;
+        return hero.image ? [hero.image] : [];
+    }, [hero.banners, hero.image]);
+
+    const total = banners.length;
     const [slide, setSlide] = useState(0);
+
+    // Keep the active index valid if the banner list changes.
+    useEffect(() => {
+        setSlide((s) => (s >= total ? 0 : s));
+    }, [total]);
+
+    // Auto-rotate when there is more than one banner.
+    useEffect(() => {
+        if (total <= 1) return undefined;
+        const id = setInterval(() => setSlide((s) => (s + 1) % total), 5000);
+        return () => clearInterval(id);
+    }, [total]);
+
+    const go = (dir) => setSlide((s) => (s + dir + total) % total);
 
     const QuickCard = ({ card, className = '' }) => (
         <Link
@@ -38,9 +63,6 @@ const Hero = ({ hero = {} }) => {
         </Link>
     );
 
-    // Dot indicators for the main banner (like MegaMart)
-    const dots = 5;
-
     return (
         <section className="grid grid-cols-1 lg:grid-cols-[7fr_3fr] gap-3 sm:gap-4">
 
@@ -48,11 +70,15 @@ const Hero = ({ hero = {} }) => {
             <div className="relative overflow-hidden rounded-2xl group">
                 <div
                     className="min-h-[14rem] sm:min-h-[18rem] lg:min-h-[22rem] flex items-center relative"
-                    style={{
-                        backgroundImage: `linear-gradient(100deg, rgba(2,6,23,.92) 30%, rgba(2,6,23,.5) 65%, rgba(2,6,23,.1)), url(${hero.image})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                    }}
+                    style={
+                        total
+                            ? {
+                                backgroundImage: `linear-gradient(100deg, rgba(2,6,23,.92) 30%, rgba(2,6,23,.5) 65%, rgba(2,6,23,.1)), url(${banners[slide]})`,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                            }
+                            : { backgroundColor: 'var(--color-surface)' }
+                    }
                 >
                     {/* Content */}
                     <div className="relative p-5 sm:p-8 lg:p-10 max-w-xl text-white">
@@ -80,38 +106,44 @@ const Hero = ({ hero = {} }) => {
                     </div>
 
                     {/* Prev / Next arrows */}
-                    <button
-                        onClick={() => setSlide((s) => (s - 1 + dots) % dots)}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 text-white hidden sm:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
-                        aria-label="Previous"
-                    >
-                        <ChevronLeftIcon sx={{ fontSize: '20px' }} />
-                    </button>
-                    <button
-                        onClick={() => setSlide((s) => (s + 1) % dots)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 text-white hidden sm:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
-                        aria-label="Next"
-                    >
-                        <ChevronRightIcon sx={{ fontSize: '20px' }} />
-                    </button>
+                    {total > 1 && (
+                        <>
+                            <button
+                                onClick={() => go(-1)}
+                                className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 text-white hidden sm:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                                aria-label="Previous"
+                            >
+                                <ChevronLeftIcon sx={{ fontSize: '20px' }} />
+                            </button>
+                            <button
+                                onClick={() => go(1)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 text-white hidden sm:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                                aria-label="Next"
+                            >
+                                <ChevronRightIcon sx={{ fontSize: '20px' }} />
+                            </button>
+                        </>
+                    )}
                 </div>
 
                 {/* Dot indicators */}
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
-                    {Array.from({ length: dots }).map((_, i) => (
-                        <button
-                            key={i}
-                            onClick={() => setSlide(i)}
-                            className="rounded-full transition-all duration-300"
-                            style={{
-                                width: slide === i ? '20px' : '6px',
-                                height: '6px',
-                                backgroundColor: slide === i ? '#fff' : 'rgba(255,255,255,0.5)',
-                            }}
-                            aria-label={`Slide ${i + 1}`}
-                        />
-                    ))}
-                </div>
+                {total > 1 && (
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+                        {banners.map((_, i) => (
+                            <button
+                                key={i}
+                                onClick={() => setSlide(i)}
+                                className="rounded-full transition-all duration-300"
+                                style={{
+                                    width: slide === i ? '20px' : '6px',
+                                    height: '6px',
+                                    backgroundColor: slide === i ? '#fff' : 'rgba(255,255,255,0.5)',
+                                }}
+                                aria-label={`Slide ${i + 1}`}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* ── Two side cards (30%) — stacked on desktop, row on mobile ── */}
