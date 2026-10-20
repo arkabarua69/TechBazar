@@ -9,6 +9,7 @@ import { SnackbarProvider } from 'notistack';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { LanguageProvider } from './i18n/LanguageContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import SnackbarBridge from './components/Layouts/SnackbarBridge';
 
 // Match MUI components (forms, DataGrid, buttons) to the site's `primary-blue`
 const theme = createTheme({
@@ -29,6 +30,7 @@ ReactDOM.render(
            classes={{ containerRoot: 'site-snackbar-container' }}
          >
            <LanguageProvider>
+             <SnackbarBridge>
              <Router>
                <ThemeProvider theme={theme}>
                  {/* Catches render errors anywhere in the app — without it a single thrown error blanks the entire page. */}
@@ -37,6 +39,7 @@ ReactDOM.render(
                   </ErrorBoundary>
                </ThemeProvider>
              </Router>
+             </SnackbarBridge>
            </LanguageProvider>
          </SnackbarProvider>
     </Provider>

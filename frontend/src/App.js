@@ -121,6 +121,20 @@ function AppInner() {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   }, [pathname]);
 
+  // Click-to-dismiss snackbars: clicking anywhere inside a snackbar hides it.
+  useEffect(() => {
+    const handler = (e) => {
+      const target = e.target;
+      if (!target || !target.closest) return;
+      const snackbar = target.closest('.site-snackbar-container, [class*="SnackbarItem"], [class*="SnackbarContent"]');
+      if (snackbar && typeof window.__closeSnackbar === 'function') {
+        window.__closeSnackbar();
+      }
+    };
+    document.addEventListener('click', handler, true);
+    return () => document.removeEventListener('click', handler, true);
+  }, []);
+
   // Block right-click and common DevTools shortcuts — registered once on mount
   useEffect(() => {
     const handleContextMenu = (e) => e.preventDefault();
