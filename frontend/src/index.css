@@ -317,3 +317,13 @@ body, .surface, header, footer, aside { transition: background-color 0.25s ease,
 
 /* -- Font utilities ---------------------------------------------------- */
 .font-display { font-family: var(--font-display); }
+
+/* Snackbar (notistack) — top-center, below the nav bar */
+.site-snackbar-container {
+  top: 80px !important;
+}
+@media (min-width: 768px) {
+  .site-snackbar-container {
+    top: 70px !important;
+  }
+}

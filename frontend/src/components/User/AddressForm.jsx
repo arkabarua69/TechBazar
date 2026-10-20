@@ -182,13 +182,13 @@ const AddressForm = ({ initial, onDone }) => {
 
             {/* ── name + phone ── */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Field label="Full Name" icon={<PersonIcon sx={{ fontSize: 13 }} />}>
+                <Field label="Full Name">
                     <div className="relative">
                         <IconWrap><PersonIcon sx={{ fontSize: 15 }} /></IconWrap>
                         <input style={field(true)} value={form.fullName} onChange={set('fullName')} placeholder="Receiver's name" {...inputFocusHandlers} />
                     </div>
                 </Field>
-                <Field label="Mobile Number" icon={<PhoneIcon sx={{ fontSize: 13 }} />}>
+                <Field label="Mobile Number">
                     <div className="relative">
                         <IconWrap><PhoneIcon sx={{ fontSize: 15 }} /></IconWrap>
                         <input style={field(true)} value={form.phoneNo} onChange={set('phoneNo')} placeholder="01XXXXXXXXX" inputMode="tel" {...inputFocusHandlers} />
@@ -197,7 +197,7 @@ const AddressForm = ({ initial, onDone }) => {
             </div>
 
             {/* ── address line ── */}
-            <Field label="Address (house, road, area)" icon={<LocationOnIcon sx={{ fontSize: 13 }} />}>
+            <Field label="Address (house, road, area)">
                 <div className="relative">
                     <IconWrap><LocationOnIcon sx={{ fontSize: 15 }} /></IconWrap>
                     <input style={field(true)} value={form.address} onChange={set('address')} placeholder="House 12, Road 5, Block C" {...inputFocusHandlers} />
@@ -206,7 +206,7 @@ const AddressForm = ({ initial, onDone }) => {
 
             {/* ── division / district / area ── */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <Field label="Division" icon={<MapIcon sx={{ fontSize: 13 }} />}>
+                <Field label="Division">
                     <div className="relative">
                         <IconWrap><MapIcon sx={{ fontSize: 15 }} /></IconWrap>
                         <select style={field(true)} value={form.division} onChange={onDivision} {...inputFocusHandlers}>
@@ -215,7 +215,7 @@ const AddressForm = ({ initial, onDone }) => {
                         </select>
                     </div>
                 </Field>
-                <Field label="District" icon={<LocationOnIcon sx={{ fontSize: 13 }} />}>
+                <Field label="District">
                     <div className="relative">
                         <IconWrap><LocationOnIcon sx={{ fontSize: 15 }} /></IconWrap>
                         <select style={field(true)} value={form.city} onChange={onDistrict} disabled={!form.division} {...inputFocusHandlers}>
@@ -224,7 +224,7 @@ const AddressForm = ({ initial, onDone }) => {
                         </select>
                     </div>
                 </Field>
-                <Field label="Area / Thana" icon={<PinDropIcon sx={{ fontSize: 13 }} />}>
+                <Field label="Area / Thana">
                     <div className="relative">
                         <IconWrap><PinDropIcon sx={{ fontSize: 15 }} /></IconWrap>
                         <select style={field(true)} value={form.area} onChange={set('area')} disabled={!form.city} {...inputFocusHandlers}>
@@ -236,7 +236,7 @@ const AddressForm = ({ initial, onDone }) => {
             </div>
 
             {/* ── postcode ── */}
-            <Field label="Postcode" icon={<PinDropIcon sx={{ fontSize: 13 }} />} span={1}>
+            <Field label="Postcode" span={1}>
                 <div className="relative sm:max-w-[12rem]">
                     <IconWrap><PinDropIcon sx={{ fontSize: 15 }} /></IconWrap>
                     <input style={field(true)} value={form.pincode} onChange={set('pincode')} placeholder="1207" inputMode="numeric" {...inputFocusHandlers} />

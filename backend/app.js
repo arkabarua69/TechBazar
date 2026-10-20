@@ -23,6 +23,7 @@ const product = require('./routes/productRoute');
 const order = require('./routes/orderRoute');
 const siteconfig = require('./routes/storefrontRoute');
 const chat = require('./routes/chatRoute');
+const ticket = require('./routes/ticketRoute');
 const websiteConfig = require('./routes/websiteConfigRoute');
 const databaseRoute = require('./routes/databaseRoute');
 const { serveOgPage } = require('./controllers/ogController');
@@ -53,6 +54,7 @@ app.use('/api/v1', product);
 app.use('/api/v1', order);
 app.use('/api/v1', siteconfig);
 app.use('/api/v1', chat);
+app.use('/api/v1', ticket);
 app.use('/api/v1', websiteConfig);
 app.use('/api/v1', databaseRoute);
 // Social-crawler document with Open Graph tags (see backend/utils/ogMeta.js).

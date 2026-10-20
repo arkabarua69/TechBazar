@@ -23,9 +23,10 @@ ReactDOM.render(
          <SnackbarProvider
            maxSnack={2}
            anchorOrigin={{
-             vertical: 'bottom',
+             vertical: 'top',
              horizontal: 'center',
            }}
+           classes={{ containerRoot: 'site-snackbar-container' }}
          >
            <LanguageProvider>
              <Router>

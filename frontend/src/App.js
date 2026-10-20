@@ -68,6 +68,13 @@ function AppInner() {
   useEffect(() => {
     const apply = () => {
       const isMobile = window.innerWidth < 768;
+      // The account page ships its own fixed app bar on mobile, so the generic
+      // mobile top bar is hidden there — drop the body padding to 0 (the
+      // account app bar covers 0..56 and the page adds its own top spacing).
+      if (isMobile && pathname.startsWith('/account')) {
+        document.body.style.paddingTop = '0px';
+        return;
+      }
       const el = isMobile
         ? document.querySelector('.mobile-topbar')
         : document.querySelector('header');

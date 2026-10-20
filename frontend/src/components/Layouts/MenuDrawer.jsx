@@ -118,6 +118,10 @@ const MenuDrawer = ({ open, onClose }) => {
                                     )}
                                     {user && user.name ? user.name : 'My Account'}
                                 </Link>
+                                <Link to="/orders" className={rowClass}>
+                                    <TrackChangesIcon sx={{ fontSize: '20px', color: 'var(--color-accent)' }} />
+                                    My Orders
+                                </Link>
                                 {user?.role === 'admin' && (
                                     <Link to="/admin/dashboard" className={rowClass}>
                                         <AdminPanelSettingsIcon sx={{ fontSize: '20px', color: 'var(--color-accent)' }} />
@@ -139,10 +143,6 @@ const MenuDrawer = ({ open, onClose }) => {
 
                     {/* orders */}
                     <div className="border-b border-line py-2">
-                        <Link to="/orders" className={rowClass}>
-                            <TrackChangesIcon sx={{ fontSize: '20px', color: 'var(--color-accent)' }} />
-                            Order Tracking & History
-                        </Link>
                         <Link to="/track" className={rowClass}>
                             <TrackChangesIcon sx={{ fontSize: '20px', color: '#10b981' }} />
                             Find Order by Number

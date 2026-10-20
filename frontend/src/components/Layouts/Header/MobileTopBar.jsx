@@ -39,8 +39,8 @@ const MobileTopBar = () => {
     const brandName = ready ? (config.branding?.name || 'Store') : '';
     const logoUrl   = config.branding?.logoUrl || '';
 
-    // hide on admin pages
-    if (pathname.startsWith('/admin')) return null;
+    // hide on admin pages and account page (account has its own app bar)
+    if (pathname.startsWith('/admin') || pathname.startsWith('/account')) return null;
 
     const handleSearch = (e) => {
         e.preventDefault();

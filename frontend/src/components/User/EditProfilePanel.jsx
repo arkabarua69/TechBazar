@@ -13,7 +13,24 @@ import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
 
+const useIsMobile = () => {
+    const [mobile, setMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+    useEffect(() => {
+        const mq = window.matchMedia('(max-width: 767px)');
+        const onChange = () => setMobile(mq.matches);
+        onChange();
+        if (mq.addEventListener) mq.addEventListener('change', onChange);
+        else mq.addListener(onChange);
+        return () => {
+            if (mq.removeEventListener) mq.removeEventListener('change', onChange);
+            else mq.removeListener(onChange);
+        };
+    }, []);
+    return mobile;
+};
+
 const EditProfilePanel = ({ onDone }) => {
+    const mobile = useIsMobile();
     const dispatch = useDispatch();
     const { enqueueSnackbar } = useSnackbar();
     const { user } = useSelector((state) => state.user);
@@ -88,7 +105,7 @@ const EditProfilePanel = ({ onDone }) => {
     };
 
     const Label = ({ children, icon }) => (
-        <span className="text-[10px] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5" style={{ color: 'var(--color-text-muted)' }}>
+        <span className="text-[10px] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5" style={{ color: 'var(--color-text-secondary)' }}>
             {icon}
             {children}
         </span>
@@ -101,10 +118,10 @@ const EditProfilePanel = ({ onDone }) => {
             <div
                 className="flex flex-col gap-5 p-5 sm:p-6"
                 style={{
-                    backgroundColor: 'var(--color-surface)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: 'var(--card-radius)',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                    backgroundColor: mobile ? 'transparent' : 'var(--color-surface)',
+                    border: mobile ? 'none' : '1px solid var(--color-border)',
+                    borderRadius: mobile ? '0' : 'var(--card-radius)',
+                    boxShadow: mobile ? 'none' : '0 2px 8px rgba(0,0,0,0.05)',
                 }}
             >
                 <div className="flex items-center gap-3">
@@ -139,9 +156,6 @@ const EditProfilePanel = ({ onDone }) => {
                         <div>
                             <Label icon={<PersonIcon sx={{ fontSize: 13 }} />}>Full Name</Label>
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--color-text-muted)' }}>
-                                    <PersonIcon sx={{ fontSize: 16 }} />
-                                </span>
                                 <input
                                     type="text"
                                     placeholder="Full Name"
@@ -149,7 +163,7 @@ const EditProfilePanel = ({ onDone }) => {
                                     onChange={(e) => setName(e.target.value)}
                                     required
                                     autoComplete="name"
-                                    style={{ ...field, paddingLeft: '2.5rem' }}
+                                    style={field}
                                     {...focusHandlers}
                                 />
                             </div>
@@ -157,9 +171,6 @@ const EditProfilePanel = ({ onDone }) => {
                         <div>
                             <Label icon={<EmailIcon sx={{ fontSize: 13 }} />}>Email Address</Label>
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--color-text-muted)' }}>
-                                    <EmailIcon sx={{ fontSize: 16 }} />
-                                </span>
                                 <input
                                     type="email"
                                     placeholder="Email Address"
@@ -167,7 +178,7 @@ const EditProfilePanel = ({ onDone }) => {
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
                                     autoComplete="email"
-                                    style={{ ...field, paddingLeft: '2.5rem' }}
+                                    style={field}
                                     {...focusHandlers}
                                 />
                             </div>

@@ -12,7 +12,7 @@ import { logoutUser, myAddresses, deleteAddress, setDefaultAddress, clearErrors 
 import { useSiteConfig } from '../../context/SiteConfigContext';
 import { DEFAULT_SITE_CONFIG } from '../../utils/siteConfig';
 import { richTextToHtml } from '../../utils/richText';
-import UserChatPanel from './UserChatPanel';
+import TicketPanel from './TicketPanel';
 
 import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
@@ -61,45 +61,55 @@ const TABS = [
     { key: 'edit', label: 'Edit Profile' },
     { key: 'addresses', label: 'Manage Addresses' },
     { key: 'wishlist', label: 'My Wishlist' },
-    { key: 'chat', label: 'My Chats' },
+    { key: 'chat', label: 'Support Ticket' },
     { key: 'security', label: 'Change Password' },
     { key: 'faqs', label: 'FAQs' },
 ];
 
 // A titled panel used by every tab.
-const Panel = ({ title, action, children }) => (
-    <section
-        className="overflow-hidden"
-        style={{
-            backgroundColor: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--card-radius)',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-        }}
-    >
-        <div
-            className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-3.5"
-            style={{ borderBottom: '1px solid var(--color-border)' }}
+const Panel = ({ title, action, children }) => {
+    const mobile = useIsMobile();
+    if (mobile) {
+        // Mobile app style: no card/box — just the content as plain text,
+        // the section title already lives in the fixed app bar above.
+        return <div className="py-2">{children}</div>;
+    }
+    return (
+        <section
+            className="overflow-hidden"
+            style={{
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--card-radius)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            }}
         >
-            <h2 className="font-bold text-sm sm:text-base" style={{ color: 'var(--color-text-primary)' }}>{title}</h2>
-            {action}
-        </div>
-        <div className="p-4 sm:p-5">{children}</div>
-    </section>
-);
+            <div
+                className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-3.5"
+                style={{ borderBottom: '1px solid var(--color-border)' }}
+            >
+                <h2 className="font-bold text-sm sm:text-base" style={{ color: 'var(--color-text-primary)' }}>{title}</h2>
+                {action}
+            </div>
+            <div className="p-4 sm:p-5">{children}</div>
+        </section>
+    );
+};
 
 // label / value row
 const InfoRow = ({ icon, label, value, last }) => (
-    <div
-        className="flex items-start gap-3 py-3"
-        style={{ borderBottom: last ? 'none' : '1px solid var(--color-border)' }}
-    >
-        <span className="mt-0.5 shrink-0" style={{ color: 'var(--color-accent)' }}>{icon}</span>
-        <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>{label}</p>
-            <p className="text-sm break-words mt-0.5" style={{ color: value ? 'var(--color-text-primary)' : 'var(--color-text-muted)' }}>
-                {value || 'Not added yet'}
-            </p>
+    <div className="py-2">
+        <p className="text-[10px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'var(--color-text-secondary)' }}>{label}</p>
+        <div
+            className="flex items-center gap-2 px-3 py-2.5 rounded-lg"
+            style={{
+                border: '1px solid var(--color-border)',
+                backgroundColor: 'var(--color-surface)',
+                color: value ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
+            }}
+        >
+            <span className="shrink-0" style={{ color: 'var(--color-accent)' }}>{icon}</span>
+            <span className="text-sm break-words flex-1">{value || 'Not added yet'}</span>
         </div>
     </div>
 );
@@ -262,26 +272,11 @@ const Account = () => {
                 </p>
             </Panel>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-                <div
-                    className="flex-1 flex flex-col gap-3 p-4 sm:p-5"
-                    style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--card-radius)' }}
-                >
-                    <div className="flex items-center gap-3">
-                        <PowerSettingsNewIcon sx={{ color: 'var(--color-accent)', fontSize: 22 }} />
-                        <div>
-                            <h3 className="font-bold text-sm" style={{ color: 'var(--color-text-primary)' }}>Logout</h3>
-                            <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Sign out of your {brandName} account</p>
-                        </div>
-                    </div>
-                    <button onClick={handleLogout} className="btn-ghost text-sm mt-auto">Logout</button>
-                </div>
-                <div className="flex-1 flex flex-col gap-1.5 p-4 sm:p-5 rounded-2xl border border-red-200" style={{ backgroundColor: '#fff5f5' }}>
-                    <h3 className="font-bold text-sm text-red-700">Deactivate Account</h3>
-                    <p className="text-sm text-red-600/90 leading-relaxed">
-                        Permanently removes your orders, wishlist and personal details. Contact customer support to request it.
-                    </p>
-                </div>
+            <div className="flex-1 flex flex-col gap-1.5 p-4 sm:p-5 rounded-2xl border border-red-200" style={{ backgroundColor: '#fff5f5' }}>
+                <h3 className="font-bold text-sm text-red-700">Deactivate Account</h3>
+                <p className="text-sm text-red-600/90 leading-relaxed">
+                    Permanently removes your orders, wishlist and personal details. Contact customer support to request it.
+                </p>
             </div>
         </div>
     );
@@ -432,21 +427,30 @@ const Account = () => {
     const SecurityBody = (
         <div className="flex flex-col gap-4">
             <ChangePasswordPanel onDone={() => selectTab('profile')} />
-            <Panel title="Account Overview">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {[
-                        { label: 'Role', value: user.role === 'admin' ? 'Admin' : 'Member' },
-                        { label: 'Member since', value: memberSince },
-                        { label: 'Addresses', value: addresses.length },
-                        { label: 'Completeness', value: `${completeness}%` },
-                    ].map((s) => (
-                        <div key={s.label} className="rounded-xl p-3" style={{ backgroundColor: 'var(--color-bg)' }}>
-                            <p className="text-sm font-extrabold truncate" style={{ color: 'var(--color-text-primary)' }}>{s.value}</p>
-                            <p className="text-[11px] mt-0.5" style={{ color: 'var(--color-text-muted)' }}>{s.label}</p>
-                        </div>
-                    ))}
-                </div>
-            </Panel>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                    { label: 'Role', value: user.role === 'admin' ? 'Admin' : 'Member' },
+                    { label: 'Member since', value: memberSince },
+                    { label: 'Addresses', value: addresses.length },
+                    { label: 'Completeness', value: `${completeness}%` },
+                ].map((s) => (
+                    <div
+                        key={s.label}
+                        className="flex flex-col gap-1 p-3 sm:p-4 transition-all duration-200"
+                        style={{
+                            backgroundColor: 'var(--color-surface)',
+                            border: '1px solid var(--color-border)',
+                            borderRadius: 'var(--card-radius)',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(232,75,15,0.12)'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.borderColor = 'var(--color-accent)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
+                    >
+                        <p className="text-lg font-extrabold leading-none truncate" style={{ color: 'var(--color-text-primary)' }}>{s.value}</p>
+                        <p className="text-[11px] font-medium mt-0.5 truncate" style={{ color: 'var(--color-text-muted)' }}>{s.label}</p>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 
@@ -468,7 +472,7 @@ const Account = () => {
     );
 
     const ChatBody = (
-        <UserChatPanel />
+        <TicketPanel />
     );
 
     const EditProfileBody = (
@@ -480,6 +484,38 @@ const Account = () => {
     return (
         <>
             <MetaData title="My Account" />
+
+            {/* ── Mobile hero (matches the Orders page band) — mobile only ── */}
+            {isMobile && (
+                <section
+                    className="md:hidden"
+                    style={{
+                        background: 'linear-gradient(135deg, var(--color-accent) 0%, #c63e0a 60%, #a33408 100%)',
+                        marginTop: '56px',
+                    }}
+                >
+                    <div className="px-3 py-5">
+                        <div className="flex items-center gap-3">
+                            {user.avatar?.url ? (
+                                <img
+                                    draggable="false"
+                                    className="h-12 w-12 rounded-full object-cover ring-3 ring-white/30 shadow-lg shrink-0"
+                                    src={user.avatar.url} alt={user.name}
+                                />
+                            ) : (
+                                <div className="h-12 w-12 rounded-full ring-3 ring-white/30 shadow-lg shrink-0 bg-white/15 text-white font-bold text-base flex items-center justify-center select-none">
+                                    {initials}
+                                </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                                <p className="text-white/70 text-xs">Hello,</p>
+                                <h1 className="font-bold text-lg text-white leading-tight truncate">{user.name}</h1>
+                                <p className="text-white/80 text-xs mt-0.5 truncate">{activeLabel}</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* ── Hero band (desktop) ── */}
             <section className="hidden md:block" style={{ background: 'linear-gradient(135deg, var(--color-accent) 0%, #c63e0a 60%, #a33408 100%)' }}>
@@ -508,9 +544,8 @@ const Account = () => {
             {/* ── Mobile app bar (phone app shell) ── */}
             {isMobile && (
                 <div
-                    className="sticky z-30"
+                    className="fixed top-0 left-0 right-0 z-30"
                     style={{
-                        top: '0px',
                         background: 'linear-gradient(135deg, var(--color-accent) 0%, #c63e0a 60%, #a33408 100%)',
                     }}
                 >
@@ -518,8 +553,8 @@ const Account = () => {
                         <div className="flex items-center gap-3 h-14">
                             <button
                                 type="button"
-                                onClick={() => (mobileScreen === 'section' ? setMobileScreen('menu') : navigate('/'))}
-                                aria-label={mobileScreen === 'section' ? 'Back to account menu' : 'Back to shop'}
+                                onClick={() => navigate('/')}
+                                aria-label="Back to shop"
                                 className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition active:scale-90"
                                 style={{ backgroundColor: 'rgba(255,255,255,0.18)', color: '#fff' }}
                             >
@@ -544,19 +579,6 @@ const Account = () => {
                             >
                                 <SearchIcon sx={{ fontSize: 19 }} />
                             </button>
-
-                            {user.avatar?.url ? (
-                                <img
-                                    draggable="false"
-                                    src={user.avatar.url}
-                                    alt={user.name}
-                                    className="w-9 h-9 rounded-full object-cover ring-2 ring-white/40 shrink-0"
-                                />
-                            ) : (
-                                <span className="w-9 h-9 rounded-full bg-white/20 text-white text-xs font-bold flex items-center justify-center shrink-0 ring-2 ring-white/30">
-                                    {initials}
-                                </span>
-                            )}
                         </div>
                     </div>
                 </div>
@@ -627,19 +649,12 @@ const Account = () => {
             )}
 
             {/* ── Body ── */}
-            <main className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 py-4 sm:py-6 pb-16">
+            <main className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 pb-20 md:py-6 md:pt-6">
                 {isMobile ? (
-                    /* Phone: app shell — menu screen, or one drilled-in section */
-                    mobileScreen === 'menu' ? (
-                        <AccountSidebar
-                            mobile
-                            activeTab={tab}
-                            onSelect={selectTab}
-                            onNavigate={() => setMobileScreen('section')}
-                        />
-                    ) : (
-                        <div className="flex flex-col gap-4">{bodies[tab]}</div>
-                    )
+                    /* Phone: app shell — section content only. Navigation lives
+                       in the side drawer opened by the bottom bar's Menu button,
+                       so the sidebar nav is NOT rendered in the main content. */
+                    <div className="flex flex-col gap-4">{bodies[tab]}</div>
                 ) : (
                     /* Desktop: sidebar + content */
                     <div className="flex gap-5 lg:gap-6 items-start">

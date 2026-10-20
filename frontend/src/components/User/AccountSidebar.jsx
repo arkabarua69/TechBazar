@@ -1,7 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { useSnackbar } from 'notistack';
-import { logoutUser } from '../../actions/userAction';
+import { useNavigate } from 'react-router-dom';
+
 
 import FolderIcon from '@mui/icons-material/Folder';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -9,7 +7,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import EditIcon from '@mui/icons-material/Edit';
 import ChatIcon from '@mui/icons-material/Chat';
 import FolderSharedIcon from '@mui/icons-material/FolderShared';
-import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
+
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import KeyIcon from '@mui/icons-material/Key';
@@ -21,11 +19,7 @@ import KeyIcon from '@mui/icons-material/Key';
 // account page uses it for its phone layout); `onNavigate` fires on every row
 // pick so the page can drill into the selected section.
 const AccountSidebar = ({ activeTab, onSelect, onNavigate, mobile = false }) => {
-    const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { enqueueSnackbar } = useSnackbar();
-    const ordersActive = activeTab === 'orders';
-
     // Tabs that live on the /account page. The orders page reuses this sidebar,
     // so selecting one of those rows has to navigate there with the tab in the
     // query string — otherwise the click would only flip local state.
@@ -40,11 +34,6 @@ const AccountSidebar = ({ activeTab, onSelect, onNavigate, mobile = false }) => 
         onNavigate?.(tab);
     };
 
-    const handleLogout = () => {
-        dispatch(logoutUser());
-        enqueueSnackbar('Logged out successfully', { variant: 'success' });
-        navigate('/login');
-    };
 
     // A tab row inside a group. `soon` rows are non-interactive.
     const Row = ({ icon, label, tab, soon, badge }) => {
@@ -153,48 +142,20 @@ const AccountSidebar = ({ activeTab, onSelect, onNavigate, mobile = false }) => 
                 style={{
                     backgroundColor: 'var(--color-surface)',
                     border: '1px solid var(--color-border)',
-                    borderRadius: 'var(--card-radius)',
+                    // Mobile (drawer) uses boxy corners; desktop keeps the
+                    // rounded card look.
+                    borderRadius: mobile ? '0' : 'var(--card-radius)',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
                 }}
             >
-                {/* MY ORDERS — standalone row, jumps to the orders page.
-                    Lights up like a tab row when the orders page mounts it. */}
-                <div className="pt-1.5">
-                    <Link
-                        to="/orders"
-                        className="flex items-center gap-3 px-4 py-3.5 text-[13px] font-semibold border-l-[3px] transition-all duration-150"
-                        style={ordersActive ? {
-                            color: 'var(--color-accent)',
-                            borderLeftColor: 'var(--color-accent)',
-                            backgroundColor: 'rgba(232,75,15,0.06)',
-                        } : {
-                            color: 'var(--color-text-primary)',
-                            borderLeftColor: 'transparent',
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(232,75,15,0.03)';
-                            e.currentTarget.style.color = 'var(--color-accent)';
-                        }}
-                        onMouseLeave={(e) => {
-                            if (ordersActive) return;
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                            e.currentTarget.style.color = 'var(--color-text-primary)';
-                        }}
-                    >
-                        <FolderIcon sx={{ fontSize: 20, color: 'var(--color-accent)' }} />
-                        <span className="flex-1">MY ORDERS</span>
-                        <ChevronRightIcon sx={{ fontSize: 16, color: ordersActive ? 'var(--color-accent)' : 'var(--color-text-muted)' }} />
-                    </Link>
-                </div>
-
                 <Group icon={<PersonIcon sx={{ fontSize: 18 }} />} label="Account Settings">
                     <Row icon={<PersonIcon sx={{ fontSize: 18 }} />} label="Profile Information" tab="profile" />
                     <Row icon={<EditIcon sx={{ fontSize: 18 }} />} label="Edit Profile" tab="edit" />
                     <Row icon={<FolderIcon sx={{ fontSize: 18 }} />} label="Manage Addresses" tab="addresses" />
                 </Group>
 
-                <Group icon={<ChatIcon sx={{ fontSize: 18 }} />} label="My Chats">
-                    <Row icon={<ChatIcon sx={{ fontSize: 18 }} />} label="Support conversations" tab="chat" />
+                <Group icon={<ChatIcon sx={{ fontSize: 18 }} />} label="My Tickets">
+                    <Row icon={<ChatIcon sx={{ fontSize: 18 }} />} label="Support Ticket" tab="chat" />
                 </Group>
 
                 <Group icon={<FolderSharedIcon sx={{ fontSize: 18 }} />} label="My Stuff">
@@ -206,29 +167,6 @@ const AccountSidebar = ({ activeTab, onSelect, onNavigate, mobile = false }) => 
                     <Row icon={<KeyIcon sx={{ fontSize: 18 }} />} label="Change Password" tab="security" />
                 </Group>
 
-                {/* Logout */}
-                <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="flex items-center gap-3 w-full px-4 py-4 text-[13px] font-semibold border-l-[3px] border-t transition-all duration-150"
-                    style={{
-                        color: 'var(--color-text-primary)',
-                        borderLeftColor: 'transparent',
-                        borderTopColor: 'var(--color-border)',
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(232,75,15,0.03)';
-                        e.currentTarget.style.color = 'var(--color-accent)';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                        e.currentTarget.style.color = 'var(--color-text-primary)';
-                    }}
-                >
-                    <PowerSettingsNewIcon sx={{ fontSize: 20, color: 'var(--color-accent)' }} />
-                    <span className="flex-1 text-left">Logout</span>
-                    <ChevronRightIcon sx={{ fontSize: 16, color: 'var(--color-text-muted)' }} />
-                </button>
             </nav>
         </aside>
     );

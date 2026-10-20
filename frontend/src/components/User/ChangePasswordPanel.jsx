@@ -12,7 +12,24 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
 
+const useIsMobile = () => {
+    const [mobile, setMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+    useEffect(() => {
+        const mq = window.matchMedia('(max-width: 767px)');
+        const onChange = () => setMobile(mq.matches);
+        onChange();
+        if (mq.addEventListener) mq.addEventListener('change', onChange);
+        else mq.addListener(onChange);
+        return () => {
+            if (mq.removeEventListener) mq.removeEventListener('change', onChange);
+            else mq.removeListener(onChange);
+        };
+    }, []);
+    return mobile;
+};
+
 const ChangePasswordPanel = ({ onDone }) => {
+    const mobile = useIsMobile();
     const dispatch = useDispatch();
     const { enqueueSnackbar } = useSnackbar();
     const { error, isUpdated, loading } = useSelector((state) => state.profile);
@@ -64,7 +81,7 @@ const ChangePasswordPanel = ({ onDone }) => {
     };
 
     const Label = ({ children, icon }) => (
-        <span className="text-[10px] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5" style={{ color: 'var(--color-text-muted)' }}>
+        <span className="text-[10px] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5" style={{ color: 'var(--color-text-secondary)' }}>
             {icon}
             {children}
         </span>
@@ -107,10 +124,10 @@ const ChangePasswordPanel = ({ onDone }) => {
             <div
                 className="flex flex-col gap-5 p-5 sm:p-6"
                 style={{
-                    backgroundColor: 'var(--color-surface)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: 'var(--card-radius)',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                    backgroundColor: mobile ? 'transparent' : 'var(--color-surface)',
+                    border: mobile ? 'none' : '1px solid var(--color-border)',
+                    borderRadius: mobile ? '0' : 'var(--card-radius)',
+                    boxShadow: mobile ? 'none' : '0 2px 8px rgba(0,0,0,0.05)',
                 }}
             >
                 <div className="flex items-center gap-3">
