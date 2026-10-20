@@ -160,7 +160,9 @@ function AppInner() {
   return (
     <>
       <Header />
-      <MobileTopBar />
+      {/* On the account page the page ships its own app bar on mobile, so the
+          generic mobile top bar would only double up the chrome. */}
+      {!pathname.startsWith('/account') && <MobileTopBar />}
       <BottomBar />
       {/* Admin bottom nav — hidden on non-admin pages internally */}
       <AdminBottomNav />

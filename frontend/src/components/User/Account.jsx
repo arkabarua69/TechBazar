@@ -595,6 +595,22 @@ const Account = () => {
                                 onNavigate={() => setDrawerOpen(false)}
                             />
                             <div className="px-4 py-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
+                                <p className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-muted)' }}>Categories</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {((config && config.categories) || []).map((cat) => (
+                                        <Link
+                                            key={cat}
+                                            to={`/products?category=${encodeURIComponent(cat)}`}
+                                            onClick={() => setDrawerOpen(false)}
+                                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] font-medium transition active:scale-95"
+                                            style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-secondary)' }}
+                                        >
+                                            {cat}
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="px-4 py-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
                                 <Link
                                     to="/"
                                     onClick={() => setDrawerOpen(false)}
