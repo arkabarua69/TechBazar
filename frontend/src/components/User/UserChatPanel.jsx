@@ -188,6 +188,7 @@ const UserChatPanel = () => {
                 {Header}
 
                 <div ref={bodyRef} className="flex-1 min-h-0 overflow-y-auto px-3 py-4 flex flex-col gap-2" style={WALLPAPER}>
+                    <div className="mt-auto flex flex-col gap-2">
                     {/* welcome bubble */}
                     <div className="flex items-end gap-2 self-start max-w-[85%]">
                         <span className="w-7 h-7 rounded-full bg-white/70 flex items-center justify-center shrink-0 mb-0.5">
@@ -248,8 +249,8 @@ const UserChatPanel = () => {
                             </div>
                         </form>
                     </div>
+                    </div>
                 </div>
-            </div>
         );
     }
 
@@ -257,11 +258,11 @@ const UserChatPanel = () => {
     let lastDay = '';
 
     return (
-        <div className="flex flex-col" style={FRAME}>
+        <div className="flex flex-col" style={{ ...FRAME, height: 'clamp(360px, 62dvh, 540px)' }}>
             {Header}
 
             {closed && (
-                <div className="px-3 py-1.5 text-center text-[11px] font-semibold" style={{ backgroundColor: 'var(--color-accent-light)', color: 'var(--color-accent)', borderBottom: '1px solid var(--color-border)' }}>
+                <div className="shrink-0 px-3 py-1.5 text-center text-[11px] font-semibold" style={{ backgroundColor: 'var(--color-accent-light)', color: 'var(--color-accent)', borderBottom: '1px solid var(--color-border)' }}>
                     This conversation has been closed. Send a message to reopen it.
                 </div>
             )}
@@ -269,9 +270,10 @@ const UserChatPanel = () => {
             {/* thread */}
             <div
                 ref={bodyRef}
-                className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-1.5"
-                style={{ ...WALLPAPER, height: 'clamp(340px, 58dvh, 520px)' }}
+                className="flex-1 min-h-0 overflow-y-auto px-3 py-3 flex flex-col"
+                style={WALLPAPER}
             >
+                <div className="mt-auto flex flex-col gap-1.5">
                 {messages.map((msg) => {
                     const mine = msg.sender === 'visitor';
                     const day = dayLabel(msg.createdAt);
@@ -314,6 +316,7 @@ const UserChatPanel = () => {
                 {messages.length === 0 && (
                     <p className="self-center text-xs mt-6" style={{ color: 'var(--color-text-muted)' }}>No messages yet — say hello</p>
                 )}
+                </div>
             </div>
 
             {/* composer */}

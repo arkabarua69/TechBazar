@@ -137,7 +137,7 @@ const [exporting, setExporting] = useState(false);
                     <DownloadIcon sx={{ fontSize: '1.05rem' }} />
                     <span>{exporting ? 'Exporting…' : 'Export CSV'}</span>
                 </button>
-            </div>}
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                 {rows.length === 0 && !loading && (
                     <div className="col-span-full bg-white rounded-2xl border border-dashed border-gray-300 p-8 text-center text-gray-400 text-sm">
