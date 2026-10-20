@@ -112,7 +112,7 @@ const Header = () => {
                 <button
                   className="flex items-center gap-2 text-sm font-semibold transition"
                   style={{ color: 'var(--color-text-primary)' }}
-                  onClick={() => setTogglePrimaryDropDown(!togglePrimaryDropDown)}
+                  onClick={(e) => { e.stopPropagation(); setTogglePrimaryDropDown(!togglePrimaryDropDown); }}
                 >
                   {user?.avatar?.url ? (
                     <img
@@ -132,10 +132,15 @@ const Header = () => {
                 </button>
               )}
               {togglePrimaryDropDown && (
-                <PrimaryDropDownMenu
-                  setTogglePrimaryDropDown={setTogglePrimaryDropDown}
-                  user={user}
-                />
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setTogglePrimaryDropDown(false)} />
+                  <div className="relative z-50">
+                    <PrimaryDropDownMenu
+                      setTogglePrimaryDropDown={setTogglePrimaryDropDown}
+                      user={user}
+                    />
+                  </div>
+                </>
               )}
             </div>
 

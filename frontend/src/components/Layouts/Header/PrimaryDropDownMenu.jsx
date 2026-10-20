@@ -78,7 +78,7 @@ const PrimaryDropDownMenu = ({ setTogglePrimaryDropDown, user }) => {
 
     return (
         <div
-            className="absolute w-60 -left-24 ml-2 top-9 rounded-2xl shadow-xl flex-col text-sm overflow-hidden"
+            className="absolute w-60 right-0 mt-2 rounded-2xl shadow-xl flex-col text-sm overflow-hidden"
             style={{
                 backgroundColor: 'var(--color-surface)',
                 border: '1px solid var(--color-border)',
@@ -169,7 +169,7 @@ const PrimaryDropDownMenu = ({ setTogglePrimaryDropDown, user }) => {
                 Logout
             </div>
 
-            <div className="absolute right-1/2 -top-2.5">
+            <div className="absolute right-8 -top-2.5">
                 <div className="arrow_down"></div>
             </div>
         </div>
