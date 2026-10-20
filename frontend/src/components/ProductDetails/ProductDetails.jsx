@@ -712,24 +712,49 @@ if (activeColor) lines.push(`Color: ${activeColor}`);
                                     <button onClick={() => setOpen(true)} className="btn-accent px-4 py-2 text-xs sm:text-sm">Rate Product</button>
                                 </div>
 
-                                <Dialog aria-labelledby='review-dialog' open={open} onClose={() => setOpen(false)}>
-                                    <DialogTitle className="border-b">Submit Review</DialogTitle>
-                                    <DialogContent className="flex flex-col m-1 gap-4">
-                                        <Rating onChange={(e) => setRating(e.target.value)} value={rating} size='large' precision={0.5} />
+                                <Dialog
+                                    aria-labelledby='review-dialog'
+                                    open={open}
+                                    onClose={() => setOpen(false)}
+                                    PaperProps={{
+                                        className: 'rounded-2xl overflow-hidden shadow-[0_30px_60px_-30px_rgba(15,23,42,0.9)] w-[calc(100vw-1.25rem)] max-w-[420px]'
+                                    }}
+                                >
+                                    <DialogTitle className="flex items-center gap-2 px-5 sm:px-6 py-4 border-b border-line">
+                                        <div className="w-9 h-9 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center">
+                                            <StarIcon sx={{ fontSize: '18px' }} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="font-display font-bold text-slate-900">Submit Review</span>
+                                            <span className="text-xs text-slate-500">Share your honest feedback</span>
+                                        </div>
+                                    </DialogTitle>
+                                    <DialogContent className="flex flex-col items-center text-center gap-5 px-5 sm:px-6 py-6">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <p className="text-sm font-semibold text-slate-800">How would you rate this product?</p>
+                                            <Rating onChange={(e) => setRating(e.target.value)} value={rating} size='large' precision={0.5} />
+                                            <p className="text-xs text-slate-400">{rating ? `${Number(rating).toFixed(1)} out of 5` : 'Tap a star to rate'}</p>
+                                        </div>
                                         <TextField
-                                            label="Review"
+                                            label="Write your review"
+                                            placeholder="Tell others what you liked or didn't like about this product"
                                             multiline
-                                            rows={3}
-                                            sx={{ width: 400, maxWidth: '80vw' }}
+                                            rows={4}
+                                            fullWidth
                                             size="small"
                                             variant="outlined"
                                             value={comment}
                                             onChange={(e) => setComment(e.target.value)}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    borderRadius: '12px',
+                                                }
+                                            }}
                                         />
                                     </DialogContent>
-                                    <DialogActions>
-                                        <button onClick={() => setOpen(false)} className="py-2 px-6 rounded shadow bg-white border border-red-500 hover:bg-red-100 text-red-600 uppercase">Cancel</button>
-                                        <button onClick={reviewSubmitHandler} className="py-2 px-6 rounded bg-green-600 hover:bg-green-700 text-white shadow uppercase">Submit</button>
+                                    <DialogActions className="flex flex-col sm:flex-row gap-2 border-t border-line px-5 sm:px-6 py-3">
+                                        <button onClick={() => setOpen(false)} className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-semibold border border-line text-slate-600 hover:bg-cloud transition active:scale-[0.98]">Cancel</button>
+                                        <button onClick={reviewSubmitHandler} className="w-full sm:w-auto btn-accent px-6 py-2.5 text-sm rounded-xl active:scale-[0.98]">Submit Review</button>
                                     </DialogActions>
                                 </Dialog>
 
