@@ -30,6 +30,17 @@ const BottomBar = () => {
     const { cartItems } = useSelector((state) => state.cart);
     const [menuOpen, setMenuOpen] = useState(false);
 
+    // On the account page the centre Menu button opens the account sidebar
+    // drawer (a native-app style side sheet) instead of the site drawer.
+    const isAccount = path.startsWith('/account');
+    const handleMenu = () => {
+        if (isAccount) {
+            window.dispatchEvent(new Event('open-account-drawer'));
+        } else {
+            setMenuOpen(true);
+        }
+    };
+
     // tabs are admin-editable (Admin → Homepage → Branding & Content)
     const { config } = useSiteConfig();
     const tabs = (config.navigation?.tabs || DEFAULT_SITE_CONFIG.navigation.tabs)
@@ -58,7 +69,7 @@ const BottomBar = () => {
                             return (
                                 <li key="menu" className="relative">
                                     <button
-                                        onClick={() => setMenuOpen(true)}
+                                        onClick={handleMenu}
                                         aria-label="Open menu"
                                         className="w-full flex flex-col items-center justify-center gap-1 py-2"
                                     >

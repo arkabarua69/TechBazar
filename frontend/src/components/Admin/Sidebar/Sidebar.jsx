@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import EqualizerIcon from '@mui/icons-material/Equalizer';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
@@ -16,6 +17,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import CloseIcon from '@mui/icons-material/Close';
 import CopyrightIcon from '@mui/icons-material/Copyright';
 import Avatar from '@mui/material/Avatar';
+import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from '../../../i18n/LanguageContext';
 import './Sidebar.css';
@@ -34,6 +36,22 @@ const Sidebar = ({ setToggleSidebar }) => {
     const { t } = useTranslation();
     const { user } = useSelector((state) => state.user);
     const { config, ready } = useSiteConfig();
+    const [unreadChat, setUnreadChat] = useState(0);
+
+    useEffect(() => {
+        let cancelled = false;
+        const fetchUnread = async () => {
+            try {
+                const { data } = await axios.get('/api/v1/admin/chat/conversations', { headers: { Accept: 'application/json' } });
+                if (cancelled) return;
+                const total = (data.conversations || []).reduce((s, c) => s + (c.unreadAdmin || 0), 0);
+                setUnreadChat(total);
+            } catch (e) { /* ignore */ }
+        };
+        fetchUnread();
+        const id = setInterval(fetchUnread, 15000);
+        return () => { cancelled = true; clearInterval(id); };
+    }, []);
     // Blank until the real site name arrives — never flash the placeholder.
     const siteName = ready ? (config?.branding?.name || 'Admin') : '';
 
@@ -128,6 +146,11 @@ const Sidebar = ({ setToggleSidebar }) => {
                     {icon}
                 </span>
                 <span className="truncate">{label}</span>
+                {id === 'chat_inbox' && unreadChat > 0 && (
+                    <span className="ml-auto shrink-0 min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full flex items-center justify-center shadow-sm">
+                        {unreadChat > 9 ? '9+' : unreadChat}
+                    </span>
+                )}
             </Link>
         );
     };

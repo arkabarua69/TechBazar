@@ -25,6 +25,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import StarIcon from '@mui/icons-material/Star';
@@ -136,6 +137,14 @@ const Account = () => {
     const [mobileScreen, setMobileScreen] = useState(
         new URLSearchParams(window.location.search).get('tab') ? 'section' : 'menu'
     );
+
+    // Native-style side drawer opened by the mobile bottom bar's Menu button.
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    useEffect(() => {
+        const open = () => setDrawerOpen(true);
+        window.addEventListener('open-account-drawer', open);
+        return () => window.removeEventListener('open-account-drawer', open);
+    }, []);
 
     useEffect(() => {
         const q = new URLSearchParams(window.location.search).get('tab');
@@ -539,6 +548,54 @@ const Account = () => {
                             )}
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* ── Native side drawer (mobile, opened by the bottom bar Menu) ── */}
+            {isMobile && drawerOpen && (
+                <div className="fixed inset-0 z-[70] md:hidden" aria-modal="true" role="dialog">
+                    <div
+                        className="absolute inset-0 bg-slate-900/45 backdrop-blur-[2px] transition-opacity"
+                        onClick={() => setDrawerOpen(false)}
+                    />
+                    <aside
+                        className="absolute left-0 top-0 h-full w-80 max-w-[85%] bg-white shadow-2xl flex flex-col"
+                        style={{ animation: 'tb-sheet-up .28s cubic-bezier(.22,.9,.3,1)' }}
+                    >
+                        <div
+                            className="flex items-center justify-between px-4 h-14 shrink-0"
+                            style={{ background: 'linear-gradient(135deg, var(--color-accent) 0%, #c63e0a 60%, #a33408 100%)' }}
+                        >
+                            <span className="font-display font-extrabold text-lg text-white tracking-tight">{brandName}</span>
+                            <button
+                                type="button"
+                                onClick={() => setDrawerOpen(false)}
+                                aria-label="Close menu"
+                                className="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center transition active:scale-90"
+                            >
+                                <CloseIcon sx={{ fontSize: 18 }} />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto pb-6">
+                            <AccountSidebar
+                                mobile
+                                activeTab={tab}
+                                onSelect={selectTab}
+                                onNavigate={() => setDrawerOpen(false)}
+                            />
+                            <div className="px-4 py-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
+                                <Link
+                                    to="/"
+                                    onClick={() => setDrawerOpen(false)}
+                                    className="flex items-center gap-2 text-sm font-medium"
+                                    style={{ color: 'var(--color-text-secondary)' }}
+                                >
+                                    <HomeIcon sx={{ fontSize: 18, color: 'var(--color-accent)' }} />
+                                    Back to shop
+                                </Link>
+                            </div>
+                        </div>
+                    </aside>
                 </div>
             )}
 
