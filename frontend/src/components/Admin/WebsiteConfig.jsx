@@ -1659,7 +1659,7 @@ const FooterPanel = ({ registerSave, registerReset, onSavingChange }) => {
         <div className="flex flex-col gap-5">
             <Card>
                 <SectionHeading>Footer Columns</SectionHeading>
-                <p className="text-xs text-gray-500 mb-3">Manage footer link groups and their destinations. Format: Name =&gt; /path or Name =&gt; https://...</p>
+                <p className="text-xs text-gray-500 mb-3">Manage footer link groups. Use "Social" as the column title to show icons. Format: Name =&gt; /path or Name =&gt; https://...</p>
                 {(c.footer?.columns || []).map((col, ci) => (
                     <div key={ci} className="bg-gray-50 rounded-xl p-3 flex flex-col gap-2 relative mb-2">
                         <button onClick={() => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, columns: (prev.content?.footer?.columns || []).filter((_, idx) => idx !== ci) } } }))}
@@ -1676,10 +1676,18 @@ const FooterPanel = ({ registerSave, registerReset, onSavingChange }) => {
                 <SectionHeading>Footer Company Info</SectionHeading>
                 <div className="flex flex-col gap-3">
                     <HomepageField label="Company Name" value={c.footer?.company?.name} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, name: v } } } }))} />
-                    <HomepageField label="Mail Us / Address" textarea value={c.footer?.company?.mailUs} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, mailUs: v } } } }))} />
+                    <HomepageField label="Address / Mail Us" textarea value={c.footer?.company?.address || c.footer?.company?.mailUs} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, address: v, mailUs: v } } } }))} />
+                    <div className="grid sm:grid-cols-2 gap-3">
+                        <HomepageField label="Email" value={c.footer?.company?.email} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, email: v } } } }))} />
+                        <HomepageField label="Telephone" value={c.footer?.company?.telephone} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, telephone: v } } } }))} />
+                    </div>
                     <div className="grid sm:grid-cols-2 gap-3">
                         <HomepageField label="CIN" value={c.footer?.company?.cin} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, cin: v } } } }))} />
-                        <HomepageField label="Telephone" value={c.footer?.company?.telephone} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, telephone: v } } } }))} />
+                        <HomepageField label="Registered Address" value={c.footer?.company?.registered} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, registered: v } } } }))} />
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                        <HomepageField label="App Store URL" value={c.footer?.company?.appStoreUrl} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, appStoreUrl: v } } } }))} />
+                        <HomepageField label="Play Store URL" value={c.footer?.company?.playStoreUrl} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, playStoreUrl: v } } } }))} />
                     </div>
                 </div>
             </Card>
