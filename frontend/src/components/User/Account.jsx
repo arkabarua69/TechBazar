@@ -26,6 +26,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
+import SearchIcon from '@mui/icons-material/Search';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import StarIcon from '@mui/icons-material/Star';
@@ -509,7 +510,7 @@ const Account = () => {
                 <div
                     className="sticky z-30"
                     style={{
-                        top: '80px',
+                        top: '0px',
                         background: 'linear-gradient(135deg, var(--color-accent) 0%, #c63e0a 60%, #a33408 100%)',
                     }}
                 >
@@ -533,6 +534,16 @@ const Account = () => {
                                     {mobileScreen === 'section' ? user.name : user.email}
                                 </p>
                             </div>
+
+                            <button
+                                type="button"
+                                onClick={() => navigate('/products')}
+                                aria-label="Search products"
+                                className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition active:scale-90"
+                                style={{ backgroundColor: 'rgba(255,255,255,0.18)', color: '#fff' }}
+                            >
+                                <SearchIcon sx={{ fontSize: 19 }} />
+                            </button>
 
                             {user.avatar?.url ? (
                                 <img

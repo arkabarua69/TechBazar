@@ -38,20 +38,24 @@ const AnnouncementBar = () => {
             {/* ── Desktop ─────────────────────────────────────────────────── */}
             <div className="hidden md:flex max-w-7xl mx-auto px-4 lg:px-6 h-8 items-center justify-between gap-4">
                 {/* Left: main brand message */}
-                <span className="flex items-center gap-1.5 font-medium opacity-90 truncate">
-                    <LocalShippingIcon sx={{ fontSize: '13px' }} />
-                    {stripLeadingEmoji(desktop[0])}
-                </span>
+                {stripLeadingEmoji(desktop[0]) && (
+                    <span className="flex items-center gap-1.5 font-medium opacity-90 truncate">
+                        <LocalShippingIcon sx={{ fontSize: '13px' }} />
+                        {stripLeadingEmoji(desktop[0])}
+                    </span>
+                )}
 
                 {/* Right: secondary announcements */}
                 <div className="flex items-center gap-5 shrink-0 opacity-90">
                     {desktop.slice(1).map((item, i) => {
+                        const txt = stripLeadingEmoji(item);
+                        if (!txt) return null;
                         return (
                             <span key={i} className="flex items-center gap-1.5 whitespace-nowrap">
                                 {i === 0 && <SecurityIcon   sx={{ fontSize: '13px' }} />}
                                 {i === 1 && <PhoneIcon       sx={{ fontSize: '13px' }} />}
                                 {i >= 2 && <LocalOfferIcon  sx={{ fontSize: '13px' }} />}
-                                {stripLeadingEmoji(item)}
+                                {txt}
                             </span>
                         );
                     })}
