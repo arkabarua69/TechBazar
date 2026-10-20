@@ -205,6 +205,7 @@ export const DEFAULT_SITE_CONFIG = {
     theme: {
         colorAccent:           '#E84B0F',
         colorAccentHover:      '#C63E0A',
+        colorAccentLight:      'rgba(232,75,15,0.08)',
         colorSuccess:          '#16a34a',
         colorWarning:          '#f59e0b',
         colorDanger:           '#ef4444',

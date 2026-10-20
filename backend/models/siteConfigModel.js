@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const DEFAULT_THEME = {
     colorAccent:           '#E84B0F',
     colorAccentHover:      '#C63E0A',
+    colorAccentLight:      'rgba(232,75,15,0.08)',
     colorSuccess:          '#16a34a',
     colorWarning:          '#f59e0b',
     colorDanger:           '#ef4444',
@@ -181,6 +182,7 @@ const DEFAULT_CONFIG = {
 const themeSchema = new mongoose.Schema({
     colorAccent:           { type: String, default: DEFAULT_THEME.colorAccent },
     colorAccentHover:      { type: String, default: DEFAULT_THEME.colorAccentHover },
+    colorAccentLight:      { type: String, default: DEFAULT_THEME.colorAccentLight },
     colorSuccess:          { type: String, default: DEFAULT_THEME.colorSuccess },
     colorWarning:          { type: String, default: DEFAULT_THEME.colorWarning },
     colorDanger:           { type: String, default: DEFAULT_THEME.colorDanger },

@@ -15,6 +15,7 @@ const SiteConfigContext = createContext({
 const CSS_VAR_MAP = {
     colorAccent:           '--color-accent',
     colorAccentHover:      '--color-accent-hover',
+    colorAccentLight:      '--color-accent-light',
     colorSuccess:          '--color-success',
     colorWarning:          '--color-warning',
     colorDanger:           '--color-danger',
