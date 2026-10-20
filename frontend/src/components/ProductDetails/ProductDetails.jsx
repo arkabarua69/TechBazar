@@ -752,9 +752,9 @@ if (activeColor) lines.push(`Color: ${activeColor}`);
                                             }}
                                         />
                                     </DialogContent>
-                                    <DialogActions className="flex flex-col sm:flex-row gap-2 border-t border-line px-5 sm:px-6 py-3">
-                                        <button onClick={() => setOpen(false)} className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-semibold border border-line text-slate-600 hover:bg-cloud transition active:scale-[0.98]">Cancel</button>
-                                        <button onClick={reviewSubmitHandler} className="w-full sm:w-auto btn-accent px-6 py-2.5 text-sm rounded-xl active:scale-[0.98]">Submit Review</button>
+                                    <DialogActions className="flex flex-row items-center justify-end gap-2 border-t border-line px-5 sm:px-6 py-3">
+                                        <button onClick={() => setOpen(false)} className="px-5 py-2 rounded-xl text-sm font-semibold border border-line bg-white text-slate-700 hover:bg-cloud transition active:scale-[0.98]">Cancel</button>
+                                        <button onClick={reviewSubmitHandler} className="px-6 py-2 rounded-xl text-sm font-semibold text-white bg-primary-accent hover:bg-primary-hover shadow-sm transition active:scale-[0.98]">Submit</button>
                                     </DialogActions>
                                 </Dialog>
 
