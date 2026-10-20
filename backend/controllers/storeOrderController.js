@@ -1,8 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const StoreOrder = require('../models/storeOrderModel');
 const Product = require('../models/productModel');
-const { getDeliveryCharges, forwardOrderToStore, isConfigured } = require('../services/businessKoro');
-const { syncCatalog } = require('../services/catalogSync');
 const { notifyOrderEvent } = require('../utils/discordNotify');
 
 const BENGALI_DIGITS = '০১২৩৪৫৬৭৮৯';
@@ -21,7 +19,7 @@ const normalizePhone = (raw = '') => {
 
 const isValidPhone = (value) => /^01[3-9]\d{8}$/.test(value);
 
-// Active delivery charges: Admin → Homepage settings first, env/BK fallback
+// Active delivery charges: Admin → Homepage settings first, env defaults after.
 const getActiveDeliveryCharges = async () => {
     try {
         const SiteConfig = require('../models/siteConfigModel');
@@ -33,10 +31,9 @@ const getActiveDeliveryCharges = async () => {
             };
         }
     } catch (e) { /* fallback below */ }
-    const fallback = getDeliveryCharges();
     return {
-        insideDhaka: Number(fallback.insideDhaka) || 70,
-        outsideDhaka: Number(fallback.outsideDhaka) || 130,
+        insideDhaka: Number(process.env.DELIVERY_CHARGE_INSIDE_DHAKA) || 70,
+        outsideDhaka: Number(process.env.DELIVERY_CHARGE_OUTSIDE_DHAKA) || 130,
     };
 };
 
@@ -49,13 +46,12 @@ const getStoreConfig = async (req, res) => {
         settings = await SiteConfig.findOne().sort('-updatedAt');
     } catch (e) { /* fall through to defaults */ }
 
-    const fallback = getDeliveryCharges();
     const delivery = {
-        insideDhaka: Number(settings && settings.delivery && settings.delivery.insideDhaka) || Number(fallback.insideDhaka) || 70,
-        outsideDhaka: Number(settings && settings.delivery && settings.delivery.outsideDhaka) || Number(fallback.outsideDhaka) || 130,
+        insideDhaka: Number(settings && settings.delivery && settings.delivery.insideDhaka) || Number(process.env.DELIVERY_CHARGE_INSIDE_DHAKA) || 70,
+        outsideDhaka: Number(settings && settings.delivery && settings.delivery.outsideDhaka) || Number(process.env.DELIVERY_CHARGE_OUTSIDE_DHAKA) || 130,
     };
     const payment = {
-        methods: ['bKash', 'Nagad'],
+        methods: ['COD', 'bKash', 'Nagad'],
         bKashNumber: (settings && settings.payment && settings.payment.bKashNumber) || process.env.PAYMENT_BKASH_NUMBER || '',
         nagadNumber: (settings && settings.payment && settings.payment.nagadNumber) || process.env.PAYMENT_NAGAD_NUMBER || '',
     };
@@ -65,13 +61,15 @@ const getStoreConfig = async (req, res) => {
         currency: 'BDT',
         deliveryCharges: delivery,
         payment,
-        configured: isConfigured(),
+        // Orders are always saved in this shop's own database — no external
+        // fulfilment service is required any more.
+        configured: true,
     });
 };
 
 // POST /api/v1/store/orders  (public - guests can order without an account)
-// Saves the order in our database first; it reaches Business Koro only after
-// an admin approves it.
+// Saves the order in our database with status PENDING_APPROVAL; an admin then
+// approves or cancels it from the Store Orders page.
 const createStoreOrder = async (req, res) => {
     try {
         const { items, customer = {}, payment = {}, delivery = {} } = req.body || {};
@@ -94,10 +92,28 @@ const createStoreOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Enter a valid Bangladeshi mobile number (e.g. 01712345678).' });
         }
 
-        const method = payment.method === 'Nagad' ? 'Nagad' : 'bKash';
+        // Cash on Delivery needs no advance payment, so no TrxID either —
+        // the customer pays everything (items + delivery) on arrival.
+        const method = payment.method === 'Nagad' ? 'Nagad'
+            : payment.method === 'COD' ? 'COD'
+                : 'bKash';
         const transactionId = String(payment.transactionId || '').trim();
-        if (transactionId.length < 4) {
+        if (method !== 'COD' && transactionId.length < 4) {
             return res.status(400).json({ success: false, message: 'Transaction ID (TrxID) is required.' });
+        }
+
+        // COD is trust-based: the admin grants it per user (Admin → Users →
+        // COD toggle). Guests and users without the flag must use bKash/Nagad
+        // advance payment or contact the admin on WhatsApp first. Admins can
+        // always use COD.
+        if (method === 'COD') {
+            const codOk = req.user && (req.user.role === 'admin' || req.user.codAllowed === true);
+            if (!codOk) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Cash on Delivery is not enabled for your account. Contact the admin on WhatsApp to enable COD, or choose bKash/Nagad.',
+                });
+            }
         }
 
         const zone = delivery.zone === 'outside-dhaka' ? 'outside-dhaka' : 'inside-dhaka';
@@ -139,15 +155,82 @@ const createStoreOrder = async (req, res) => {
         }
 
         const groupId = uuidv4();
+        // Human order reference built from the customer's mobile number so the
+        // number and the order id can be matched: 8801580831611 → "8801580831611-4F2A".
+        const nationPhone = phone.replace(/^0/, '88');
+        const suffix = groupId.replace(/-/g, '').slice(-4).toUpperCase();
+        const orderId = `${nationPhone}-${suffix}`;
         const customerDoc = { name, phone, address, division, district, area };
         const paymentDoc = { method, transactionId };
-        const deliveryDoc = { zone, charge: deliveryCharge, paidByCustomer: true };
+        const deliveryDoc = { zone, charge: deliveryCharge, paidByCustomer: method !== 'COD' };
 
+        const itemsTotal = orderItems.reduce((sum, { quantity, sellingPrice }) => sum + sellingPrice * quantity, 0);
+
+        // ── Logged-in buyer → account order (Online Orders page) ──────────
+        // Saves into the classic Order model so it shows in the admin's Online
+        // Orders list, the buyer's account history and the account page.
+        if (req.user) {
+            const Order = require('../models/orderModel');
+            const accountOrder = await Order.create({
+                orderId,
+                shippingInfo: {
+                    address: `${address}${area ? `, ${area}` : ''}`,
+                    city: district,
+                    state: division,
+                    country: 'Bangladesh',
+                    pincode: 0,
+                    phoneNo: Number(phone) || 0,
+                },
+                orderItems: orderItems.map(({ product, quantity, sellingPrice }) => ({
+                    name: product.name,
+                    price: sellingPrice,
+                    quantity,
+                    image: product.images && product.images[0] ? product.images[0].url : '',
+                    product: product._id,
+                })),
+                user: req.user._id,
+                paymentInfo: {
+                    id: transactionId || `COD-${groupId.slice(0, 8)}`,
+                    status: method === 'COD' ? 'Pending' : 'Paid',
+                },
+                paymentMethod: method,
+                ...(method === 'COD' ? {} : { paidAt: Date.now() }),
+                totalPrice: itemsTotal + deliveryCharge,
+                orderStatus: 'Processing',
+            });
+
+            notifyOrderEvent('created', {
+                ...accountOrder.toObject(),
+                orderId,
+                customer: { ...customerDoc, name: req.user.name, email: req.user.email },
+                pricing: { quantity: orderItems.reduce((s, i) => s + i.quantity, 0), total: itemsTotal + deliveryCharge },
+                orderItems: orderItems.map(({ product, quantity, sellingPrice }) => ({ name: product.name, price: sellingPrice, quantity })),
+                product: { name: orderItems[0]?.product?.name, image: orderItems[0]?.product?.images?.[0]?.url },
+            }).catch(() => {});
+
+            return res.status(201).json({
+                success: true,
+                message: 'Order placed successfully.',
+                account: true,
+                orderId,
+                status: 'Processing',
+                summary: {
+                    itemsTotal,
+                    deliveryCharge,
+                    grandTotal: itemsTotal + deliveryCharge,
+                    currency: 'BDT',
+                },
+                orderIds: [accountOrder._id],
+            });
+        }
+
+        // ── Guest → store order (Store Orders page, admin approves) ────────
         const docs = orderItems.map(({ product, quantity, sellingPrice }) => ({
             groupId,
+            orderId,
+            user: null,
             product: {
                 productId: product._id,
-                bkId: product.bkId,
                 name: product.name,
                 image: product.images && product.images[0] ? product.images[0].url : '',
             },
@@ -163,13 +246,12 @@ const createStoreOrder = async (req, res) => {
 
         const created = await StoreOrder.insertMany(docs);
 
-        const itemsTotal = docs.reduce((sum, d) => sum + d.pricing.total, 0);
-
         // Discord: announce the new order in the orders channel (best-effort).
         // One message per order group, listing every line item.
         notifyOrderEvent('created', {
             _id: groupId,
             groupId,
+            orderId,
             customer: customerDoc,
             payment: paymentDoc,
             delivery: deliveryDoc,
@@ -188,8 +270,9 @@ const createStoreOrder = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: 'Order recorded. It will be forwarded after approval.',
+            message: 'Order recorded. Awaiting approval.',
             groupId,
+            orderId,
             status: 'PENDING_APPROVAL',
             summary: {
                 itemsTotal,
@@ -218,9 +301,9 @@ const getStoreOrderGroup = async (req, res) => {
         return res.status(200).json({
             success: true,
             groupId: req.params.groupId,
-            status: orders.every((o) => o.status === 'FORWARDED') ? 'FORWARDED'
-                : orders.some((o) => o.status === 'FORWARD_FAILED') ? 'FORWARD_FAILED'
-                    : 'PENDING_APPROVAL',
+            status: orders.every((o) => o.status === 'APPROVED' || o.status === 'CANCELLED')
+                && orders.some((o) => o.status === 'APPROVED') ? 'APPROVED'
+                : 'PENDING_APPROVAL',
             items: orders.map((o) => ({
                 orderId: o._id,
                 name: o.product.name,
@@ -228,8 +311,6 @@ const getStoreOrderGroup = async (req, res) => {
                 quantity: o.pricing.quantity,
                 sellingPrice: o.pricing.sellingPrice,
                 status: o.status,
-                bkOrderId: o.bkOrderId,
-                bkError: o.bkError,
             })),
             summary: { itemsTotal, deliveryCharge, grandTotal: itemsTotal + deliveryCharge, currency: 'BDT' },
             deliveryCharges: charges,
@@ -243,7 +324,10 @@ const getStoreOrderGroup = async (req, res) => {
 // GET /api/v1/admin/store/orders  (admin)
 const getStoreOrders = async (req, res) => {
     try {
-        const orders = await StoreOrder.find().sort('-createdAt').limit(200);
+        const orders = await StoreOrder.find({ user: null })
+            .sort('-createdAt')
+            .limit(200)
+            .populate('user', 'name email');
         return res.status(200).json({ success: true, orders });
     } catch (err) {
         console.log(`Store orders list error: ${err.message}`);
@@ -252,70 +336,28 @@ const getStoreOrders = async (req, res) => {
 };
 
 // PUT /api/v1/admin/store/orders/:id/approve  (admin)
-// Forwards the saved order to Business Koro.
+// Marks the order as approved (ready to fulfil). The Business Koro forwarding
+// step was removed — orders now live entirely in this shop's own database.
 const approveStoreOrder = async (req, res) => {
     try {
         const order = await StoreOrder.findById(req.params.id);
         if (!order) return res.status(404).json({ success: false, message: 'Order not found.' });
 
-        if (order.status === 'FORWARDED') {
-            return res.status(400).json({ success: false, message: 'Order already forwarded to Business Koro.' });
+        if (order.status === 'APPROVED') {
+            return res.status(400).json({ success: false, message: 'Order is already approved.' });
         }
         if (order.status === 'CANCELLED') {
             return res.status(400).json({ success: false, message: 'Cancelled orders cannot be approved.' });
         }
-        if (!order.product.bkId) {
-            return res.status(400).json({
-                success: false,
-                message: 'This product has no Business Koro ID. Run "Sync catalogue" first so the order can be forwarded.',
-            });
-        }
 
-        const payload = {
-            productId: order.product.bkId,
-            customerName: order.customer.name,
-            customerPhone: order.customer.phone,
-            customerAddress: order.customer.address,
-            customerDivision: order.customer.division,
-            customerDistrict: order.customer.district,
-            customerArea: order.customer.area,
-            sellingPrice: order.pricing.sellingPrice,
-            deliveryChargePaidByCustomer: order.delivery.paidByCustomer,
-            // delivery charge was collected in advance via bKash/Nagad send money
-            deliveryChargeCollectionMode: 'CUSTOMER_PAID_RESELLER_UPFRONT',
-            customerNote: `Payment ${order.payment.method} TrxID: ${order.payment.transactionId}`,
-        };
+        order.status = 'APPROVED';
+        order.approvedBy = req.user && req.user.id;
+        await order.save();
 
-        try {
-            const body = await forwardOrderToStore(payload);
+        // Discord: order approved by an admin
+        notifyOrderEvent('approved', order.toObject(), { by: req.user?.email }).catch(() => {});
 
-            order.status = 'FORWARDED';
-            order.bkOrderId = body && (body.orderId || (body.data && body.data.orderId));
-            order.bkStatus = body && (body.status || (body.data && body.data.status));
-            order.forwardedAt = new Date();
-            order.approvedBy = req.user && req.user.id;
-            order.bkError = undefined;
-            await order.save();
-
-            // Discord: order forwarded to Business Koro
-            notifyOrderEvent('forwarded', order.toObject(), { by: req.user?.email }).catch(() => {});
-
-            return res.status(200).json({ success: true, order, upstream: body });
-        } catch (err) {
-            order.status = 'FORWARD_FAILED';
-            order.bkError = err.message;
-            order.bkErrorDetail = err.upstream ? JSON.stringify(err.upstream).slice(0, 500) : undefined;
-            await order.save();
-
-            // Discord: forwarding failed — worth an alert
-            notifyOrderEvent('failed', order.toObject(), {
-                by: req.user?.email,
-                fields: [{ name: '❗ Reason', value: err.message }],
-            }).catch(() => {});
-
-            console.log(`Store order forward failed: ${err.message}`);
-            return res.status(err.status || 502).json({ success: false, message: err.message, upstream: err.upstream });
-        }
+        return res.status(200).json({ success: true, order });
     } catch (err) {
         console.log(`Store order approve error: ${err.message}`);
         return res.status(500).json({ success: false, message: err.message });
@@ -349,16 +391,6 @@ const cancelStoreOrder = async (req, res) => {
     }
 };
 
-// POST /api/v1/admin/store/sync  (admin) - pull the Business Koro catalogue now
-const syncStoreCatalog = async (req, res) => {
-    try {
-        const result = await syncCatalog({ force: true });
-        return res.status(200).json({ success: true, result });
-    } catch (err) {
-        return res.status(err.status || 502).json({ success: false, message: err.message });
-    }
-};
-
 // ── Guest order tracking ────────────────────────────────────────────────
 // GET /api/v1/store/track?phone=017...&groupId=xxxx  (public)
 // Lookup by phone (any guest order) or exact order-group id.
@@ -366,9 +398,15 @@ const trackStoreOrder = async (req, res) => {
     try {
         const phone = normalizePhone(req.query.phone || '');
         const groupId = (req.query.groupId || '').trim();
+        const orderId = (req.query.orderId || '').trim();
 
         let orders = [];
-        if (groupId) {
+        if (orderId) {
+            // "8801580831611-4F2A" — every line item of a checkout shares it.
+            orders = await StoreOrder.find({ orderId }).sort('createdAt');
+            // legacy fallback: an old checkout may only carry the group id
+            if (!orders.length) orders = await StoreOrder.find({ groupId: orderId }).sort('createdAt');
+        } else if (groupId) {
             orders = await StoreOrder.find({ groupId }).sort('createdAt');
         } else if (phone) {
             orders = await StoreOrder.find({ 'customer.phone': phone }).sort('-createdAt').limit(50);
@@ -394,10 +432,11 @@ const trackStoreOrder = async (req, res) => {
             const deliveryCharge = list[0].delivery.charge;
             return {
                 groupId: gid,
-                status: list.every((o) => o.status === 'FORWARDED') ? 'FORWARDED'
-                    : list.some((o) => o.status === 'FORWARD_FAILED') ? 'FORWARD_FAILED'
-                        : list.every((o) => o.status === 'CANCELLED') ? 'CANCELLED'
-                            : 'PENDING_APPROVAL',
+                orderId: list[0].orderId || `TB-${String(gid).slice(-4).toUpperCase()}`,
+                status: list.every((o) => o.status === 'APPROVED' || o.status === 'CANCELLED')
+                    && list.some((o) => o.status === 'APPROVED') ? 'APPROVED'
+                    : list.every((o) => o.status === 'CANCELLED') ? 'CANCELLED'
+                        : 'PENDING_APPROVAL',
                 fulfilment: list.some((o) => o.status === 'CANCELLED') ? 'CANCELLED'
                     : list.map((o) => o.fulfilment || 'PLACED')
                         .sort((a, b) => ['PLACED', 'CONFIRMED', 'SHIPPED', 'DELIVERED'].indexOf(a) - ['PLACED', 'CONFIRMED', 'SHIPPED', 'DELIVERED'].indexOf(b))[0],
@@ -471,6 +510,61 @@ const updateFulfilmentStatus = async (req, res) => {
     }
 };
 
+// ── Logged-in user: my store orders ─────────────────────────────────────
+// GET /api/v1/store/my-orders  (requires login)
+// Groups the user's store orders into one entry per checkout so the account
+// page can list them alongside classic (account) orders.
+const getMyStoreOrders = async (req, res) => {
+    try {
+        const orders = await StoreOrder.find({ user: req.user._id })
+            .sort('-createdAt')
+            .limit(200);
+
+        const groups = {};
+        orders.forEach((o) => {
+            if (!groups[o.groupId]) groups[o.groupId] = [];
+            groups[o.groupId].push(o);
+        });
+
+        const payload = Object.keys(groups).map((gid) => {
+            const list = groups[gid];
+            const itemsTotal = list.reduce((sum, o) => sum + o.pricing.total, 0);
+            const deliveryCharge = list[0].delivery.charge;
+            const allCancelled = list.every((o) => o.status === 'CANCELLED');
+            return {
+                groupId: gid,
+                orderId: list[0].orderId || `TB-${String(gid).slice(-4).toUpperCase()}`,
+                status: allCancelled ? 'CANCELLED'
+                    : list.every((o) => o.status === 'APPROVED' || o.status === 'CANCELLED')
+                        && list.some((o) => o.status === 'APPROVED') ? 'APPROVED'
+                        : 'PENDING_APPROVAL',
+                fulfilment: list.some((o) => o.status === 'CANCELLED') ? 'CANCELLED'
+                    : list.map((o) => o.fulfilment || 'PLACED')
+                        .sort((a, b) => ['PLACED', 'CONFIRMED', 'SHIPPED', 'DELIVERED'].indexOf(a) - ['PLACED', 'CONFIRMED', 'SHIPPED', 'DELIVERED'].indexOf(b))[0],
+                placedAt: list[0].createdAt,
+                payment: { method: list[0].payment.method, verified: !!list[0].payment.verified },
+                customer: list[0].customer,
+                delivery: { zone: list[0].delivery.zone, charge: deliveryCharge },
+                items: list.map((o) => ({
+                    orderId: o._id,
+                    name: o.product.name,
+                    image: o.product.image,
+                    quantity: o.pricing.quantity,
+                    sellingPrice: o.pricing.sellingPrice,
+                    status: o.status,
+                    fulfilment: o.fulfilment || 'PLACED',
+                })),
+                summary: { itemsTotal, deliveryCharge, grandTotal: itemsTotal + deliveryCharge, currency: 'BDT' },
+            };
+        });
+
+        return res.status(200).json({ success: true, orders: payload });
+    } catch (err) {
+        console.log(`My store orders error: ${err.message}`);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 module.exports = {
     getStoreConfig,
     createStoreOrder,
@@ -478,7 +572,7 @@ module.exports = {
     getStoreOrders,
     approveStoreOrder,
     cancelStoreOrder,
-    syncStoreCatalog,
     trackStoreOrder,
     updateFulfilmentStatus,
+    getMyStoreOrders,
 };

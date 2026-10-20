@@ -228,6 +228,68 @@ button, a { touch-action: manipulation; }
 /* Smooth theme transitions */
 body, .surface, header, footer, aside { transition: background-color 0.25s ease, color 0.25s ease; }
 
+/* ── Rich text editor (react-quill) — admin multi-line fields ───────────────── */
+.rte-field .ql-toolbar.ql-snow {
+  border: 1px solid var(--color-border);
+  border-bottom: none;
+  border-radius: 0.75rem 0.75rem 0 0;
+  background: var(--color-surface);
+  padding: 6px 8px;
+}
+.rte-field .ql-container.ql-snow {
+  border: 1px solid var(--color-border);
+  border-radius: 0 0 0.75rem 0.75rem;
+  background: var(--color-surface);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+}
+.rte-field .ql-editor {
+  min-height: var(--rte-min-height, 140px);
+  line-height: 1.55;
+  color: var(--color-text-primary);
+}
+.rte-field .ql-editor.ql-blank::before {
+  color: var(--color-text-muted);
+  font-style: normal;
+  left: 14px;
+  right: 14px;
+}
+.rte-field .ql-snow .ql-stroke { stroke: var(--color-text-secondary); }
+.rte-field .ql-snow .ql-fill  { fill:   var(--color-text-secondary); }
+.rte-field .ql-snow .ql-picker { color: var(--color-text-secondary); }
+.rte-field .ql-snow.ql-toolbar button:hover .ql-stroke,
+.rte-field .ql-snow.ql-toolbar button.ql-active .ql-stroke { stroke: var(--color-accent); }
+.rte-field .ql-snow.ql-toolbar button:hover .ql-fill,
+.rte-field .ql-snow.ql-toolbar button.ql-active .ql-fill { fill: var(--color-accent); }
+.rte-field .ql-snow.ql-toolbar .ql-picker-label:hover,
+.rte-field .ql-snow.ql-toolbar .ql-picker-label.ql-active { color: var(--color-accent); }
+.rte-field .ql-editor a { color: var(--color-accent); text-decoration: underline; }
+.rte-field .ql-editor blockquote {
+  border-left: 3px solid var(--color-accent);
+  padding-left: 0.75rem;
+  color: var(--color-text-secondary);
+}
+.rte-field.rte-error .ql-toolbar.ql-snow,
+.rte-error .ql-toolbar.ql-snow,
+.rte-error .ql-container.ql-snow { border-color: var(--color-danger); }
+/* Focus ring matches the rest of the admin inputs */
+.rte-field .ql-container.ql-snow:focus-within,
+.rte-field .ql-toolbar.ql-snow:focus-within { border-color: var(--color-accent); }
+.rte-field .ql-container.ql-snow:focus-within { box-shadow: 0 0 0 2px rgba(232, 75, 15, 0.12); }
+
+/* Rendering of stored rich text on the storefront */
+.rte-content { line-height: 1.65; }
+.rte-content p { margin: 0 0 0.6em; }
+.rte-content ul, .rte-content ol { margin: 0 0 0.6em 1.25em; }
+.rte-content h2 { font-size: 1.15rem; font-weight: 700; margin: 0.7em 0 0.4em; }
+.rte-content a { color: var(--color-accent); text-decoration: underline; }
+.rte-content blockquote {
+  border-left: 3px solid var(--color-accent);
+  padding-left: 0.75rem;
+  color: var(--color-text-secondary);
+  margin: 0.5em 0;
+}
+
 /* -- Auth page layout -------------------------------------------------- */
 .auth-page-bg {
   background: linear-gradient(135deg, var(--color-bg) 0%, #fde8d8 40%, var(--color-bg) 100%);

@@ -4,6 +4,10 @@ const cookieParser = require('cookie-parser');
 const fileUpload = require('express-fileupload');
 const errorMiddleware = require('./middlewares/error');
 const app = express();
+// Behind Render/Vercel/nginx the request arrives over http from the proxy's
+// point of view — trust the first hop so req.protocol / req.secure (and the
+// auth cookie's Secure flag) reflect the real client connection.
+app.set('trust proxy', 1);
 // config
 if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config({ path: require('path').join(__dirname, 'config', 'config.env') });
@@ -17,7 +21,6 @@ app.use(fileUpload({ limits: { fileSize: 50 * 1024 * 1024 } }));
 const user = require('./routes/userRoute');
 const product = require('./routes/productRoute');
 const order = require('./routes/orderRoute');
-const payment = require('./routes/paymentRoute');
 const siteconfig = require('./routes/storefrontRoute');
 const chat = require('./routes/chatRoute');
 const websiteConfig = require('./routes/websiteConfigRoute');
@@ -48,7 +51,6 @@ app.use(async (req, res, next) => {
 app.use('/api/v1', user);
 app.use('/api/v1', product);
 app.use('/api/v1', order);
-app.use('/api/v1', payment);
 app.use('/api/v1', siteconfig);
 app.use('/api/v1', chat);
 app.use('/api/v1', websiteConfig);

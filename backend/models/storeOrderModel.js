@@ -1,16 +1,29 @@
 const mongoose = require('mongoose');
 
-// Guest checkout order held in our own database (backup record).
-// It is forwarded to Business Koro only after an admin approves it.
+// Guest checkout order held in our own database.
+// Starts as PENDING_APPROVAL; an admin approves or cancels it.
 const storeOrderSchema = new mongoose.Schema({
     groupId: {
         type: String,
         required: true,
         index: true,
     },
+    // Human order reference. Built from the customer's mobile number so it can
+    // be matched against the phone they ordered with: e.g. "8801580831611-4F2A".
+    orderId: {
+        type: String,
+        index: true,
+    },
+    // Set when a logged-in user places the order (guest checkout leaves it null).
+    // Lets the account's "My Orders" page show guest-style store orders too.
+    user: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+        default: null,
+        index: true,
+    },
     product: {
         productId: { type: mongoose.Schema.ObjectId, ref: 'Product', required: true },
-        bkId: { type: String },
         name: { type: String, required: true },
         image: { type: String },
     },
@@ -23,8 +36,9 @@ const storeOrderSchema = new mongoose.Schema({
         area: { type: String },
     },
     payment: {
-        method: { type: String, enum: ['bKash', 'Nagad'], required: true },
-        transactionId: { type: String, required: true },
+        method: { type: String, enum: ['COD', 'bKash', 'Nagad'], required: true },
+        // Only prepaid (bKash / Nagad advance) orders carry a TrxID.
+        transactionId: { type: String },
         verified: { type: Boolean, default: false },
         verifiedAt: Date,
     },
@@ -40,7 +54,7 @@ const storeOrderSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['PENDING_APPROVAL', 'FORWARDED', 'FORWARD_FAILED', 'CANCELLED'],
+        enum: ['PENDING_APPROVAL', 'APPROVED', 'CANCELLED'],
         default: 'PENDING_APPROVAL',
         index: true,
     },
@@ -50,11 +64,6 @@ const storeOrderSchema = new mongoose.Schema({
         enum: ['PLACED', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED'],
         default: 'PLACED',
     },
-    bkOrderId: String,
-    bkStatus: String,
-    bkError: String,
-    bkErrorDetail: String,
-    forwardedAt: Date,
     approvedBy: { type: mongoose.Schema.ObjectId, ref: 'User' },
     createdAt: { type: Date, default: Date.now },
 });

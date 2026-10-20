@@ -5,6 +5,7 @@ import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StorefrontIcon from '@mui/icons-material/Storefront';
+import { richTextToHtml } from '../../utils/richText';
 
 // Map icon-key strings (stored in DB) to MUI icon components
 const ICON_MAP = {
@@ -62,9 +63,10 @@ const HowToOrder = ({ steps = [] }) => {
                         <p className="font-display font-semibold text-slate-900 text-sm sm:text-base">
                             {step.title}
                         </p>
-                        <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
-                            {step.description}
-                        </p>
+                        <div
+                            className="text-xs sm:text-sm text-slate-500 rte-content"
+                            dangerouslySetInnerHTML={{ __html: richTextToHtml(step.description) }}
+                        />
                     </div>
                 ))}
             </div>

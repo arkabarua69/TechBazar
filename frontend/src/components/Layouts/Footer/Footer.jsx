@@ -46,12 +46,14 @@ const Footer = () => {
     const location = useLocation();
     const [adminRoute, setAdminRoute] = useState(false);
 
-    const { config } = useSiteConfig();
+    const { config, ready } = useSiteConfig();
     const footer = config.content?.footer || DEFAULT_SITE_CONFIG.content.footer;
     const columns = Array.isArray(footer.columns) ? footer.columns : [];
     const company = footer.company || {};
     const since = footer.since || 2007;
-    const brandName = config.branding?.name || company.name || 'Store';
+    // Blank until /siteconfig resolves so the placeholder "My Store" never
+    // flashes in the footer of a branded site.
+    const brandName = ready ? (config.branding?.name || company.name || 'Store') : '';
     const logoUrl = config.branding?.logoUrl;
     const currentYear = new Date().getFullYear();
     const copyrightYears = since && since < currentYear ? `${since} - ${currentYear}` : `${currentYear}`;

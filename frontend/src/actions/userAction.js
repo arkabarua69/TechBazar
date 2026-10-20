@@ -12,6 +12,9 @@ import {
     DELETE_USER_REQUEST, DELETE_USER_SUCCESS, DELETE_USER_FAIL,
     USER_DETAILS_REQUEST, USER_DETAILS_SUCCESS, USER_DETAILS_FAIL,
     ALL_USERS_FAIL, ALL_USERS_SUCCESS, ALL_USERS_REQUEST,
+    ADDRESSES_REQUEST, ADDRESSES_SUCCESS, ADDRESSES_FAIL,
+    ADDRESS_SAVE_REQUEST, ADDRESS_SAVE_SUCCESS, ADDRESS_SAVE_FAIL,
+    ADDRESS_DELETE_REQUEST, ADDRESS_DELETE_SUCCESS, ADDRESS_DELETE_FAIL,
 } from '../constants/userConstants';
 import axios from 'axios';
 import { getErrorMessage } from '../utils/errorUtils';
@@ -134,6 +137,50 @@ export const deleteUser = (id) => async (dispatch) => {
         dispatch({ type: DELETE_USER_SUCCESS, payload: data.success });
     } catch (error) {
         dispatch({ type: DELETE_USER_FAIL, payload: getErrorMessage(error) });
+    }
+};
+
+// ── Manage Addresses (saved delivery addresses) ─────────────────────────────
+
+export const myAddresses = () => async (dispatch) => {
+    try {
+        dispatch({ type: ADDRESSES_REQUEST });
+        const { data } = await axios.get('/api/v1/addresses');
+        dispatch({ type: ADDRESSES_SUCCESS, payload: data.addresses });
+    } catch (error) {
+        dispatch({ type: ADDRESSES_FAIL, payload: getErrorMessage(error) });
+    }
+};
+
+export const saveAddress = (addressData, id) => async (dispatch) => {
+    try {
+        dispatch({ type: ADDRESS_SAVE_REQUEST });
+        const { data } = id
+            ? await axios.put(`/api/v1/addresses/${id}`, addressData, jsonConfig)
+            : await axios.post('/api/v1/addresses', addressData, jsonConfig);
+        dispatch({ type: ADDRESS_SAVE_SUCCESS, payload: data.addresses });
+    } catch (error) {
+        dispatch({ type: ADDRESS_SAVE_FAIL, payload: getErrorMessage(error) });
+    }
+};
+
+export const deleteAddress = (id) => async (dispatch) => {
+    try {
+        dispatch({ type: ADDRESS_DELETE_REQUEST });
+        const { data } = await axios.delete(`/api/v1/addresses/${id}`);
+        dispatch({ type: ADDRESS_DELETE_SUCCESS, payload: data.addresses });
+    } catch (error) {
+        dispatch({ type: ADDRESS_DELETE_FAIL, payload: getErrorMessage(error) });
+    }
+};
+
+export const setDefaultAddress = (id) => async (dispatch) => {
+    try {
+        dispatch({ type: ADDRESS_SAVE_REQUEST });
+        const { data } = await axios.put(`/api/v1/addresses/${id}/default`, {}, jsonConfig);
+        dispatch({ type: ADDRESS_SAVE_SUCCESS, payload: data.addresses });
+    } catch (error) {
+        dispatch({ type: ADDRESS_SAVE_FAIL, payload: getErrorMessage(error) });
     }
 };
 

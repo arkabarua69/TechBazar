@@ -15,8 +15,8 @@ import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 // the `filter` query param); `view=online` switches to the classic table.
 // ─────────────────────────────────────────────────────────────────────────────
 const TABS = [
-    { id: 'store',  label: 'Store Orders',  hint: 'Guest checkout · verify TrxID', Icon: StorefrontIcon },
-    { id: 'online', label: 'Online Orders', hint: 'Account / cart checkout',       Icon: ReceiptLongIcon },
+    { id: 'store',  label: 'Store Orders',  hint: 'Guests only · verify TrxID', Icon: StorefrontIcon },
+    { id: 'online', label: 'Online Orders', hint: 'Accounts only · cart checkout',       Icon: ReceiptLongIcon },
 ];
 
 const Orders = () => {
@@ -55,7 +55,7 @@ const Orders = () => {
                             onClick={() => setView(id)}
                             aria-pressed={active}
                             className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-2.5 py-2.5 transition active:scale-[0.99] ${
-                                active ? 'bg-black text-white shadow-sm' : 'text-gray-600 hover:bg-white/70'
+                                active ? 'bg-[#E84B0F] text-white shadow-sm' : 'text-gray-600 hover:bg-white/70'
                             }`}
                         >
                             <Icon sx={{ fontSize: '18px' }} />

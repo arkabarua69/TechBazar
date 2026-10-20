@@ -31,6 +31,7 @@ import TextField from '@mui/material/TextField';
 import { NEW_REVIEW_RESET } from '../../constants/productConstants';
 import { addItemsToCart } from '../../actions/cartAction';
 import { getDiscount } from '../../utils/functions';
+import { richTextToHtml } from '../../utils/richText';
 import { addToWishlist, removeFromWishlist } from '../../actions/wishlistAction';
 import MetaData from '../Layouts/MetaData';
 import ProductCard from '../Home/ProductCard';
@@ -248,8 +249,11 @@ if (activeColor) lines.push(`Color: ${activeColor}`);
     const similarCategory = product?.category;
 
     useEffect(() => {
-        dispatch(getSimilarProducts(similarCategory));
-    }, [dispatch, product, similarCategory]);
+        // Runs only once the product (and therefore its category) is known —
+        // see getSimilarProducts: an undefined category means a wasted request.
+        if (similarCategory) dispatch(getSimilarProducts(similarCategory));
+        // eslint-disable-next-line
+    }, [dispatch, similarCategory]);
 
     // admin-editable delivery charges + whatsapp number
     useEffect(() => {
@@ -674,7 +678,10 @@ if (activeColor) lines.push(`Color: ${activeColor}`);
 
                                 <div className="p-4 sm:p-5">
                                     {activeTab === "description" && (
-                                        <p className="text-sm text-slate-600 leading-relaxed">{product.description}</p>
+                                        <div
+                                            className="text-sm text-slate-600 rte-content"
+                                            dangerouslySetInnerHTML={{ __html: richTextToHtml(product.description) }}
+                                        />
                                     )}
 
                                     {activeTab === "specifications" && (

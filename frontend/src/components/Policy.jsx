@@ -1,5 +1,6 @@
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { DEFAULT_SITE_CONFIG } from '../utils/siteConfig';
+import { richTextToHtml } from '../utils/richText';
 import MetaData from './Layouts/MetaData';
 
 const Policy = () => {
@@ -37,14 +38,29 @@ const Policy = () => {
                                 >
                                     {section.title}
                                 </h2>
-                                <ul className="flex flex-col gap-2">
-                                    {(section.body || []).map((line, j) => (
-                                        <li key={j} className="flex gap-2 text-xs sm:text-sm leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
-                                            <span style={{ color: 'var(--color-accent)', marginTop: '2px', flexShrink: 0 }}>•</span>
-                                            <span>{line}</span>
-                                        </li>
-                                    ))}
-                                </ul>
+                                {(() => {
+                                    const body = section.body || [];
+                                    const isRich = body.length === 1 && /<[a-z][\s\S]*>/i.test(body[0]);
+                                    if (isRich) {
+                                        return (
+                                            <div
+                                                className="text-xs sm:text-sm rte-content"
+                                                style={{ color: 'var(--color-text-secondary)' }}
+                                                dangerouslySetInnerHTML={{ __html: richTextToHtml(body[0]) }}
+                                            />
+                                        );
+                                    }
+                                    return (
+                                        <ul className="flex flex-col gap-2">
+                                            {body.map((line, j) => (
+                                                <li key={j} className="flex gap-2 text-xs sm:text-sm leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
+                                                    <span style={{ color: 'var(--color-accent)', marginTop: '2px', flexShrink: 0 }}>•</span>
+                                                    <span>{line}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    );
+                                })()}
                             </section>
                         ))
                     )}

@@ -7,10 +7,15 @@ const { notifyOrderEvent } = require('../utils/discordNotify');
 
 // Create New Order
 exports.newOrder = asyncErrorHandler(async (req, res, next) => {
-    const { shippingInfo, orderItems, paymentInfo, totalPrice } = req.body;
+    const body = req.body;
+    const { shippingInfo, orderItems, paymentInfo, totalPrice, paymentMethod } = body;
 
     if (!shippingInfo || !orderItems || !orderItems.length || !totalPrice) {
         return next(new ErrorHandler("Missing required order fields", 400));
+    }
+
+    if (!paymentInfo || !paymentInfo.id || !paymentInfo.status) {
+        return next(new ErrorHandler("Missing payment information", 400));
     }
 
     const orderExist = await Order.findOne({ paymentInfo });
@@ -23,7 +28,10 @@ exports.newOrder = asyncErrorHandler(async (req, res, next) => {
         orderItems,
         paymentInfo,
         totalPrice,
-        paidAt: Date.now(),
+        // COD is unpaid on placement — paidAt is only stamped when the money
+        // has actually been received (bKash / Nagad advance payments).
+        ...(paymentMethod === "COD" ? {} : { paidAt: Date.now() }),
+        paymentMethod: paymentMethod || "COD",
         user: req.user._id,
     });
 
@@ -70,7 +78,7 @@ exports.getSingleOrderDetails = asyncErrorHandler(async (req, res, next) => {
 
 // Get Logged-In User's Orders
 exports.myOrders = asyncErrorHandler(async (req, res, next) => {
-    const orders = await Order.find({ user: req.user._id });
+    const orders = await Order.find({ user: req.user._id }).sort('-createdAt');
     res.status(200).json({
         success: true,
         orders,
@@ -79,7 +87,8 @@ exports.myOrders = asyncErrorHandler(async (req, res, next) => {
 
 // Get All Orders — ADMIN
 exports.getAllOrders = asyncErrorHandler(async (req, res, next) => {
-    const orders = await Order.find();
+    // Newest first + buyer details so the admin list can show name/email.
+    const orders = await Order.find().sort('-createdAt').populate('user', 'name email avatar');
     const totalAmount = orders.reduce((sum, o) => sum + o.totalPrice, 0);
 
     res.status(200).json({

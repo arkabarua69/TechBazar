@@ -78,18 +78,26 @@ const DEFAULT_CONFIG = {
         subtitle: 'Limited stock — order fast',
         endsAt:   '23:59',
         note:     'Order before the offer ends',
+        // Products explicitly picked in Admin → Flash Sale (shown first, in
+        // this order). Any remaining slots are auto-filled with the
+        // lowest-stock in-stock products. Empty = fully automatic.
+        productIds: [],
+        // Per-product price/stock override used ONLY inside the flash-sale
+        // strip — the real product document is never modified.
+        // { "<productId>": { price, cuttedPrice, stock } }
+        overrides: {},
     },
     payment: {
-        bKashNumber: '01700000000',
-        nagadNumber: '01700000000',
+        bKashNumber: '01690148144',
+        nagadNumber: '01883800356',
     },
     delivery: {
         insideDhaka:  70,
         outsideDhaka: 130,
     },
     support: {
-        hotline:  '01700000000',
-        whatsapp: '8801700000000',
+        hotline:  '+8801580831611',
+        whatsapp: '8801580831611',
     },
     categories: ['Electronics','Mobiles','Laptops','Fashion','Appliances','Home'],
     // Optional custom image per category — { "Mobiles": "https://…" }.
@@ -106,18 +114,18 @@ const DEFAULT_CONFIG = {
         { name: 'Tanvir Ahmed',  district: 'Sylhet',     rating: 4, comment: 'The price is lower than other places and the product is original. Will order again, God willing.', image: '' },
     ],
     branding: {
-        name:       'My Store',
-        tagline:    'The best products at affordable prices',
+        name:       'GeForce HuB',
+        tagline:    'Smart Gadgets, Trendy Apparels & Best Deals Online',
         logoUrl:    '',
         faviconUrl: '',
     },
     seo: {
-        titleTemplate: '%s | My Store',
+        titleTemplate: '%s | GeForce HuB',
         // Full default title for the homepage (browser tab + social previews).
         // Mirrored from WebsiteConfig.general.siteTitle; empty means "use the
         // page's own title / brand name".
         siteTitle:     '',
-        description:   'My Store — shop the latest products at affordable prices with cash on delivery nationwide.',
+        description:   'Shop the latest trendy clothing, glossy bodysuits, premium hoodies, and smart gadgets at unbeatable prices in Bangladesh. Enjoy fast delivery and secure checkout.',
         // Open Graph / social-share settings. Mirrored from the admin
         // WebsiteConfig → SEO section by websiteConfigController.
         siteUrl:       '',
@@ -244,6 +252,10 @@ const siteConfigSchema = new mongoose.Schema({
         subtitle: { type: String,  default: DEFAULT_CONFIG.flashSale.subtitle },
         endsAt:   { type: String,  default: DEFAULT_CONFIG.flashSale.endsAt },
         note:     { type: String,  default: DEFAULT_CONFIG.flashSale.note },
+        productIds: { type: [String], default: () => [] },
+        // { "<productId>": { price, cuttedPrice, stock } } — Mixed keeps the
+        // arbitrary key set simple.
+        overrides: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
     },
     howToOrder: {
         type: [{ icon: String, title: String, description: String }],

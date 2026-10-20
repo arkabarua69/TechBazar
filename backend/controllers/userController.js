@@ -189,7 +189,124 @@ exports.updateProfile = asyncErrorHandler(async (req, res, next) => {
     res.status(200).json({ success: true });
 });
 
-// Get All Users — ADMIN
+// ── Manage Addresses ─────────────────────────────────────────────────────────
+// Saved delivery addresses on the logged-in user's profile. Used by the
+// Account → Manage Addresses tab and (optionally) pre-filled at checkout.
+
+// List the logged-in user's addresses
+exports.getMyAddresses = asyncErrorHandler(async (req, res, next) => {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+        return next(new ErrorHandler('User not found', 404));
+    }
+    res.status(200).json({ success: true, addresses: user.addresses || [] });
+});
+
+// Add a new address
+exports.addAddress = asyncErrorHandler(async (req, res, next) => {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+        return next(new ErrorHandler('User not found', 404));
+    }
+
+    const {
+        fullName = '', phoneNo = '', address = '', city = '',
+        state = '', pincode = '', country = 'Bangladesh', label = 'Home',
+    } = req.body || {};
+
+    if (!address.trim() || !city.trim()) {
+        return next(new ErrorHandler('Address and city are required', 400));
+    }
+
+    const makeDefault = Boolean(req.body.isDefault) || (user.addresses || []).length === 0;
+
+    // Only one default at a time.
+    if (makeDefault) {
+        (user.addresses || []).forEach((a) => { a.isDefault = false; });
+    }
+
+    user.addresses.push({
+        fullName, phoneNo, address, city, state, pincode, country, label,
+        isDefault: makeDefault,
+        createdAt: new Date(),
+    });
+
+    await user.save();
+
+    res.status(201).json({ success: true, addresses: user.addresses });
+});
+
+// Update an existing address
+exports.updateAddress = asyncErrorHandler(async (req, res, next) => {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+        return next(new ErrorHandler('User not found', 404));
+    }
+
+    const addr = (user.addresses || []).id(req.params.addressId);
+    if (!addr) {
+        return next(new ErrorHandler('Address not found', 404));
+    }
+
+    const fields = ['fullName', 'phoneNo', 'address', 'city', 'state', 'pincode', 'country', 'label'];
+    fields.forEach((f) => {
+        if (req.body[f] !== undefined) addr[f] = req.body[f];
+    });
+
+    if (req.body.isDefault === true) {
+        (user.addresses || []).forEach((a) => { a.isDefault = false; });
+        addr.isDefault = true;
+    }
+
+    await user.save();
+
+    res.status(200).json({ success: true, addresses: user.addresses });
+});
+
+// Delete an address
+exports.deleteAddress = asyncErrorHandler(async (req, res, next) => {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+        return next(new ErrorHandler('User not found', 404));
+    }
+
+    const addr = (user.addresses || []).id(req.params.addressId);
+    if (!addr) {
+        return next(new ErrorHandler('Address not found', 404));
+    }
+
+    const wasDefault = addr.isDefault;
+    addr.remove();
+
+    // If we removed the default, promote the first remaining address.
+    if (wasDefault && user.addresses.length > 0) {
+        user.addresses[0].isDefault = true;
+    }
+
+    await user.save();
+
+    res.status(200).json({ success: true, addresses: user.addresses });
+});
+
+// Make one address the default
+exports.setDefaultAddress = asyncErrorHandler(async (req, res, next) => {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+        return next(new ErrorHandler('User not found', 404));
+    }
+
+    const addr = (user.addresses || []).id(req.params.addressId);
+    if (!addr) {
+        return next(new ErrorHandler('Address not found', 404));
+    }
+
+    (user.addresses || []).forEach((a) => { a.isDefault = false; });
+    addr.isDefault = true;
+
+    await user.save();
+
+    res.status(200).json({ success: true, addresses: user.addresses });
+});
 exports.getAllUsers = asyncErrorHandler(async (req, res, next) => {
     const users = await User.find();
     res.status(200).json({ success: true, users });
@@ -210,6 +327,7 @@ exports.updateUserRole = asyncErrorHandler(async (req, res, next) => {
         name: req.body.name,
         email: req.body.email,
         gender: req.body.gender,
+        phone: req.body.phone,
         role: req.body.role,
     };
 
@@ -234,6 +352,32 @@ exports.updateUserRole = asyncErrorHandler(async (req, res, next) => {
     }).catch(() => {});
 
     res.status(200).json({ success: true });
+});
+
+// Grant/revoke Cash on Delivery for one user — ADMIN
+// (Admin → Users → COD toggle. The guest checkout can never use COD;
+// only logged-in users with this flag — or admins — can.)
+exports.updateCodAllowed = asyncErrorHandler(async (req, res, next) => {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+        return next(new ErrorHandler(`User not found with id: ${req.params.id}`, 404));
+    }
+
+    user.codAllowed = req.body.codAllowed === true;
+    await user.save({ validateBeforeSave: false });
+
+    logEvent('user_cod_toggled', {
+        title: '💵 COD permission updated',
+        color: 0xf59e0b,
+        fields: [
+            { name: '👤 User', value: user.name || '—', inline: true },
+            { name: '📧 Email', value: user.email || '—', inline: true },
+            { name: '💵 COD', value: user.codAllowed ? 'Enabled' : 'Disabled', inline: true },
+            { name: '🛠️ By', value: req.user?.email || 'admin', inline: true },
+        ],
+    }).catch(() => {});
+
+    res.status(200).json({ success: true, codAllowed: user.codAllowed });
 });
 
 // Delete User — ADMIN

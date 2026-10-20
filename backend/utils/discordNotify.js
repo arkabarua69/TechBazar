@@ -288,8 +288,7 @@ const notifyOrderEvent = (kind, order = {}, extra = {}) => {
         created: { title: '🛒 New order received', color: 0x22c55e },
         cancelled: { title: '❌ Order cancelled', color: 0xef4444 },
         status: { title: '📦 Order status updated', color: 0x3b82f6 },
-        forwarded: { title: '🚚 Order forwarded', color: 0x8b5cf6 },
-        failed: { title: '⚠️ Order forwarding failed', color: 0xef4444 },
+        approved: { title: '👍 Order approved', color: 0x22c55e },
         payment_verified: { title: '✅ Payment verified', color: 0x22c55e },
     }[kind] || { title: `Order event: ${kind}`, color: BRAND_COLOR };
 

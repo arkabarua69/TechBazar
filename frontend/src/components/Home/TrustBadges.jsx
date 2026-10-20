@@ -6,6 +6,7 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import SecurityIcon from '@mui/icons-material/Security';
 import StarIcon from '@mui/icons-material/Star';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { richTextToHtml } from '../../utils/richText';
 
 // Map icon-key strings (stored in DB) to MUI icon components
 const ICON_MAP = {
@@ -50,9 +51,11 @@ const TrustBadges = ({ badges = [] }) => {
                     <p className="font-display font-semibold text-sm sm:text-base" style={{ color: 'var(--color-text-primary)' }}>
                         {badge.title}
                     </p>
-                    <p className="text-xs leading-snug" style={{ color: 'var(--color-text-muted)' }}>
-                        {badge.description}
-                    </p>
+                    <div
+                        className="text-xs leading-snug rte-content"
+                        style={{ color: 'var(--color-text-muted)' }}
+                        dangerouslySetInnerHTML={{ __html: richTextToHtml(badge.description) }}
+                    />
                 </div>
             ))}
         </section>

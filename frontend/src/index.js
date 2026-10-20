@@ -8,6 +8,7 @@ import store from './store';
 import { SnackbarProvider } from 'notistack';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { LanguageProvider } from './i18n/LanguageContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Match MUI components (forms, DataGrid, buttons) to the site's `primary-blue`
 const theme = createTheme({
@@ -29,7 +30,10 @@ ReactDOM.render(
            <LanguageProvider>
              <Router>
                <ThemeProvider theme={theme}>
-                 <App />
+                 {/* Catches render errors anywhere in the app — without it a single thrown error blanks the entire page. */}
+                  <ErrorBoundary>
+                    <App />
+                  </ErrorBoundary>
                </ThemeProvider>
              </Router>
            </LanguageProvider>

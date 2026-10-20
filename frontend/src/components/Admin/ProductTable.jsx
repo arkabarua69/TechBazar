@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
-import { DataGrid } from '@mui/x-data-grid';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 import { Link } from 'react-router-dom';
-import useMediaQuery from '@mui/material/useMediaQuery';
 import axios from 'axios';
 import { clearErrors, deleteProduct, getAdminProducts } from '../../actions/productAction';
 import Rating from '@mui/material/Rating';
@@ -15,18 +13,32 @@ import BottomSheet from './BottomSheet';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import DownloadIcon from '@mui/icons-material/Download';
 import { shortOrderId } from '../../utils/adminHelpers';
+import { buildCsv, downloadCsv } from '../../utils/csv';
 
 const ProductTable = () => {
 
     const dispatch = useDispatch();
     const { enqueueSnackbar } = useSnackbar();
 
-    const isMobile = useMediaQuery('(max-width:639px)');
-
     const { products, error } = useSelector((state) => state.products);
     const { loading, isDeleted, error: deleteError } = useSelector((state) => state.product);
+
+    // Product descriptions are rich text — strip the markup for CSV cells.
+    const stripHtml = (value) =>
+        String(value || '')
+            .replace(/<\/p>\s*<p>/gi, ' ')
+            .replace(/<\s*br\s*\/?>/gi, ' ')
+            .replace(/<[^>]*>/g, '')
+            .replace(/&nbsp;/gi, ' ')
+            .replace(/&amp;/gi, '&')
+            .replace(/&lt;/gi, '<')
+            .replace(/&gt;/gi, '>')
+            .replace(/&quot;/gi, '"')
+            .replace(/&#39;/gi, "'")
+            .replace(/\s+/g, ' ')
+            .trim();
 
     useEffect(() => {
         if (error) {
@@ -63,136 +75,6 @@ const ProductTable = () => {
         }
     }
 
-    const columns = [
-        {
-            field: "id",
-            headerName: "Product ID",
-            minWidth: 100,
-            flex: 0.5,
-        },
-        {
-            field: "name",
-            headerName: "Name",
-            minWidth: 200,
-            flex: 1,
-            renderCell: (params) => {
-                return (
-                    <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-full">
-                            <img draggable="false" src={params.row.image} alt={params.row.name} className="w-full h-full rounded-full object-contain" />
-                        </div>
-                        {params.row.name}
-                    </div>
-                )
-            },
-        },
-        {
-            field: "category",
-            headerName: "Category",
-            minWidth: 100,
-            flex: 0.1,
-        },
-        {
-            field: "stock",
-            headerName: "Stock",
-            type: "number",
-            headerAlign: "left",
-            align: "left",
-            minWidth: 70,
-            flex: 0.1,
-            renderCell: (params) => {
-                return (
-                    <>
-                        {
-                            params.row.stock < 10 ? (
-                                <span className="font-medium text-red-700 rounded-full bg-red-200 p-1 w-6 h-6 flex items-center justify-center">{params.row.stock}</span>
-                            ) : (
-                                <span className="">{params.row.stock}</span>
-                            )
-                        }
-                    </>
-                )
-            },
-        },
-        {
-            field: "price",
-            headerName: "Price",
-            type: "number",
-            minWidth: 100,
-            headerAlign: "left",
-            align: "left",
-            flex: 0.2,
-            renderCell: (params) => {
-                return (
-                    <span>Tk {params.row.price.toLocaleString()}</span>
-                );
-            },
-        },
-        {
-            field: "cprice",
-            headerName: "Cutted Price",
-            type: "number",
-            minWidth: 100,
-            headerAlign: "left",
-            align: "left",
-            flex: 0.2,
-            renderCell: (params) => {
-                return (
-                    <span>Tk {params.row.cprice.toLocaleString()}</span>
-                );
-            },
-        },
-        {
-            field: "rating",
-            headerName: "Rating",
-            type: "number",
-            minWidth: 100,
-            flex: 0.1,
-            align: "left",
-            headerAlign: "left",
-            renderCell: (params) => {
-                return <Rating readOnly value={params.row.rating} size="small" precision={0.5} />
-            }
-        },
-        {
-            field: "featured",
-            headerName: "Featured",
-            minWidth: 110,
-            flex: 0.3,
-            sortable: false,
-            renderCell: (params) => {
-                return (
-                    <button
-                        onClick={() => toggleFeaturedHandler(params.row.id)}
-                        disabled={togglingId === params.row.id}
-                        title={params.row.featured ? "Remove from homepage Featured section" : "Show first in homepage Featured section"}
-                        className={`text-xs rounded px-2 py-1 font-medium disabled:opacity-50 ${
-                            params.row.featured
-                                ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
-                                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                        }`}>
-                        {params.row.featured
-                            ? <span className="inline-flex items-center gap-1"><StarIcon sx={{ fontSize: '14px' }} /> Featured</span>
-                            : <span className="inline-flex items-center gap-1"><StarBorderIcon sx={{ fontSize: '14px' }} /> Feature</span>}
-                    </button>
-                );
-            },
-        },
-        {
-            field: "actions",
-            headerName: "Actions",
-            minWidth: 100,
-            flex: 0.3,
-            type: "number",
-            sortable: false,
-            renderCell: (params) => {
-                return (
-                    <Actions editRoute={"product"} deleteHandler={deleteProductHandler} id={params.row.id} />
-                );
-            },
-        },
-    ];
-
     const rows = [];
 
     products && products.forEach((item) => {
@@ -213,6 +95,53 @@ const ProductTable = () => {
     // Mobile bottom-sheet for product details
     const [sheetId, setSheetId] = useState(null);
     const sheetRow = rows.find((r) => r.id === sheetId) || null;
+
+    // ── CSV export ──────────────────────────────────────────────
+    // The full catalogue is exported (every product field), independent of
+    // whatever the table currently filters/sorts.
+    const [exporting, setExporting] = useState(false);
+    const exportCsvHandler = () => {
+        if (!products?.length) {
+            enqueueSnackbar('No products to export', { variant: 'warning' });
+            return;
+        }
+        setExporting(true);
+        try {
+            const columns = [
+                { header: 'Product ID', get: (p) => p._id },
+                { header: 'Name', get: (p) => p.name },
+                { header: 'Description', get: (p) => stripHtml(p.description) },
+                { header: 'Category', get: (p) => p.category },
+                { header: 'Brand', get: (p) => p.brand?.name },
+                { header: 'Price', get: (p) => p.price },
+                { header: 'Cutted Price', get: (p) => p.cuttedPrice },
+                { header: 'Stock', get: (p) => p.stock },
+                { header: 'Warranty (months)', get: (p) => p.warranty },
+                { header: 'Colors', get: (p) => (p.colors || []).join(' | ') },
+                { header: 'Sizes', get: (p) => (p.sizes || []).join(' | ') },
+                { header: 'In the Box', get: (p) => (p.inTheBox || []).join(' | ') },
+                { header: 'Highlights', get: (p) => (p.highlights || []).join(' | ') },
+                { header: 'Specifications', get: (p) => (p.specifications || []).filter(s => s.title || s.description).map((s) => [s.title, s.description].filter(Boolean).join(': ')).join(' | ') },
+                { header: 'Featured', get: (p) => (p.featured ? 'Yes' : 'No') },
+                { header: 'Rating', get: (p) => p.ratings },
+                { header: 'Num of Reviews', get: (p) => p.numOfReviews },
+                { header: 'Image URLs', get: (p) => (p.images || []).map((i) => i.url).filter(Boolean).join(' | ') },
+                { header: 'Created At', get: (p) => (p.createdAt ? new Date(p.createdAt).toLocaleString() : '') },
+            ];
+
+            // Oldest → newest so the export reads chronologically.
+            const ordered = [...products].sort(
+                (a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
+            );
+
+            const csv = buildCsv(columns, ordered);
+            const stamp = new Date().toISOString().slice(0, 10);
+            downloadCsv(`products-${stamp}.csv`, csv);
+            enqueueSnackbar(`Exported ${ordered.length} product${ordered.length === 1 ? '' : 's'}`, { variant: 'success' });
+        } finally {
+            setExporting(false);
+        }
+    };
 
     // Quick catalog stats for the header strip
     const stats = {
@@ -240,12 +169,24 @@ const ProductTable = () => {
                             <p className="text-xs text-gray-500">{stats.total} product{stats.total === 1 ? '' : 's'} in your catalog</p>
                         </div>
                     </div>
-                    <Link
-                        to="/admin/new_product"
-                        className="inline-flex items-center gap-1.5 bg-[#E84B0F] hover:bg-[#C63E0A] text-white rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm active:scale-95 transition"
-                    >
-                        <span className="text-base leading-none">+</span> New Product
-                    </Link>
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={exportCsvHandler}
+                            disabled={exporting || stats.total === 0}
+                            title="Download the full catalogue as a CSV file"
+                            className="inline-flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold shadow-sm active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <DownloadIcon sx={{ fontSize: '1.05rem' }} />
+                            <span>Export CSV</span>
+                        </button>
+                        <Link
+                            to="/admin/new_product"
+                            className="inline-flex items-center gap-1.5 bg-[#E84B0F] hover:bg-[#C63E0A] text-white rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm active:scale-95 transition"
+                        >
+                            <span className="text-base leading-none">+</span> New Product
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Stats strip */}
@@ -264,133 +205,115 @@ const ProductTable = () => {
                 </div>
             </div>
 
-            {/* ===== MOBILE: card-based app layout (no horizontal scroll) ===== */}
-            <div className="sm:hidden flex flex-col gap-3">
+            {/* ===== PRODUCTS: card grid (mobile → tablet → desktop) ===== */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                 {rows.length === 0 && !loading && (
-                    <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-8 text-center text-gray-400 text-sm">
+                    <div className="col-span-full bg-white rounded-2xl border border-dashed border-gray-300 p-8 text-center text-gray-400 text-sm">
                         No products found.
                     </div>
                 )}
-                {rows.map((product) => (
-                    <article key={product.id} className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden ring-1 ring-black/[0.02] active:scale-[0.995] transition-transform">
-                        {/* card header: image + name + rating + stock */}
-                        <div className="flex items-start gap-3 p-3">
-                            <div className="relative shrink-0">
+                {rows.map((product) => {
+                    const off = product.cprice > product.price
+                        ? Math.round(((product.cprice - product.price) / product.cprice) * 100)
+                        : 0;
+                    return (
+                        <article
+                            key={product.id}
+                            className="group bg-white rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-md hover:border-gray-300 overflow-hidden ring-1 ring-black/[0.02] transition-all flex"
+                        >
+                            {/* LEFT: product image */}
+                            <div
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => setSheetId(product.id)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') setSheetId(product.id); }}
+                                className="relative shrink-0 w-[38%] max-w-[160px] min-w-[104px] bg-gradient-to-br from-gray-50 to-white border-r border-gray-100 cursor-pointer flex items-center justify-center p-3"
+                            >
                                 <img
                                     draggable="false"
                                     src={product.image}
                                     alt={product.name}
-                                    className="w-16 h-16 object-contain rounded-xl border border-gray-100 bg-gray-50"
+                                    className="max-h-[112px] max-w-full object-contain group-hover:scale-[1.05] transition-transform duration-300"
                                 />
-                                {product.cprice > product.price && (
-                                    <span className="absolute -top-1.5 -left-1.5 text-[10px] font-bold bg-[#E84B0F] text-white px-1.5 py-0.5 rounded-full shadow-sm">
-                                        -{Math.round(((product.cprice - product.price) / product.cprice) * 100)}%
+                                {off > 0 && (
+                                    <span className="absolute top-2 left-2 text-[10px] font-bold bg-[#E84B0F] text-white px-2 py-0.5 rounded-full shadow-sm">
+                                        -{off}%
+                                    </span>
+                                )}
+                                {product.stock <= 0 && (
+                                    <span className="absolute bottom-2 left-2 text-[10px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
+                                        Out of stock
                                     </span>
                                 )}
                             </div>
-                            <div className="min-w-0 flex-1">
-                                <p className="font-semibold text-gray-900 text-sm leading-snug line-clamp-2">{product.name}</p>
-                                <p className="text-[11px] text-gray-400 mt-1">#{shortOrderId(product.id)}</p>
-                                <div className="flex items-center gap-1 mt-1">
-                                    <Rating readOnly value={product.rating} size="small" precision={0.5} sx={{ fontSize: '0.95rem' }} />
-                                    <span className="text-[11px] text-gray-500">{(product.rating || 0).toFixed(1)}</span>
+
+                            {/* RIGHT: details + actions */}
+                            <div className="flex flex-col flex-1 min-w-0">
+                                {/* details */}
+                                <div
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => setSheetId(product.id)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') setSheetId(product.id); }}
+                                    className="flex flex-col flex-1 p-3 gap-1.5 cursor-pointer"
+                                >
+                                    <div className="min-w-0">
+                                        <p className="font-semibold text-gray-900 text-sm leading-snug line-clamp-2">{product.name || '—'}</p>
+                                        <p className="text-[11px] text-gray-400 mt-0.5">#{shortOrderId(product.id)}</p>
+                                    </div>
+
+                                    <div className="flex items-center gap-1">
+                                        <Rating readOnly value={product.rating} size="small" precision={0.5} sx={{ fontSize: '0.9rem' }} />
+                                        <span className="text-[11px] text-gray-500">{(product.rating || 0).toFixed(1)}</span>
+                                        {product.category && (
+                                            <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full truncate max-w-[45%] ml-auto">{product.category}</span>
+                                        )}
+                                    </div>
+
+                                    <div className="flex flex-nowrap items-baseline gap-1.5 mt-auto pt-1 min-w-0">
+                                        <span className="font-extrabold text-gray-900 text-base whitespace-nowrap shrink-0">Tk {(product.price || 0).toLocaleString()}</span>
+                                        {product.cprice > product.price && (
+                                            <span className="text-xs text-gray-400 line-through whitespace-nowrap truncate">{product.cprice.toLocaleString()}</span>
+                                        )}
+                                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-auto whitespace-nowrap shrink-0 ${
+                                            product.stock <= 0
+                                                ? 'bg-red-100 text-red-700'
+                                                : product.stock < 10
+                                                    ? 'bg-orange-100 text-orange-700'
+                                                    : 'bg-green-100 text-green-700'
+                                        }`}>
+                                            {product.stock <= 0 ? 'Out of stock' : `${product.stock} in stock`}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* footer: featured toggle + actions */}
+                                <div className="flex items-center justify-between px-3 py-2 border-t border-gray-100 bg-gray-50/70">
+                                    <button
+                                        onClick={() => toggleFeaturedHandler(product.id)}
+                                        disabled={togglingId === product.id}
+                                        title={product.featured ? "Remove from homepage Featured section" : "Show first in homepage Featured section"}
+                                        className={`text-xs rounded-full px-2.5 py-1 font-medium disabled:opacity-50 transition-colors ${
+                                            product.featured
+                                                ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                                                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                                        }`}
+                                    >
+                                        {product.featured
+                                            ? <span className="inline-flex items-center gap-1"><StarIcon sx={{ fontSize: '14px' }} /> Featured</span>
+                                            : <span className="inline-flex items-center gap-1"><StarBorderIcon sx={{ fontSize: '14px' }} /> Feature</span>}
+                                    </button>
+                                    <Actions
+                                        editRoute={"product"}
+                                        deleteHandler={deleteProductHandler}
+                                        id={product.id}
+                                        name={product.name}
+                                    />
                                 </div>
                             </div>
-
-                            {/* stock badge */}
-                            <span className={`shrink-0 text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap ${
-                                product.stock <= 0
-                                    ? 'bg-red-100 text-red-700'
-                                    : product.stock < 10
-                                        ? 'bg-orange-100 text-orange-700'
-                                        : 'bg-green-100 text-green-700'
-                            }`}>
-                                {product.stock <= 0 ? 'Out of stock' : `${product.stock} in stock`}
-                            </span>
-                        </div>
-
-                        {/* tappable body → details bottom sheet */}
-                        <div
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => setSheetId(product.id)}
-                            onKeyDown={(e) => { if (e.key === 'Enter') setSheetId(product.id); }}
-                            className="flex items-center justify-between gap-3 px-3 py-2.5 cursor-pointer active:bg-gray-50 transition-colors border-t border-gray-100"
-                        >
-                            <div className="flex items-baseline gap-2">
-                                <span className="font-extrabold text-gray-900 text-base">Tk {product.price.toLocaleString()}</span>
-                                {product.cprice > product.price && (
-                                    <span className="text-xs text-gray-400 line-through">Tk {product.cprice.toLocaleString()}</span>
-                                )}
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <span className="text-[11px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">{product.category}</span>
-                                <ChevronRightIcon sx={{ fontSize: '1.15rem' }} className="text-gray-400" />
-                            </div>
-                        </div>
-
-                        {/* featured toggle + actions */}
-                        <div className="flex items-center justify-between px-3 py-2 border-t border-gray-100 bg-gray-50/70">
-                            <button
-                                onClick={() => toggleFeaturedHandler(product.id)}
-                                disabled={togglingId === product.id}
-                                title={product.featured ? "Remove from homepage Featured section" : "Show first in homepage Featured section"}
-                                className={`text-xs rounded-full px-3 py-1 font-medium disabled:opacity-50 ${
-                                    product.featured
-                                        ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
-                                        : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                                }`}
-                            >
-                                {product.featured
-                                    ? <span className="inline-flex items-center gap-1"><StarIcon sx={{ fontSize: '14px' }} /> Featured</span>
-                                    : <span className="inline-flex items-center gap-1"><StarBorderIcon sx={{ fontSize: '14px' }} /> Feature</span>}
-                            </button>
-                            <Actions
-                                editRoute={"product"}
-                                deleteHandler={deleteProductHandler}
-                                id={product.id}
-                                name={product.name}
-                            />
-                        </div>
-                    </article>
-                ))}
-            </div>
-
-            {/* ===== DESKTOP: table (visible on sm+ screens) ===== */}
-            <div className="hidden sm:block bg-white rounded-2xl border border-gray-200/80 shadow-sm w-full overflow-hidden" style={{ height: 'min(560px, 68vh)' }}>
-                <DataGrid
-                    rows={rows}
-                    columns={columns}
-                    pageSize={10}
-                    rowsPerPageOptions={[10, 25, 50]}
-                    disableSelectIconOnClick
-                    disableRowSelectionOnClick
-                    columnVisibilityModel={isMobile ? { category: false, cprice: false, rating: false, featured: false } : {}}
-                    sx={{
-                        boxShadow: 0,
-                        border: 0,
-                        '& .MuiDataGrid-columnHeaders': {
-                            backgroundColor: '#fafafa',
-                            borderBottom: '1px solid #f0f0f0',
-                        },
-                        '& .MuiDataGrid-columnHeaderTitle': {
-                            fontWeight: 700,
-                            fontSize: '0.72rem',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.03em',
-                            color: '#6b7280',
-                        },
-                        '& .MuiDataGrid-cell': {
-                            borderBottom: '1px solid #f5f5f5',
-                        },
-                        '& .MuiDataGrid-row:hover': {
-                            backgroundColor: '#fff7f2',
-                        },
-                        '& .MuiDataGrid-footerContainer': {
-                            borderTop: '1px solid #f0f0f0',
-                        },
-                    }}
-                />
+                        </article>
+                    );
+                })}
             </div>
 
             {/* ===== Bottom sheet: product details (mobile) ===== */}

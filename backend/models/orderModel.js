@@ -1,6 +1,13 @@
 const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
+    // Human order reference built from the buyer's mobile number so the order
+    // can be matched against the number it was placed with:
+    // e.g. "8801580831611-4F2A". (Account orders only.)
+    orderId: {
+        type: String,
+        index: true,
+    },
     shippingInfo: {
         address: {
             type: String,
@@ -67,9 +74,17 @@ const orderSchema = new mongoose.Schema({
             required: true
         },
     },
+    // How the customer paid: COD / bKash / Nagad.
+    // ("Paytm" is kept in the enum only so legacy documents still load.)
+    paymentMethod: {
+        type: String,
+        enum: ["COD", "bKash", "Nagad", "Paytm"],
+    },
+    // Only set once the money has actually been received (bKash / Nagad
+    // advance). Cash-on-delivery orders are unpaid on placement, so this
+    // stays empty.
     paidAt: {
         type: Date,
-        required: true
     },
     totalPrice: {
         type: Number,

@@ -1,5 +1,5 @@
 import TextField from '@mui/material/TextField';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MenuItem from '@mui/material/MenuItem';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,6 +9,7 @@ import { REMOVE_PRODUCT_DETAILS, UPDATE_PRODUCT_RESET } from '../../constants/pr
 import { clearErrors, getProductDetails, updateProduct } from '../../actions/productAction';
 import ImgBBUploader from './ImgBBUploader';
 import MultiImageUploader from './MultiImageUploader';
+import RichTextEditor from './RichTextEditor';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import { useCategories } from '../../utils/useCategories';
 import MetaData from '../Layouts/MetaData';
@@ -46,6 +47,10 @@ const UpdateProduct = () => {
     const [images, setImages] = useState([]);
     const [logo, setLogo] = useState("");
 
+    // Snapshot of the loaded product — the submit handler compares against it
+    // to send only the fields the admin actually changed.
+    const productRef = useRef(null);
+
     const handleSpecsChange = (e) => {
         setSpecsInput({ ...specsInput, [e.target.name]: e.target.value });
     }
@@ -75,75 +80,102 @@ const UpdateProduct = () => {
     const newProductSubmitHandler = (e) => {
         e.preventDefault();
 
-        // required field checks
-        if (highlights.length <= 0) {
-            enqueueSnackbar("Add Highlights", { variant: "warning" });
-            return;
-        }
-        if (specs.length <= 1) {
-            enqueueSnackbar("Add Minimum 2 Specifications", { variant: "warning" });
-            return;
-        }
-
+        // Every field is optional. Only send what the admin actually filled
+        // in / changed so untouched fields keep their existing values
+        // (empty inputs must never blank out stored data).
         const formData = new FormData();
 
-        formData.set("name", name);
-        formData.set("description", description);
-        formData.set("price", price);
-        formData.set("cuttedPrice", cuttedPrice);
-        formData.set("category", category);
-        formData.set("stock", stock);
-        formData.set("warranty", warranty);
-        formData.set("brandname", brand);
-        formData.set("logo", logo);
+        const changed = (next, current) => String(next ?? '').trim() !== String(current ?? '').trim();
 
-        // Send the full (existing + new) hosted-URL list so the backend can
-        // preserve unchanged images and honour removals.
-        formData.set("images", JSON.stringify(images));
+        // Rich text is normalised to <p>…</p> by the editor, so compare the
+        // visible text — otherwise a plain-text description reads as "changed"
+        // on every save.
+        const textOf = (v) => String(v || '')
+            .replace(/<\/p>\s*<p>/gi, ' ')
+            .replace(/<\s*br\s*\/?>/gi, ' ')
+            .replace(/<[^>]*>/g, '')
+            .replace(/&nbsp;/gi, ' ')
+            .replace(/&amp;/gi, '&')
+            .replace(/&lt;/gi, '<')
+            .replace(/&gt;/gi, '>')
+            .replace(/&quot;/gi, '"')
+            .replace(/&#39;/gi, "'")
+            .replace(/\s+/g, ' ')
+            .trim();
 
-        highlights.forEach((h) => {
-            formData.append("highlights", h);
-        });
+        // Loaded specs carry a Mongo `_id`; ignore it when diffing so an
+        // untouched list isn't mistaken for a change.
+        const stripId = ({ title, description } = {}) => ({ title: title || '', description: description || '' });
 
-        colors.split(",").forEach((c) => {
-            const v = c.trim();
-            if (v) formData.append("colors", v);
-        });
+        const product = productRef.current;
 
-        sizes.split(",").forEach((s) => {
-            const v = s.trim();
-            if (v) formData.append("sizes", v);
-        });
+        if (changed(name, product?.name)) formData.set("name", name);
+        if (textOf(description) !== textOf(product?.description)) formData.set("description", description);
+        if (changed(price, product?.price)) formData.set("price", price);
+        if (changed(cuttedPrice, product?.cuttedPrice)) formData.set("cuttedPrice", cuttedPrice);
+        if (changed(category, product?.category)) formData.set("category", category);
+        if (changed(stock, product?.stock)) formData.set("stock", stock);
+        if (changed(warranty, product?.warranty)) formData.set("warranty", warranty);
+        if (changed(brand, product?.brand?.name)) formData.set("brandname", brand);
+        if (logo && logo !== product?.brand?.logo?.url) formData.set("logo", logo);
 
-        inTheBox.split(",").forEach((b) => {
-            const v = b.trim();
-            if (v) formData.append("inTheBox", v);
-        });
+        // Images: send the full list only when it actually differs from what
+        // the product currently has (so an untouched form is a no-op).
+        const currentImages = (product?.images || []).map((img) => img.url).filter(Boolean);
+        const imagesChanged = images.length !== currentImages.length || images.some((v, i) => v !== currentImages[i]);
+        if (imagesChanged) formData.set("images", JSON.stringify(images));
 
-        specs.forEach((s) => {
-            formData.append("specifications", JSON.stringify(s));
-        });
+        // List fields: only include when the admin touched them.
+        if (JSON.stringify(highlights) !== JSON.stringify(product?.highlights || [])) {
+            highlights.forEach((h) => formData.append("highlights", h));
+        }
+
+        const parseList = (value) => value.split(",").map((v) => v.trim()).filter(Boolean);
+        if (JSON.stringify(parseList(colors)) !== JSON.stringify(product?.colors || [])) {
+            parseList(colors).forEach((c) => formData.append("colors", c));
+        }
+        if (JSON.stringify(parseList(sizes)) !== JSON.stringify(product?.sizes || [])) {
+            parseList(sizes).forEach((s) => formData.append("sizes", s));
+        }
+        if (JSON.stringify(parseList(inTheBox)) !== JSON.stringify(product?.inTheBox || [])) {
+            parseList(inTheBox).forEach((b) => formData.append("inTheBox", b));
+        }
+
+        if (JSON.stringify(specs.map(stripId)) !== JSON.stringify((product?.specifications || []).map(stripId))) {
+            specs.forEach((s) => formData.append("specifications", JSON.stringify(s)));
+        }
 
         dispatch(updateProduct(params.id, formData));
     }
 
     const productId = params.id;
 
-    useEffect(() => {
+    // The product object we last hydrated the form from. Because Redux hands
+    // out a new object only when the product is (re)fetched, comparing by
+    // reference lets us refill the form after a refetch without clobbering
+    // the admin's in-progress edits on ordinary re-renders.
+    const hydratedIdRef = useRef(null);
 
-        if (product && product._id !== productId) {
+    useEffect(() => {
+        const loaded = product && product._id === productId;
+
+        if (!loaded) {
             dispatch(getProductDetails(productId));
-        } else {
-            setName(product.name);
-            setDescription(product.description);
-            setPrice(product.price);
-            setCuttedPrice(product.cuttedPrice);
-            setCategory(product.category);
-            setStock(product.stock);
-            setWarranty(product.warranty);
-            setBrand(product.brand.name);
-            setHighlights(product.highlights);
-            setSpecs(product.specifications);
+        } else if (hydratedIdRef.current !== product) {
+            // Hydrate whenever a *new* product object arrives (not merely a
+            // re-render), so a refetch after an update still fills the form.
+            hydratedIdRef.current = product;
+            productRef.current = product;
+            setName(product.name ?? "");
+            setDescription(product.description ?? "");
+            setPrice(product.price ?? 0);
+            setCuttedPrice(product.cuttedPrice ?? 0);
+            setCategory(product.category ?? "");
+            setStock(product.stock ?? 0);
+            setWarranty(product.warranty ?? 0);
+            setBrand(product.brand?.name ?? "");
+            setHighlights(product.highlights || []);
+            setSpecs(product.specifications || []);
             setColors(product.colors?.join(", ") || "");
             setSizes(product.sizes?.join(", ") || "");
             setInTheBox(product.inTheBox?.join(", ") || "");
@@ -181,19 +213,14 @@ const UpdateProduct = () => {
                         label="Name"
                         variant="outlined"
                         size="small"
-                        required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                     />
-                    <TextField
+                    <RichTextEditor
                         label="Description"
-                        multiline
-                        rows={3}
-                        required
-                        variant="outlined"
-                        size="small"
                         value={description}
-                        onChange={(e) => setDescription(e.target.value)}
+                        onChange={setDescription}
+                        placeholder="Describe the product…"
                     />
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch">
                         <TextField
@@ -207,7 +234,6 @@ const UpdateProduct = () => {
                                     min: 0
                                 }
                             }}
-                            required
                             value={price}
                             onChange={(e) => setPrice(e.target.value)}
                         />
@@ -222,7 +248,6 @@ const UpdateProduct = () => {
                                     min: 0
                                 }
                             }}
-                            required
                             value={cuttedPrice}
                             onChange={(e) => setCuttedPrice(e.target.value)}
                         />
@@ -234,7 +259,6 @@ const UpdateProduct = () => {
                             fullWidth
                             variant="outlined"
                             size="small"
-                            required
                             value={category}
                             onChange={(e) => setCategory(e.target.value)}
                         >
@@ -255,7 +279,6 @@ const UpdateProduct = () => {
                                     min: 0
                                 }
                             }}
-                            required
                             value={stock}
                             onChange={(e) => setStock(e.target.value)}
                         />
@@ -270,7 +293,6 @@ const UpdateProduct = () => {
                                     min: 0
                                 }
                             }}
-                            required
                             value={warranty}
                             onChange={(e) => setWarranty(e.target.value)}
                         />
@@ -335,7 +357,6 @@ const UpdateProduct = () => {
                             variant="outlined"
                             size="small"
                             fullWidth
-                            required
                             value={brand}
                             onChange={(e) => setBrand(e.target.value)}
                         />

@@ -17,13 +17,20 @@ import { getErrorMessage } from "../utils/errorUtils";
 const jsonConfig = { headers: { "Content-Type": "application/json" } };
 
 export const getProducts =
-    (keyword = "", category, price = [0, 200000], ratings = 0, currentPage = 1) =>
+    (keyword = "", category, price = [0, 200000], ratings = 0, currentPage = 1, availability = "") =>
     async (dispatch) => {
         try {
             dispatch({ type: ALL_PRODUCTS_REQUEST });
             let url = `/api/v1/products?keyword=${keyword}&price[gte]=${price[0]}&price[lte]=${price[1]}&ratings[gte]=${ratings}&page=${currentPage}`;
             if (category) {
                 url += `&category=${encodeURIComponent(category)}`;
+            }
+            // Server-side availability filter so it spans every page, not just
+            // the current one:  "in"  → stock >= 1,  "out" → stock <= 0.
+            if (availability === "in") {
+                url += `&stock[gte]=1`;
+            } else if (availability === "out") {
+                url += `&stock[lte]=0`;
             }
             const { data } = await axios.get(url);
             dispatch({ type: ALL_PRODUCTS_SUCCESS, payload: data });
@@ -33,6 +40,10 @@ export const getProducts =
     };
 
 export const getSimilarProducts = (category) => async (dispatch) => {
+    // productDetails starts out empty, so the first render has no category —
+    // without this guard we'd request `/products?category=undefined` (404-ish
+    // empty result) on every product page load.
+    if (!category) return;
     try {
         dispatch({ type: ALL_PRODUCTS_REQUEST });
         const { data } = await axios.get(`/api/v1/products?category=${encodeURIComponent(category)}`);

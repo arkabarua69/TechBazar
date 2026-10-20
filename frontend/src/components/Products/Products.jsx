@@ -243,11 +243,15 @@ const Products = () => {
     const keyword = params.keyword;
 
     useEffect(() => { setSearchInput(keyword || ''); }, [keyword]);
+    // "in"/"out" availability is applied server-side (see productAction.getProducts)
+    // so the result set spans every page, not just the one being viewed.
+    const availability = inStock ? 'in' : outOfStockFilter ? 'out' : '';
     useEffect(() => {
         if (error) { enqueueSnackbar(error, { variant: 'error' }); dispatch(clearErrors()); }
-        dispatch(getProducts(keyword, category, price, ratings, currentPage));
-    }, [dispatch, keyword, category, price, ratings, currentPage, error, enqueueSnackbar]);
-    useEffect(() => { setCurrentPage(1); }, [keyword, category, price, ratings]);
+        dispatch(getProducts(keyword, category, price, ratings, currentPage, availability));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [dispatch, keyword, category, price, ratings, currentPage, availability, error, enqueueSnackbar]);
+    useEffect(() => { setCurrentPage(1); }, [keyword, category, price, ratings, inStock, outOfStockFilter]);
 
     const clearFilters = () => {
         setPrice([0, 200000]); setPriceInputMin(''); setPriceInputMax('');
@@ -269,14 +273,14 @@ const Products = () => {
 
     const sortedProducts = useMemo(() => {
         let list = [...(products || [])];
-        if (inStock) list = list.filter(p => (p.stock || 0) > 0);
-        if (outOfStockFilter) list = list.filter(p => (p.stock || 0) === 0);
+        // Availability is already filtered server-side, so only sorting is
+        // applied here (keeps the count and pagination accurate).
         if (sort === 'price-asc')  list.sort((a, b) => (a.price || 0) - (b.price || 0));
         if (sort === 'price-desc') list.sort((a, b) => (b.price || 0) - (a.price || 0));
         if (sort === 'rating')     list.sort((a, b) => (b.ratings || 0) - (a.ratings || 0));
         if (sort === 'newest')     list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         return list;
-    }, [products, sort, inStock, outOfStockFilter]);
+    }, [products, sort]);
 
     const count = filteredProductsCount ?? products?.length ?? 0;
 
@@ -304,9 +308,11 @@ const Products = () => {
 
             {/* Availability */}
             <FilterSection title="Availability">
-                <CheckRow label="In stock" checked={inStock} onChange={e => setInStock(e.target.checked)} />
+                <CheckRow label="In stock" checked={inStock}
+                    onChange={e => { setInStock(e.target.checked); if (e.target.checked) setOutOfStockFilter(false); }} />
                 <CheckRow label="Pre-book" checked={preBook} onChange={e => setPreBook(e.target.checked)} />
-                <CheckRow label="Out of stock" checked={outOfStockFilter} onChange={e => setOutOfStockFilter(e.target.checked)} />
+                <CheckRow label="Out of stock" checked={outOfStockFilter}
+                    onChange={e => { setOutOfStockFilter(e.target.checked); if (e.target.checked) setInStock(false); }} />
             </FilterSection>
 
             {/* Category */}

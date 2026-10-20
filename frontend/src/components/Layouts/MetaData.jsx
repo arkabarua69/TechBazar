@@ -40,7 +40,11 @@ const MetaData = ({ title, description, image, type, url }) => {
             ? (template.includes('%s') ? template.replace('%s', clean) : clean)
             : defaultTitle;
 
-    const metaDescription = String(description || seo.description || '').replace(/\s+/g, ' ').trim().slice(0, 300);
+    const metaDescription = String(description || seo.description || '')
+        .replace(/<[^>]*>/g, ' ')   // SEO description is rich-text editable; strip tags
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 300);
 
     // Uploaded OG image wins; fall back to the page image, hero banner, logo.
     const heroBanner = (config.hero?.banners || [])

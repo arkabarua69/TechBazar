@@ -41,3 +41,21 @@ exports.authorizeRoles = (...roles) => {
         next();
     }
 }
+
+// Like isAuthenticatedUser but never blocks the request: a valid token attaches
+// req.user, otherwise the request continues as a guest (req.user stays null).
+// Used by the checkout endpoint so logged-in buyers get an account order while
+// guests still get a guest order — one endpoint, two order types.
+exports.optionalAuth = asyncErrorHandler(async (req, res, next) => {
+    const { token } = req.cookies || {};
+    if (!token) return next();
+
+    try {
+        const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decodedData.id);
+        if (user) req.user = user;
+    } catch (err) {
+        // invalid / expired token → treat as guest, don't block checkout
+    }
+    next();
+});

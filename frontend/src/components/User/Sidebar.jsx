@@ -108,9 +108,6 @@ const Sidebar = ({ activeTab }) => {
                     <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>My Stuff</p>
                 </div>
                 <div className="flex flex-col pb-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
-                    {['My Coupons', 'My Reviews & Ratings', 'All Notifications'].map((label) => (
-                        <div key={label} className={`${hoverBase}`} style={{ color: 'var(--color-text-muted)', cursor: 'not-allowed' }}>{label}</div>
-                    ))}
                     <Link to="/wishlist"
                         className={`${hoverBase} flex items-center gap-2 ${activeTab === 'wishlist' ? activeClass : ''}`}
                         style={{
@@ -138,7 +135,7 @@ const Sidebar = ({ activeTab }) => {
                     Frequently Visited:
                 </span>
                 <div className="flex gap-3 text-xs flex-wrap" style={{ color: 'var(--color-text-secondary)' }}>
-                    <Link className="hover:underline" style={{ color: 'var(--color-accent)' }} to="/password/update">Change Password</Link>
+                    <Link className="hover:underline" style={{ color: 'var(--color-accent)' }} to="/account?tab=security">Change Password</Link>
                     <Link className="hover:underline" style={{ color: 'var(--color-accent)' }} to="/orders">Track Order</Link>
                 </div>
             </div>

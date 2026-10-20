@@ -5,7 +5,8 @@ import { forgotPasswordReducer, profileReducer, userReducer, allUsersReducer, us
 import { newProductReducer, newReviewReducer, productDetailsReducer, productReducer, productsReducer, productReviewsReducer, reviewReducer } from './reducers/productReducer';
 import { cartReducer } from './reducers/cartReducer';
 import { saveForLaterReducer } from './reducers/saveForLaterReducer';
-import { allOrdersReducer, myOrdersReducer, newOrderReducer, orderDetailsReducer, orderReducer, paymentStatusReducer } from './reducers/orderReducer';
+import { allOrdersReducer, myOrdersReducer, orderDetailsReducer, orderReducer } from './reducers/orderReducer';
+import { addressesReducer, addressSaveReducer, addressDeleteReducer } from './reducers/addressReducer';
 import { wishlistReducer } from './reducers/wishlistReducer';
 
 const reducer = combineReducers({
@@ -17,9 +18,7 @@ const reducer = combineReducers({
     newReview: newReviewReducer,
     cart: cartReducer,
     saveForLater: saveForLaterReducer,
-    newOrder: newOrderReducer,
     myOrders: myOrdersReducer,
-    paymentStatus: paymentStatusReducer,
     orderDetails: orderDetailsReducer,
     allOrders: allOrdersReducer,
     order: orderReducer,
@@ -30,6 +29,9 @@ const reducer = combineReducers({
     reviews: productReviewsReducer,
     review: reviewReducer,
     wishlist: wishlistReducer,
+    addresses: addressesReducer,
+    addressSave: addressSaveReducer,
+    addressDelete: addressDeleteReducer,
 });
 
 let initialState = {
@@ -37,9 +39,6 @@ let initialState = {
         cartItems: localStorage.getItem('cartItems')
             ? JSON.parse(localStorage.getItem('cartItems'))
             : [],
-        shippingInfo: localStorage.getItem("shippingInfo")
-            ? JSON.parse(localStorage.getItem("shippingInfo"))
-            : {},
     },
     saveForLater: {
         saveForLaterItems: localStorage.getItem('saveForLaterItems')

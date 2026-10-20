@@ -28,7 +28,7 @@ const MenuDrawer = ({ open, onClose }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const { isAuthenticated, user } = useSelector((state) => state.user);
-    const { config } = useSiteConfig();
+    const { config, ready } = useSiteConfig();
 
     const [query, setQuery] = useState('');
 
@@ -38,7 +38,7 @@ const MenuDrawer = ({ open, onClose }) => {
     const categories = Array.isArray(config.categories) && config.categories.length
         ? config.categories
         : DEFAULT_CATEGORIES;
-    const brandName = config.branding?.name || 'Store';
+    const brandName = ready ? (config.branding?.name || 'Store') : '';
 
     // close on route change + lock body scroll while open
     // eslint-disable-next-line react-hooks/exhaustive-deps

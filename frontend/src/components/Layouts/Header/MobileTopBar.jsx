@@ -15,7 +15,7 @@ import { DEFAULT_SITE_CONFIG } from '../../../utils/siteConfig';
  * Hidden on /admin routes.
  */
 const MobileTopBar = () => {
-    const { config } = useSiteConfig();
+    const { config, ready } = useSiteConfig();
     const { pathname } = useLocation();
     const navigate = useNavigate();
 
@@ -35,8 +35,8 @@ const MobileTopBar = () => {
             .catch(() => {});
     }, []);
 
-    // branding from database
-    const brandName = config.branding?.name || 'Store';
+    // branding from database (placeholder name only after the real config lands)
+    const brandName = ready ? (config.branding?.name || 'Store') : '';
     const logoUrl   = config.branding?.logoUrl || '';
 
     // hide on admin pages

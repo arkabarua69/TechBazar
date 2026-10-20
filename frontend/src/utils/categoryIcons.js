@@ -13,7 +13,7 @@ import furniture from '../assets/images/Categories/furniture.png';
 import beauty from '../assets/images/Categories/beauty.png';
 import grocery from '../assets/images/Categories/grocery.png';
 
-export const CATEGORY_ICON_MAP = {
+const CATEGORY_ICON_MAP = {
     mobile: phone, mobiles: phone, phone: phone, phones: phone, smartphone: phone, smartphones: phone,
     cosmetics: beauty, beauty: beauty,
     electronics: electronics, gadgets: electronics, laptop: electronics, laptops: electronics,
@@ -25,10 +25,10 @@ export const CATEGORY_ICON_MAP = {
     fashion: fashion, clothing: fashion, apparel: fashion,
 };
 
-export const DEFAULT_CATEGORY_IMAGE = electronics;
+const DEFAULT_CATEGORY_IMAGE = electronics;
 
 // Resolve an image for a category name (string or { name }).
-export const categoryImage = (name) => {
+const categoryImage = (name) => {
     const key = String(typeof name === 'string' ? name : name?.name || '').trim().toLowerCase();
     return CATEGORY_ICON_MAP[key] || DEFAULT_CATEGORY_IMAGE;
 };
@@ -39,5 +39,3 @@ export const resolveCategoryImage = (name, images) => {
     const custom = images && typeof images === 'object' ? images[name] : '';
     return custom || categoryImage(name);
 };
-
-export default categoryImage;

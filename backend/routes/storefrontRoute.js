@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
+const { isAuthenticatedUser, authorizeRoles, optionalAuth } = require('../middlewares/auth');
 
 const {
     getSiteConfig,
@@ -10,41 +10,32 @@ const {
 } = require('../controllers/siteConfigController');
 
 const {
-    getStorefrontProducts,
-    placeStorefrontOrder,
-    getStorefrontOrder,
-} = require('../controllers/storefrontController');
-
-const {
     getStoreConfig,
     createStoreOrder,
     getStoreOrderGroup,
     getStoreOrders,
     approveStoreOrder,
     cancelStoreOrder,
-    syncStoreCatalog,
     trackStoreOrder,
     updateFulfilmentStatus,
+    getMyStoreOrders,
 } = require('../controllers/storeOrderController');
 
-// Business Koro proxy (server-side only; API key never reaches the browser)
-router.route('/storefront/products').get(getStorefrontProducts);
-router.route('/storefront/orders').post(placeStorefrontOrder);
-router.route('/storefront/orders/:orderId').get(getStorefrontOrder);
-
-// Guest checkout: config + create order (backup record, approval pending)
+// Checkout: logged-in buyers get their order linked to the account, guests
+// still order without an account (optionalAuth never blocks the request).
 router.route('/store/config').get(getStoreConfig);
-router.route('/store/orders').post(createStoreOrder);
+router.route('/store/orders').post(optionalAuth, createStoreOrder);
 router.route('/store/orders/:groupId').get(getStoreOrderGroup);
-// Guest tracking by phone or order-group id (public, no login needed)
+// Guest tracking by phone, order-id or order-group id (public, no login needed)
 router.route('/store/track').get(trackStoreOrder);
+// Logged-in user's own store orders (account page)
+router.route('/store/my-orders').get(isAuthenticatedUser, getMyStoreOrders);
 
-// Admin: approve/forward, cancel, catalogue sync, fulfilment status
+// Admin: approve, cancel, fulfilment status
 router.route('/admin/store/orders').get(isAuthenticatedUser, authorizeRoles('admin'), getStoreOrders);
 router.route('/admin/store/orders/:id/status').put(isAuthenticatedUser, authorizeRoles('admin'), updateFulfilmentStatus);
 router.route('/admin/store/orders/:id/approve').put(isAuthenticatedUser, authorizeRoles('admin'), approveStoreOrder);
 router.route('/admin/store/orders/:id/cancel').put(isAuthenticatedUser, authorizeRoles('admin'), cancelStoreOrder);
-router.route('/admin/store/sync').post(isAuthenticatedUser, authorizeRoles('admin'), syncStoreCatalog);
 
 // Homepage content (CMS) — public read, admin write
 router.route('/siteconfig').get(getSiteConfig);

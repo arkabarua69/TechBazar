@@ -10,6 +10,7 @@ import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
+import LocalFireDepartmentOutlinedIcon from '@mui/icons-material/LocalFireDepartmentOutlined';
 import { logoutUser } from '../../actions/userAction';
 import MetaData from '../Layouts/MetaData';
 import { useSiteConfig } from '../../context/SiteConfigContext';
@@ -35,6 +36,7 @@ const More = () => {
                 { label: 'Cash on Delivery Orders', desc: 'Regular paid orders', icon: ReceiptLongOutlinedIcon, to: '/admin/orders' },
                 { label: 'Add Product', desc: 'Create a new listing', icon: AddBoxOutlinedIcon, to: '/admin/new_product' },
                 { label: 'Categories', desc: 'Website categories & images', icon: CategoryOutlinedIcon, to: '/admin/categories' },
+                { label: 'Flash Sale', desc: 'Deal of the Day products', icon: LocalFireDepartmentOutlinedIcon, to: '/admin/flash_sale' },
                 { label: 'Website Config', desc: 'API keys, SMTP, theme, SEO & more', icon: SettingsOutlinedIcon, to: '/admin/config' },
             ],
         },

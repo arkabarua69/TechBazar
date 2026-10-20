@@ -10,6 +10,7 @@ import { createProduct, clearErrors } from '../../actions/productAction';
 import { useCategories } from '../../utils/useCategories';
 import ImgBBUploader from './ImgBBUploader';
 import MultiImageUploader from './MultiImageUploader';
+import RichTextEditor from './RichTextEditor';
 import MetaData from '../Layouts/MetaData';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import { Tag, Layers, Sparkles, Palette, Building2, ListChecks, Images, Save, PackagePlus, Coins } from 'lucide-react';
@@ -177,14 +178,11 @@ const NewProduct = () => {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                     />
-                    <TextField
+                    <RichTextEditor
                         label="Description"
-                        multiline
-                        rows={3}
-                        variant="outlined"
-                        size="small"
                         value={description}
-                        onChange={(e) => setDescription(e.target.value)}
+                        onChange={setDescription}
+                        placeholder="Describe the product…"
                     />
                     </Section>
 

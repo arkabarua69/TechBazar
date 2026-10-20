@@ -22,7 +22,6 @@ const ENCRYPTED_PATHS = new Set([
     'email.sendgridApiKey',
     'payment.stripeSecretKey',
     'payment.stripeWebhookSecret',
-    'payment.paytmMerchantKey',
     'cloud.cloudinaryApiKey',
     'cloud.cloudinaryApiSecret',
     'imgbb.apiKey',
@@ -155,8 +154,6 @@ const DEFAULT_CONFIG = {
         stripePublicKey: '',
         stripeSecretKey: '', // Will be encrypted
         stripeWebhookSecret: '', // Will be encrypted
-        paytmMerchantId: '',
-        paytmMerchantKey: '', // Will be encrypted
         bKashNumber: '01700000000',
         nagadNumber: '01700000000',
         defaultPaymentMethod: 'cash_on_delivery',
@@ -349,19 +346,12 @@ const websiteConfigSchema = new mongoose.Schema({
             set: encrypt,
             get: decrypt
         },
-        paytmMerchantId: { type: String, default: DEFAULT_CONFIG.payment.paytmMerchantId },
-        paytmMerchantKey: { 
-            type: String, 
-            default: DEFAULT_CONFIG.payment.paytmMerchantKey,
-            set: encrypt,
-            get: decrypt
-        },
         bKashNumber: { type: String, default: DEFAULT_CONFIG.payment.bKashNumber },
         nagadNumber: { type: String, default: DEFAULT_CONFIG.payment.nagadNumber },
         defaultPaymentMethod: { 
             type: String, 
             default: DEFAULT_CONFIG.payment.defaultPaymentMethod,
-            enum: ['cash_on_delivery', 'stripe', 'paytm', 'bkash', 'nagad']
+            enum: ['cash_on_delivery', 'stripe', 'bkash', 'nagad']
         },
     },
 

@@ -15,6 +15,3 @@ export const API_ORIGIN =
     (process.env.NODE_ENV === 'development'
         ? `${window.location.protocol}//${window.location.hostname}:4000`
         : '');
-
-/** Absolute URL for an API path that must survive a top-level navigation. */
-export const apiUrl = (path) => `${API_ORIGIN}${path.startsWith('/') ? path : `/${path}`}`;

@@ -18,6 +18,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, "Please Enter Gender"]
     },
+    phone: {
+        type: String,
+        default: "",
+    },
     password: {
         type: String,
         required: [true, "Please Enter Your Password"],
@@ -37,6 +41,14 @@ const userSchema = new mongoose.Schema({
         default: "user",
         enum: ["user", "admin"],
     },
+    // Cash on Delivery permission — the admin grants it per user from
+    // Admin → Users (COD toggle). Without it a COD order is rejected at
+    // checkout (bKash/Nagad advance orders are unaffected). Admins can
+    // always use COD regardless of this flag.
+    codAllowed: {
+        type: Boolean,
+        default: false,
+    },
     // Social login (OAuth) linkage. "local" = email/password account.
     provider: {
         type: String,
@@ -46,6 +58,23 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "",
     },
+    // Delivery addresses bookmarked by the buyer (Manage Addresses).
+    // The checkout screen can pick one of these instead of retyping.
+    addresses: [
+        {
+            fullName: { type: String, default: "" },
+            phoneNo: { type: String, default: "" },
+            address: { type: String, default: "" },
+            city: { type: String, default: "" },
+            state: { type: String, default: "" },
+            pincode: { type: String, default: "" },
+            country: { type: String, default: "Bangladesh" },
+            // Address type chip shown in the UI (Home / Office / Other).
+            label: { type: String, default: "Home" },
+            isDefault: { type: Boolean, default: false },
+            createdAt: { type: Date, default: Date.now },
+        },
+    ],
     createdAt: {
         type: Date,
         default: Date.now,

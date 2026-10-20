@@ -10,7 +10,6 @@ import MetaData from '../Layouts/MetaData';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
-import BackdropLoader from '../Layouts/BackdropLoader';
 import BottomSheet from './BottomSheet';
 import PaidIcon from '@mui/icons-material/Paid';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
@@ -21,13 +20,12 @@ import BoltIcon from '@mui/icons-material/Bolt';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import SyncIcon from '@mui/icons-material/Sync';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import { bn, shortOrderId, timeAgoBn } from '../../utils/adminHelpers';
 
 // ── monochrome design tokens (iOS-style admin redesign) ──
-const INK = '#0A0A0A';
-const PINK = '#F472B6';
+const INK = '#E84B0F';
+const PINK = '#FDBA74';
 
 const isToday = (d) => new Date(d).toDateString() === new Date().toDateString();
 const pct = (n, d) => (d > 0 ? Math.min(100, Math.round((n / d) * 100)) : 0);
@@ -50,7 +48,7 @@ const initials = (name) => {
 // order-list pills (reference: muted slate "New Order" badge)
 const ORDER_PILL = {
     PLACED: 'bg-[#8E9AF5] text-white',
-    CONFIRMED: 'bg-black text-white',
+    CONFIRMED: 'bg-[#E84B0F] text-white',
     SHIPPED: 'bg-zinc-500 text-white',
     DELIVERED: 'bg-emerald-600 text-white',
     CANCELLED: 'bg-red-500 text-white',
@@ -102,7 +100,6 @@ const MainData = () => {
     const [charges, setCharges] = useState(null); // delivery charges from /store/config
     const [manualOpen, setManualOpen] = useState(false);
     const [savingManual, setSavingManual] = useState(false);
-    const [syncing, setSyncing] = useState(false);
     const [range, setRange] = useState('monthly'); // revenue chart range
     const [form, setForm] = useState({
         productId: '', qty: '1', name: '', phone: '', division: '', district: '', address: '',
@@ -188,12 +185,11 @@ const MainData = () => {
 
     // ===== quick action tiles =====
     const quickActions = [
-        { icon: AddShoppingCartIcon, label: '+ Manual Order', sub: 'Phone order', chip: 'bg-gray-100 text-black', onClick: openManual },
+        { icon: AddShoppingCartIcon, label: '+ Manual Order', sub: 'Phone order', chip: 'bg-gray-100 text-[#E84B0F]', onClick: openManual },
         { icon: BoltIcon, label: 'Verification Queue', sub: `${bn(metrics.pendingVerify)} TrxIDs pending`, chip: 'bg-amber-100 text-amber-700', onClick: () => navigate('/admin/orders?filter=verify') },
         { icon: WarningAmberIcon, label: 'Out of Stock', sub: `${bn(outOfStock)} products`, chip: 'bg-red-100 text-red-600', onClick: () => navigate('/admin/products') },
-        { icon: SyncIcon, label: 'Catalog Sync', sub: 'Products', chip: 'bg-gray-100 text-black', onClick: syncCatalog },
-        { icon: ReceiptLongIcon, label: 'Store Order', sub: `${bn(storeOrders.length)} items`, chip: 'bg-gray-100 text-black', onClick: () => navigate('/admin/orders') },
-        { icon: ChatBubbleOutlineIcon, label: 'Live Chat', sub: 'Inbox', chip: 'bg-gray-100 text-black', onClick: () => navigate('/admin/chat') },
+        { icon: ReceiptLongIcon, label: 'Store Order', sub: `${bn(storeOrders.length)} items`, chip: 'bg-gray-100 text-[#E84B0F]', onClick: () => navigate('/admin/orders') },
+        { icon: ChatBubbleOutlineIcon, label: 'Live Chat', sub: 'Inbox', chip: 'bg-gray-100 text-[#E84B0F]', onClick: () => navigate('/admin/chat') },
     ];
 
     // ===== revenue chart (Monthly / Weekly / Today) =====
@@ -274,7 +270,7 @@ const MainData = () => {
         }],
     };
 
-    const doughnutState = {
+const doughnutState = {
         labels: ['Out of Stock', 'In Stock'],
         datasets: [{
             backgroundColor: [PINK, INK],
@@ -283,10 +279,14 @@ const MainData = () => {
             borderWidth: 0,
         }],
     };
+    const lowStockProducts = (products || [])
+        .filter((p) => (p.stock || 0) > 0 && (p.stock || 0) < 10)
+        .sort((a, b) => (a.stock || 0) - (b.stock || 0))
+        .slice(0, 6);
 
     const lineOptions = {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
                 display: range === 'monthly',
@@ -308,20 +308,6 @@ const MainData = () => {
             axios.get('/api/v1/store/config')
                 .then(({ data }) => setCharges(data?.deliveryCharges || null))
                 .catch(() => setCharges(null));
-        }
-    }
-
-    async function syncCatalog() {
-        setSyncing(true);
-        try {
-            const { data } = await axios.post('/api/v1/admin/store/sync', {}, { headers: { Accept: 'application/json' } });
-            enqueueSnackbar(data.result?.skipped
-                ? `Sync skipped: ${data.result.reason}`
-                : `Catalogue synced: ${data.result.count} products`, { variant: data.result?.skipped ? 'warning' : 'success' });
-        } catch (err) {
-            enqueueSnackbar(err.response?.data?.message || 'Sync failed', { variant: 'error' });
-        } finally {
-            setSyncing(false);
         }
     }
 
@@ -374,13 +360,12 @@ const MainData = () => {
     };
 
     const inStockProducts = (products || []).filter((p) => p.stock > 0);
-    const fieldCls = 'w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:border-black focus:outline-none bg-white';
+    const fieldCls = 'w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:border-[#E84B0F] focus:outline-none bg-white';
     const sectionLabel = 'text-[11px] font-semibold uppercase tracking-wider text-gray-400';
 
     return (
         <>
             <MetaData title="Admin Dashboard" />
-            {syncing && <BackdropLoader />}
 
             {/* ═══ 1. header ═══ */}
             <div className="flex flex-wrap items-end justify-between gap-3">
@@ -399,7 +384,7 @@ const MainData = () => {
                     </button>
                     <button
                         onClick={openManual}
-                        className="text-xs sm:text-sm font-semibold bg-black text-white rounded-full px-4 py-2 hover:bg-gray-800 active:scale-95 transition"
+                        className="text-xs sm:text-sm font-semibold bg-[#E84B0F] text-white rounded-full px-4 py-2 hover:bg-[#C63E0A] active:scale-95 transition"
                     >
                         +                         New Order
                     </button>
@@ -411,20 +396,20 @@ const MainData = () => {
                 {kpiCards.map((k, i) => {
                     const Icon = k.icon;
                     return (
-                        <div key={i} className={`rounded-2xl p-4 border transition ${k.featured ? 'bg-[#0A0A0A] border-[#0A0A0A] shadow-lg' : 'bg-white border-gray-200 shadow-sm hover:shadow-md'}`}>
-                            <span className={`w-9 h-9 rounded-xl flex items-center justify-center ${k.featured ? 'bg-white/15 text-white' : 'bg-gray-100 text-black'}`}>
+                        <div key={i} className={`rounded-2xl p-4 border transition ${k.featured ? 'bg-[#E84B0F] border-[#E84B0F] shadow-lg' : 'bg-white border-gray-200 shadow-sm hover:shadow-md'}`}>
+                            <span className={`w-9 h-9 rounded-xl flex items-center justify-center ${k.featured ? 'bg-white/15 text-white' : 'bg-gray-100 text-[#E84B0F]'}`}>
                                 <Icon sx={{ fontSize: '20px' }} />
                             </span>
-                            <p className={`text-xs font-medium mt-3 ${k.featured ? 'text-gray-300' : 'text-gray-500'}`}>{k.label}</p>
+                            <p className={`text-xs font-medium mt-3 ${k.featured ? 'text-white/80' : 'text-gray-500'}`}>{k.label}</p>
                             <p className={`text-xl sm:text-2xl font-extrabold leading-tight mt-0.5 ${k.featured ? 'text-white' : 'text-gray-900'}`}>{k.value}</p>
-                            <div className="flex justify-between text-[10px] font-medium mt-3 mb-1 text-gray-400">
+                            <div className="flex justify-between text-[10px] font-medium mt-3 mb-1 text-gray-500">
                                 <span>0%</span>
                                 <span className={k.featured ? 'text-white font-bold' : 'text-gray-900 font-bold'}>{bn(k.p)}%</span>
                             </div>
                             <div className={`h-1.5 rounded-full ${k.featured ? 'bg-white/20' : 'bg-gray-200'}`}>
-                                <div className={`h-full rounded-full ${k.featured ? 'bg-white' : 'bg-black'}`} style={{ width: `${k.p}%` }}></div>
+                                <div className={`h-full rounded-full ${k.featured ? 'bg-white' : 'bg-[#E84B0F]'}`} style={{ width: `${k.p}%` }}></div>
                             </div>
-                            <p className="text-[10px] text-gray-400 mt-1.5">{k.plabel}</p>
+                            <p className={`text-[10px] mt-1.5 ${k.featured ? 'text-white/80' : 'text-gray-600'}`}>{k.plabel}</p>
                         </div>
                     );
                 })}
@@ -463,14 +448,16 @@ const MainData = () => {
                             <button
                                 key={key}
                                 onClick={() => setRange(key)}
-                                className={`px-3 py-1 rounded-full text-xs font-semibold transition ${range === key ? 'bg-black text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                className={`px-3 py-1 rounded-full text-xs font-semibold transition ${range === key ? 'bg-[#E84B0F] text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                             >
                                 {label}
                             </button>
                         ))}
                     </div>
                 </div>
-                <Line data={revenueData} options={lineOptions} />
+                <div style={{ height: 220 }}>
+                    <Line data={revenueData} options={lineOptions} />
+                </div>
             </div>
 
             {/* ═══ 5. trending items + order list ═══ */}
@@ -520,7 +507,7 @@ const MainData = () => {
                         </div>
                         <button
                             onClick={() => navigate('/admin/orders')}
-                            className="text-xs font-bold text-black shrink-0 hover:underline"
+                            className="text-xs font-bold text-[#E84B0F] shrink-0 hover:underline"
                         >
                             <span className="inline-flex items-center gap-0.5">View all<ArrowForwardIcon sx={{ fontSize: '14px' }} /></span>
                         </button>
@@ -585,11 +572,49 @@ const MainData = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
                     <p className="text-sm font-bold text-gray-900 mb-2">Products by Category</p>
-                    <Bar data={barState} />
+                    <div style={{ height: 180 }}>
+                        <Bar data={barState} options={{ maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { font: { size: 9 }, maxRotation: 45 } }, y: { ticks: { font: { size: 9 } } } } }} />
+                    </div>
                 </div>
                 <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
                     <p className="text-sm font-bold text-gray-900 mb-2">Stock Status</p>
-                    <Doughnut data={doughnutState} />
+                    <div style={{ height: 180 }}>
+                        <Doughnut data={doughnutState} options={{ maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } }} />
+                    </div>
+                </div>
+            </div>
+
+{/* ═══ 8. low stock alert ═══ */}
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm">
+                <div className="flex items-center justify-between px-4 pt-4 pb-2 gap-2">
+                    <div className="min-w-0">
+                        <h2 className="text-sm font-bold text-gray-900">Low Stock Alert</h2>
+                        <p className="text-[11px] text-gray-400">{lowStockProducts.length} product{lowStockProducts.length === 1 ? '' : 's'} need restocking</p>
+                    </div>
+                    <button
+                        onClick={() => navigate('/admin/products')}
+                        className="text-xs font-bold text-[#E84B0F] shrink-0 hover:underline"
+                    >
+                        <span className="inline-flex items-center gap-0.5">Manage<ArrowForwardIcon sx={{ fontSize: '14px' }} /></span>
+                    </button>
+                </div>
+                <div>
+                    {lowStockProducts.length === 0 && (
+                        <p className="px-4 py-6 text-center text-sm text-gray-400">All products are well stocked.</p>
+                    )}
+                    {lowStockProducts.map((p) => (
+                        <div key={p._id} className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 last:border-0">
+                            {p.images?.[0]?.url ? (
+                                <img src={p.images[0].url} alt="" className="w-9 h-9 rounded-lg object-contain border bg-white shrink-0" />
+                            ) : (
+                                <span className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0"><Inventory2Icon sx={{ fontSize: '18px', color: '#9ca3af' }} /></span>
+                            )}
+                            <p className="text-sm font-semibold text-gray-900 truncate flex-1">{p.name}</p>
+                            <span className={`text-[11px] font-bold px-2 py-1 rounded-full shrink-0 ${p.stock <= 0 ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-700'}`}>
+                                {p.stock <= 0 ? 'Out' : `${p.stock} left`}
+                            </span>
+                        </div>
+                    ))}
                 </div>
             </div>
 
@@ -651,7 +676,7 @@ const MainData = () => {
                                     onClick={() => setForm((f) => ({ ...f, zone: z.id }))}
                                     className={`text-xs font-semibold rounded-lg border px-2 py-2.5 transition ${
                                         form.zone === z.id
-                                            ? 'border-black bg-black text-white'
+                                            ? 'border-[#E84B0F] bg-[#E84B0F] text-white'
                                             : 'border-gray-200 bg-white text-gray-600'
                                     }`}
                                 >
@@ -671,7 +696,7 @@ const MainData = () => {
                                     onClick={() => setForm((f) => ({ ...f, method: m }))}
                                     className={`text-xs font-semibold rounded-lg border px-2 py-2.5 transition ${
                                         form.method === m
-                                            ? 'border-black bg-black text-white'
+                                            ? 'border-[#E84B0F] bg-[#E84B0F] text-white'
                                             : 'border-gray-200 bg-white text-gray-600'
                                     }`}
                                 >
@@ -694,7 +719,7 @@ const MainData = () => {
                     <button
                         type="submit"
                         disabled={savingManual}
-                        className="w-full bg-black text-white rounded-xl py-3 text-sm font-semibold active:bg-gray-800 disabled:opacity-60"
+                        className="w-full bg-[#E84B0F] text-white rounded-xl py-3 text-sm font-semibold active:bg-[#C63E0A] disabled:opacity-60"
                     >
                         {savingManual ? 'Creating…' : 'Create Order'}
                     </button>

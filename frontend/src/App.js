@@ -8,8 +8,6 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { loadUser } from './actions/userAction';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import UpdateProfile from './components/User/UpdateProfile';
-import UpdatePassword from './components/User/UpdatePassword';
 import ForgotPassword from './components/User/ForgotPassword';
 import ResetPassword from './components/User/ResetPassword';
 import Account from './components/User/Account';
@@ -18,11 +16,6 @@ import Home from './components/Home/Home';
 import ProductDetails from './components/ProductDetails/ProductDetails';
 import Products from './components/Products/Products';
 import Cart from './components/Cart/Cart';
-import Shipping from './components/Cart/Shipping';
-import OrderConfirm from './components/Cart/OrderConfirm';
-import Payment from './components/Cart/Payment';
-import OrderStatus from './components/Cart/OrderStatus';
-import OrderSuccess from './components/Cart/OrderSuccess';
 import MyOrders from './components/Order/MyOrders';
 import OrderDetails from './components/Order/OrderDetails';
 import Dashboard from './components/Admin/Dashboard';
@@ -37,6 +30,7 @@ import UpdateUser from './components/Admin/UpdateUser';
 import ReviewsTable from './components/Admin/ReviewsTable';
 import ChatInbox from './components/Admin/ChatInbox';
 import CategoryManager from './components/Admin/CategoryManager';
+import FlashSaleManager from './components/Admin/FlashSaleManager';
 import WebsiteConfig from './components/Admin/WebsiteConfig';
 import DatabaseManager from './components/Admin/DatabaseManager';
 import More from './components/Admin/More';
@@ -157,17 +151,11 @@ function App() {
         <Route path="/gallery" element={<ImageGallery />} />
 
         {/* Auth-only routes */}
-        <Route path="/shipping" element={<ProtectedRoute><Shipping /></ProtectedRoute>} />
-        <Route path="/order/confirm" element={<ProtectedRoute><OrderConfirm /></ProtectedRoute>} />
-        <Route path="/process/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
-        <Route path="/orders/success" element={<OrderSuccess success={true} />} />
-        <Route path="/orders/failed" element={<OrderSuccess success={false} />} />
-        <Route path="/order/:id" element={<ProtectedRoute><OrderStatus /></ProtectedRoute>} />
         <Route path="/orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
         <Route path="/order_details/:id" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
         <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
-        <Route path="/account/update" element={<ProtectedRoute><UpdateProfile /></ProtectedRoute>} />
-        <Route path="/password/update" element={<ProtectedRoute><UpdatePassword /></ProtectedRoute>} />
+        <Route path="/account/update" element={<ProtectedRoute><Navigate to="/account?tab=edit" replace /></ProtectedRoute>} />
+        <Route path="/password/update" element={<ProtectedRoute><Navigate to="/account?tab=security" replace /></ProtectedRoute>} />
         <Route path="/password/forgot" element={<ForgotPassword />} />
         <Route path="/password/reset/:token" element={<ResetPassword />} />
         <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
@@ -207,6 +195,9 @@ function App() {
         } />
         <Route path="/admin/categories" element={
           <ProtectedRoute isAdmin={true}><Dashboard activeTab={8}><CategoryManager /></Dashboard></ProtectedRoute>
+        } />
+        <Route path="/admin/flash_sale" element={
+          <ProtectedRoute isAdmin={true}><Dashboard activeTab={8}><FlashSaleManager /></Dashboard></ProtectedRoute>
         } />
         <Route path="/admin/config" element={
           <ProtectedRoute isAdmin={true}><Dashboard activeTab={9}><WebsiteConfig /></Dashboard></ProtectedRoute>

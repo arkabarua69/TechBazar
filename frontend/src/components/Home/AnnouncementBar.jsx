@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import SecurityIcon from '@mui/icons-material/Security';
 import PhoneIcon from '@mui/icons-material/Phone';
 import { DEFAULT_SITE_CONFIG } from '../../utils/siteConfig';
+import { useSiteConfig } from '../../context/SiteConfigContext';
 
 // Strip leading emoji chars from an announcement string so we can show
 // a proper MUI icon instead.  Returns the cleaned text.
@@ -14,18 +13,16 @@ const stripLeadingEmoji = (str = '') =>
 // MegaMart-style top micro-bar:
 //   desktop: left brand tagline | right: utility links with MUI icons
 //   mobile:  scrolling ticker (no icons, pure text)
+//
+// Reads from the shared SiteConfigContext (one request for the whole app)
+// and stays quiet until it has loaded: the defaults contain placeholder copy
+// like "Hotline: 017XXXXXXXX", which must never flash on the live site.
 const AnnouncementBar = () => {
-    const [announcement, setAnnouncement] = useState(DEFAULT_SITE_CONFIG.announcement);
+    const { config, ready } = useSiteConfig();
 
-    useEffect(() => {
-        axios.get('/api/v1/siteconfig', { headers: { Accept: 'application/json' } })
-            .then((res) => {
-                if (res.data?.config?.announcement) {
-                    setAnnouncement(res.data.config.announcement);
-                }
-            })
-            .catch(() => {});
-    }, []);
+    const announcement = ready
+        ? (config.announcement || DEFAULT_SITE_CONFIG.announcement)
+        : { desktop: [], mobile: '' };
 
     const desktop = Array.isArray(announcement.desktop) ? announcement.desktop : [];
     const mobile  = announcement.mobile || '';
@@ -43,7 +40,7 @@ const AnnouncementBar = () => {
                 {/* Left: main brand message */}
                 <span className="flex items-center gap-1.5 font-medium opacity-90 truncate">
                     <LocalShippingIcon sx={{ fontSize: '13px' }} />
-                    {stripLeadingEmoji(desktop[0]) || 'Cash on delivery nationwide'}
+                    {stripLeadingEmoji(desktop[0])}
                 </span>
 
                 {/* Right: secondary announcements */}

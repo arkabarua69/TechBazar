@@ -1,4 +1,5 @@
 import StarIcon from '@mui/icons-material/Star';
+import { richTextToInlineHtml } from '../../utils/richText';
 import SectionHeader from './SectionHeader';
 
 // Customer reviews / social proof — real districts, star ratings
@@ -24,7 +25,7 @@ title="What our customers say"
                         </div>
 
                         <blockquote className="text-sm text-slate-600 leading-relaxed flex-1">
-                            “{review.comment}”
+                            “<span className="rte-content inline" dangerouslySetInnerHTML={{ __html: richTextToInlineHtml(review.comment) }} />”
                         </blockquote>
 
                         <figcaption className="flex items-center gap-3 border-t border-line pt-3">

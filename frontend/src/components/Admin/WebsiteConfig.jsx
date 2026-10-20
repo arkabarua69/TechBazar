@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import MetaData from '../Layouts/MetaData';
 import ThemeEditor from './ThemeEditor';
+import RichTextEditor from './RichTextEditor';
 import ImgBBSettings from './ImgBBSettings';
 import ImgBBUploader from './ImgBBUploader';
 import { DEFAULT_SITE_CONFIG } from '../../utils/siteConfig';
@@ -52,7 +53,7 @@ const CATEGORIES = [
     { id: 'branding',  label: 'Branding',       Icon: Palette,     count: 6  },
     { id: 'seo',       label: 'SEO',            Icon: Search,      count: 6  },
     { id: 'email',     label: 'Email / SMTP',   Icon: Mail,        count: 8  },
-    { id: 'payment',   label: 'Payment',        Icon: CreditCard,  count: 8  },
+    { id: 'payment',   label: 'Payment',        Icon: CreditCard,  count: 6  },
     { id: 'cloud',     label: 'Cloud Storage',  Icon: Cloud,       count: 4  },
     { id: 'imgbb',     label: 'ImgBB Settings', Icon: Image,       count: null },
     { id: 'social',    label: 'Social Media',   Icon: Share2,      count: 6  },
@@ -74,7 +75,6 @@ const SECRET_FIELDS = new Set([
     'email.sendgridApiKey',
     'payment.stripeSecretKey',
     'payment.stripeWebhookSecret',
-    'payment.paytmMerchantKey',
     'cloud.cloudinaryApiKey',
     'cloud.cloudinaryApiSecret',
     'imgbb.apiKey',
@@ -122,16 +122,20 @@ const NumberField = ({ label, value, onChange, min, max, placeholder = '' }) => 
         />
     </div>
 );
-const TextareaField = ({ label, value, onChange, placeholder = '' }) => (
+const TextareaField = ({ label, value, onChange, placeholder = '', plain = false }) => (
     <div>
         <label className={labelCls}>{label}</label>
-        <textarea
-            value={value ?? ''}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={placeholder}
-            rows={3}
-            className={inputCls + ' resize-y'}
-        />
+        {plain ? (
+            <textarea
+                value={value ?? ''}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder={placeholder}
+                rows={3}
+                className={inputCls + ' resize-y'}
+            />
+        ) : (
+            <RichTextEditor value={value || ''} onChange={onChange} placeholder={placeholder} />
+        )}
     </div>
 );
 const SelectField = ({ label, value, onChange, options }) => (
@@ -347,7 +351,7 @@ const buildFieldIndex = (config, handlers) => {
     add('general', 'siteName', 'Site Name', <TextField key="siteName" label="Site Name" value={config.general?.siteName} onChange={(v) => set('general', 'siteName', v)} />);
     add('general', 'tagline', 'Tagline', <TextField key="tagline" label="Tagline" value={config.general?.tagline} onChange={(v) => set('general', 'tagline', v)} placeholder="e.g. Best prices, fast delivery" />);
     add('general', 'siteTitle', 'Site Title', <TextField key="siteTitle" label="Site Title" value={config.general?.siteTitle} onChange={(v) => set('general', 'siteTitle', v)} placeholder="e.g. GeForce HuB — Online Shopping" hint="Shown in the homepage browser tab and social previews. Leave empty to keep the default page title." />);
-    add('general', 'siteDescription', 'Site Description', <TextareaField key="siteDescription" label="Site Description" value={config.general?.siteDescription} onChange={(v) => set('general', 'siteDescription', v)} />);
+    add('general', 'siteDescription', 'Site Description', <TextareaField key="siteDescription" plain label="Site Description" value={config.general?.siteDescription} onChange={(v) => set('general', 'siteDescription', v)} />);
     add('general', 'siteUrl', 'Site URL', <TextField key="siteUrl" label="Site URL" value={config.general?.siteUrl} onChange={(v) => set('general', 'siteUrl', v)} />);
     add('general', 'contactEmail', 'Contact Email', <TextField key="contactEmail" label="Contact Email" value={config.general?.contactEmail} onChange={(v) => set('general', 'contactEmail', v)} />);
     add('general', 'contactPhone', 'Contact Phone', <TextField key="contactPhone" label="Contact Phone" value={config.general?.contactPhone} onChange={(v) => set('general', 'contactPhone', v)} />);
@@ -356,7 +360,7 @@ const buildFieldIndex = (config, handlers) => {
     add('general', 'currency', 'Currency Code', <TextField key="currency" label="Currency Code" value={config.general?.currency} onChange={(v) => set('general', 'currency', v)} placeholder="BDT" />);
     add('general', 'currencySymbol', 'Currency Symbol', <TextField key="currencySymbol" label="Currency Symbol" value={config.general?.currencySymbol} onChange={(v) => set('general', 'currencySymbol', v)} placeholder="৳" />);
     add('general', 'maintenanceMode', 'Maintenance Mode', <ToggleField key="maintenanceMode" label="Maintenance Mode" description="Take the site offline for maintenance" value={config.general?.maintenanceMode} onChange={(v) => set('general', 'maintenanceMode', v)} />);
-    add('general', 'maintenanceMessage', 'Maintenance Message', <TextareaField key="maintenanceMessage" label="Maintenance Message" value={config.general?.maintenanceMessage} onChange={(v) => set('general', 'maintenanceMessage', v)} />);
+    add('general', 'maintenanceMessage', 'Maintenance Message', <TextareaField key="maintenanceMessage" plain label="Maintenance Message" value={config.general?.maintenanceMessage} onChange={(v) => set('general', 'maintenanceMessage', v)} />);
     // branding
     add('branding', 'logoUrl', 'Logo URL', <TextField key="logoUrl" label="Logo URL" value={config.branding?.logoUrl} onChange={(v) => set('branding', 'logoUrl', v)} />);
     add('branding', 'faviconUrl', 'Favicon URL', <TextField key="faviconUrl" label="Favicon URL" value={config.branding?.faviconUrl} onChange={(v) => set('branding', 'faviconUrl', v)} />);
@@ -365,7 +369,7 @@ const buildFieldIndex = (config, handlers) => {
     add('branding', 'accentColor', 'Accent Color', <ColorField key="accentColor" label="Accent Color" value={config.branding?.accentColor} onChange={(v) => set('branding', 'accentColor', v)} />);
     add('branding', 'darkMode', 'Dark Mode', <ToggleField key="darkMode" label="Dark Mode" description="Enable dark theme by default" value={config.branding?.darkMode} onChange={(v) => set('branding', 'darkMode', v)} />);
     // seo
-    add('seo', 'metaKeywords', 'Meta Keywords', <TextareaField key="metaKeywords" label="Meta Keywords" value={config.seo?.metaKeywords} onChange={(v) => set('seo', 'metaKeywords', v)} />);
+    add('seo', 'metaKeywords', 'Meta Keywords', <TextareaField key="metaKeywords" plain label="Meta Keywords" value={config.seo?.metaKeywords} onChange={(v) => set('seo', 'metaKeywords', v)} />);
     add('seo', 'metaRobots', 'Meta Robots', <SelectField key="metaRobots" label="Meta Robots" value={config.seo?.metaRobots} onChange={(v) => set('seo', 'metaRobots', v)} options={[{value:'index, follow',label:'index, follow'},{value:'noindex, nofollow',label:'noindex, nofollow'},{value:'index, nofollow',label:'index, nofollow'},{value:'noindex, follow',label:'noindex, follow'}]} />);
     add('seo', 'googleAnalyticsId', 'Google Analytics ID', <TextField key="googleAnalyticsId" label="Google Analytics ID" value={config.seo?.googleAnalyticsId} onChange={(v) => set('seo', 'googleAnalyticsId', v)} placeholder="G-XXXXXXXXXX" />);
     add('seo', 'googleTagManagerId', 'Google Tag Manager ID', <TextField key="googleTagManagerId" label="Google Tag Manager ID" value={config.seo?.googleTagManagerId} onChange={(v) => set('seo', 'googleTagManagerId', v)} placeholder="GTM-XXXXXXX" />);
@@ -393,11 +397,9 @@ const buildFieldIndex = (config, handlers) => {
     add('payment', 'stripePublicKey', 'Stripe Public Key', <TextField key="stripePublicKey" label="Stripe Public Key" value={config.payment?.stripePublicKey} onChange={(v) => set('payment', 'stripePublicKey', v)} />);
     add('payment', 'stripeSecretKey', 'Stripe Secret Key', <SecretField key="stripeSecretKey" label="Stripe Secret Key" section="payment" field="stripeSecretKey" value={config.payment?.stripeSecretKey} onSecretChange={onSecretChange} />);
     add('payment', 'stripeWebhookSecret', 'Stripe Webhook Secret', <SecretField key="stripeWebhookSecret" label="Stripe Webhook Secret" section="payment" field="stripeWebhookSecret" value={config.payment?.stripeWebhookSecret} onSecretChange={onSecretChange} />);
-    add('payment', 'paytmMerchantId', 'Paytm Merchant ID', <TextField key="paytmMerchantId" label="Paytm Merchant ID" value={config.payment?.paytmMerchantId} onChange={(v) => set('payment', 'paytmMerchantId', v)} />);
-    add('payment', 'paytmMerchantKey', 'Paytm Merchant Key', <SecretField key="paytmMerchantKey" label="Paytm Merchant Key" section="payment" field="paytmMerchantKey" value={config.payment?.paytmMerchantKey} onSecretChange={onSecretChange} />);
     add('payment', 'bKashNumber', 'bKash Number', <TextField key="bKashNumber" label="bKash Number" value={config.payment?.bKashNumber} onChange={(v) => set('payment', 'bKashNumber', v)} />);
     add('payment', 'nagadNumber', 'Nagad Number', <TextField key="nagadNumber" label="Nagad Number" value={config.payment?.nagadNumber} onChange={(v) => set('payment', 'nagadNumber', v)} />);
-    add('payment', 'defaultPaymentMethod', 'Default Payment Method', <SelectField key="defaultPaymentMethod" label="Default Payment Method" value={config.payment?.defaultPaymentMethod} onChange={(v) => set('payment', 'defaultPaymentMethod', v)} options={[{value:'cash_on_delivery',label:'Cash on Delivery'},{value:'stripe',label:'Stripe'},{value:'paytm',label:'Paytm'},{value:'bkash',label:'bKash'},{value:'nagad',label:'Nagad'}]} />);
+    add('payment', 'defaultPaymentMethod', 'Default Payment Method', <SelectField key="defaultPaymentMethod" label="Default Payment Method" value={config.payment?.defaultPaymentMethod} onChange={(v) => set('payment', 'defaultPaymentMethod', v)} options={[{value:'cash_on_delivery',label:'Cash on Delivery'},{value:'stripe',label:'Stripe'},{value:'bkash',label:'bKash'},{value:'nagad',label:'Nagad'}]} />);
     // cloud
     add('cloud', 'cloudinaryCloudName', 'Cloudinary Cloud Name', <TextField key="cloudinaryCloudName" label="Cloudinary Cloud Name" value={config.cloud?.cloudinaryCloudName} onChange={(v) => set('cloud', 'cloudinaryCloudName', v)} />);
     add('cloud', 'cloudinaryApiKey', 'Cloudinary API Key', <SecretField key="cloudinaryApiKey" label="Cloudinary API Key" section="cloud" field="cloudinaryApiKey" value={config.cloud?.cloudinaryApiKey} onSecretChange={onSecretChange} />);
@@ -1059,17 +1061,21 @@ const DatabasePanel = () => {
 };
 // ─── Homepage Panel (embedded SiteEditor) ─────────────────────────────────────
 
-const HomepageField = ({ label, value, onChange, textarea, type = 'text', placeholder = '' }) => (
+const HomepageField = ({ label, value, onChange, textarea, plain, type = 'text', placeholder = '' }) => (
     <div className="flex flex-col gap-1">
         <label className="text-xs font-semibold text-gray-500">{label}</label>
-        {textarea ? (
-            <textarea
-                value={value || ''}
-                onChange={(e) => onChange(e.target.value)}
-                rows={3}
-                placeholder={placeholder}
-                className="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#E84B0F] focus:ring-2 focus:ring-[#E84B0F]/20 transition resize-y w-full"
-            />
+        {textarea || plain ? (
+            plain ? (
+                <textarea
+                    value={value || ''}
+                    onChange={(e) => onChange(e.target.value)}
+                    rows={3}
+                    placeholder={placeholder}
+                    className="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#E84B0F] focus:ring-2 focus:ring-[#E84B0F]/20 transition resize-y w-full"
+                />
+            ) : (
+                <RichTextEditor value={value || ''} onChange={onChange} placeholder={placeholder} />
+            )
         ) : (
             <input
                 type={type}
@@ -1253,22 +1259,14 @@ const HomepagePanel = ({ registerSave, registerReset, onSavingChange }) => {
     const heroBanners = Array.isArray(h.banners) && h.banners.length
         ? h.banners.slice(0, 3)
         : [{ image: '', badge: '', title: '', subtitle: '' }];
-    const f = hpConfig.flashSale || {};
     const s = hpConfig.seo || {};
     const n = hpConfig.navigation || {};
     const c = hpConfig.content || {};
     const ch = hpConfig.chat || {};
 
-    const bodyToText = (lines) => (lines || []).join('\n');
-    const textToBody = (text) => text.split('\n').map((x) => x.trim()).filter(Boolean);
-    const linksToText = (links) => (links || []).map((l) => `${l.name} => ${l.redirect}`).join('\n');
-    const textToLinks = (text) =>
-        text.split('\n').map((x) => x.trim()).filter(Boolean).map((line) => {
-            const idx = line.indexOf('=>');
-            const name = idx >= 0 ? line.slice(0, idx).trim() : line;
-            const redirect = idx >= 0 ? line.slice(idx + 2).trim() : '/policy';
-            return { name, redirect, internal: redirect.startsWith('/') };
-        });
+    const bodyToText = (lines) => (Array.isArray(lines) && lines.length === 1 && /<[a-z][\s\S]*>/i.test(lines[0]) ? lines[0] : (lines || []).join('\n'));
+    // Rich text (HTML) is kept as a single array item; plain text splits per line.
+    const textToBody = (text) => (/<[a-z][\s\S]*>/i.test(text || '') ? [text] : String(text || '').split('\n').map((x) => x.trim()).filter(Boolean));
 
     return (
         <div className="flex flex-col gap-5">
@@ -1286,7 +1284,7 @@ const HomepagePanel = ({ registerSave, registerReset, onSavingChange }) => {
                                 })} />
                         ))}
                     </div>
-                    <HomepageField label="Mobile announcement text" textarea value={a.mobile}
+                    <HomepageField label="Mobile announcement text" plain value={a.mobile}
                         onChange={(v) => setHpSection('announcement', 'mobile', v)} />
                 </div>
             </Card>
@@ -1337,7 +1335,7 @@ const HomepagePanel = ({ registerSave, registerReset, onSavingChange }) => {
                                     <HomepageField label="Badge" value={banner.badge} onChange={(v) => setHeroBannerField(i, 'badge', v)} />
                                     <HomepageField label="Title" value={banner.title} onChange={(v) => setHeroBannerField(i, 'title', v)} />
                                     <div className="sm:col-span-2">
-                                        <HomepageField label="Subtitle" textarea value={banner.subtitle} onChange={(v) => setHeroBannerField(i, 'subtitle', v)} />
+                                        <HomepageField label="Subtitle" plain value={banner.subtitle} onChange={(v) => setHeroBannerField(i, 'subtitle', v)} />
                                     </div>
                                     <HomepageField label="Button label" value={banner.buttonLabel} placeholder="Shop Now" onChange={(v) => setHeroBannerField(i, 'buttonLabel', v)} />
                                     <HomepageField label="Button link" value={banner.buttonLink} placeholder="/products" onChange={(v) => setHeroBannerField(i, 'buttonLink', v)} />
@@ -1408,23 +1406,7 @@ const HomepagePanel = ({ registerSave, registerReset, onSavingChange }) => {
                     className="mt-3 text-sm border border-dashed border-gray-400 rounded-xl px-3 py-1.5 hover:bg-gray-50">+ Add Badge</button>
             </Card>
 
-            {/* Flash Sale */}
-            <Card>
-                <SectionHeading>Flash Sale</SectionHeading>
-                <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-2">
-                        <input type="checkbox" id="flashEnabled" checked={f.enabled !== false}
-                            onChange={(e) => setHpSection('flashSale', 'enabled', e.target.checked)} className="w-4 h-4 accent-orange-500" />
-                        <label htmlFor="flashEnabled" className="text-sm text-gray-700">Show flash sale section</label>
-                    </div>
-                    <div className="grid sm:grid-cols-2 gap-3">
-                        <HomepageField label="Title" value={f.title} onChange={(v) => setHpSection('flashSale', 'title', v)} />
-                        <HomepageField label="Subtitle" value={f.subtitle} onChange={(v) => setHpSection('flashSale', 'subtitle', v)} />
-                        <HomepageField label="End time (24h)" type="time" value={f.endsAt} onChange={(v) => setHpSection('flashSale', 'endsAt', v)} />
-                        <HomepageField label="Note" value={f.note} onChange={(v) => setHpSection('flashSale', 'note', v)} />
-                    </div>
-                </div>
-            </Card>
+            {/* Flash Sale has its own admin page → Admin → Flash Sale */}
 
             {/* How to Order */}
             <Card>
@@ -1498,7 +1480,7 @@ const HomepagePanel = ({ registerSave, registerReset, onSavingChange }) => {
                 <SectionHeading>SEO</SectionHeading>
                 <div className="flex flex-col gap-3">
                     <HomepageField label="Title template (%s = page name)" value={s.titleTemplate} onChange={(v) => setHpSection('seo', 'titleTemplate', v)} placeholder="%s | Store" />
-                    <HomepageField label="Default meta description" textarea value={s.description} onChange={(v) => setHpSection('seo', 'description', v)} />
+                    <HomepageField label="Default meta description" plain value={s.description} onChange={(v) => setHpSection('seo', 'description', v)} />
                 </div>
             </Card>
 
@@ -1533,7 +1515,7 @@ const HomepagePanel = ({ registerSave, registerReset, onSavingChange }) => {
                             <button onClick={() => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, policy: (prev.content?.policy || []).filter((_, idx) => idx !== i) } }))}
                                 className="absolute top-1 right-1 text-xs text-red-500 hover:underline">x</button>
                             <HomepageField label="Section Title" value={sec.title} onChange={(v) => setHpConfig((prev) => { const policy = JSON.parse(JSON.stringify(prev.content?.policy || [])); policy[i] = { ...policy[i], title: v }; return { ...prev, content: { ...prev.content, policy } }; })} />
-                            <HomepageField label="Bullets (one per line)" textarea value={bodyToText(sec.body)} onChange={(v) => setHpConfig((prev) => { const policy = JSON.parse(JSON.stringify(prev.content?.policy || [])); policy[i] = { ...policy[i], body: textToBody(v) }; return { ...prev, content: { ...prev.content, policy } }; })} />
+                            <HomepageField label="Bullets (one per line)" plain value={bodyToText(sec.body)} onChange={(v) => setHpConfig((prev) => { const policy = JSON.parse(JSON.stringify(prev.content?.policy || [])); policy[i] = { ...policy[i], body: textToBody(v) }; return { ...prev, content: { ...prev.content, policy } }; })} />
                         </div>
                     ))}
                     <button onClick={() => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, policy: [...(prev.content?.policy || []), { title: 'New Section', body: [''] }] } }))}
@@ -1561,7 +1543,7 @@ const HomepagePanel = ({ registerSave, registerReset, onSavingChange }) => {
             {/* Live Chat */}
             <Card>
                 <SectionHeading>Live Chat</SectionHeading>
-                <HomepageField label="Welcome Message" textarea value={ch.welcomeMessage} onChange={(v) => setHpSection('chat', 'welcomeMessage', v)} />
+                <HomepageField label="Welcome Message" plain value={ch.welcomeMessage} onChange={(v) => setHpSection('chat', 'welcomeMessage', v)} />
             </Card>
 
         </div>
@@ -1598,7 +1580,8 @@ const FooterPanel = ({ registerSave, registerReset, onSavingChange }) => {
                 announcement: hpConfig.announcement,
                 hero: hpConfig.hero,
                 trustBadges: hpConfig.trustBadges,
-                flashSale: hpConfig.flashSale,
+                // flashSale is managed on its own page (Admin → Flash Sale);
+                // intentionally omitted so saving the homepage can't clobber it.
                 payment: hpConfig.payment,
                 delivery: hpConfig.delivery,
                 support: hpConfig.support,
@@ -1665,7 +1648,7 @@ const FooterPanel = ({ registerSave, registerReset, onSavingChange }) => {
                         <button onClick={() => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, columns: (prev.content?.footer?.columns || []).filter((_, idx) => idx !== ci) } } }))}
                             className="absolute top-1 right-1 text-xs text-red-500 hover:underline">Remove</button>
                         <HomepageField label="Column Title" value={col.title} onChange={(v) => setHpConfig((prev) => { const cols = JSON.parse(JSON.stringify(prev.content?.footer?.columns || [])); cols[ci] = { ...cols[ci], title: v }; return { ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, columns: cols } } }; })} />
-                        <HomepageField label="Links (one per line)" textarea value={linksToText(col.links)} onChange={(v) => setHpConfig((prev) => { const cols = JSON.parse(JSON.stringify(prev.content?.footer?.columns || [])); cols[ci] = { ...cols[ci], links: textToLinks(v) }; return { ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, columns: cols } } }; })} />
+                        <HomepageField label="Links (one per line)" plain value={linksToText(col.links)} onChange={(v) => setHpConfig((prev) => { const cols = JSON.parse(JSON.stringify(prev.content?.footer?.columns || [])); cols[ci] = { ...cols[ci], links: textToLinks(v) }; return { ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, columns: cols } } }; })} />
                     </div>
                 ))}
                 <button onClick={() => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, columns: [...(prev.content?.footer?.columns || []), { title: 'New Group', links: [] }] } } }))}
@@ -1676,7 +1659,7 @@ const FooterPanel = ({ registerSave, registerReset, onSavingChange }) => {
                 <SectionHeading>Footer Company Info</SectionHeading>
                 <div className="flex flex-col gap-3">
                     <HomepageField label="Company Name" value={c.footer?.company?.name} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, name: v } } } }))} />
-                    <HomepageField label="Address / Mail Us" textarea value={c.footer?.company?.address || c.footer?.company?.mailUs} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, address: v, mailUs: v } } } }))} />
+                    <HomepageField label="Address / Mail Us" plain value={c.footer?.company?.address || c.footer?.company?.mailUs} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, address: v, mailUs: v } } } }))} />
                     <div className="grid sm:grid-cols-2 gap-3">
                         <HomepageField label="Email" value={c.footer?.company?.email} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, email: v } } } }))} />
                         <HomepageField label="Telephone" value={c.footer?.company?.telephone} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, telephone: v } } } }))} />

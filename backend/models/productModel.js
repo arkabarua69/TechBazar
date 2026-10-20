@@ -118,7 +118,9 @@ const productSchema = new mongoose.Schema({
         ref: "User",
         required: true
     },
-    // ── Business Koro storefront fields (server-only, never sent to client) ──
+    // ── Supplier/wholesale fields (server-only, never sent to client) ──
+    // Leftover from the Business Koro integration; kept because existing
+    // documents carry data (e.g. bkCostPrice powers the margin check).
     bkId: {
         type: String,
         index: true,

@@ -5,10 +5,11 @@ import { useSnackbar } from 'notistack';
 import MetaData from '../Layouts/MetaData';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import { formatDate } from '../../utils/functions';
+import { buildCsv, downloadCsv } from '../../utils/csv';
+import DownloadIcon from '@mui/icons-material/Download';
 import BottomSheet from './BottomSheet';
 import PhoneIcon from '@mui/icons-material/Phone';
 import ChatIcon from '@mui/icons-material/Chat';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SearchIcon from '@mui/icons-material/Search';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
@@ -28,6 +29,8 @@ import {
 
 const STATUS_STYLES = {
     PENDING_APPROVAL: 'bg-yellow-100 text-yellow-800',
+    APPROVED: 'bg-green-100 text-green-800',
+    // legacy statuses kept styled for any old documents
     FORWARDED: 'bg-green-100 text-green-800',
     FORWARD_FAILED: 'bg-red-100 text-red-800',
     CANCELLED: 'bg-slate-100 text-slate-500',
@@ -77,7 +80,7 @@ const matchesFilter = (order, f) => {
                 order.fulfilment !== 'CANCELLED'
             );
         case 'pending':
-            return order.status === 'PENDING_APPROVAL' || order.status === 'FORWARD_FAILED';
+            return order.status === 'PENDING_APPROVAL';
         case 'confirmed':
             return order.fulfilment === 'CONFIRMED';
         case 'shipped':
@@ -104,7 +107,7 @@ const StoreOrders = ({ embedded = false } = {}) => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(false);
     const [busyId, setBusyId] = useState(null);
-    const [syncing, setSyncing] = useState(false);
+    const [exporting, setExporting] = useState(false);
 
     // mobile UX state: search box, queue filter chips, bottom sheets
     const [search, setSearch] = useState('');
@@ -133,6 +136,38 @@ const StoreOrders = ({ embedded = false } = {}) => {
         }
     }, [enqueueSnackbar]);
 
+    const exportCsvHandler = () => {
+        if (!orders.length) {
+            enqueueSnackbar('No orders to export', { variant: 'warning' });
+            return;
+        }
+        setExporting(true);
+        try {
+            const columns = [
+                { header: 'Order ID', get: (o) => o.orderId || o._id },
+                { header: 'Customer', get: (o) => o.customer?.name },
+                { header: 'Phone', get: (o) => o.customer?.phone },
+                { header: 'Division', get: (o) => o.customer?.division },
+                { header: 'District', get: (o) => o.customer?.district },
+                { header: 'Product', get: (o) => o.product?.name },
+                { header: 'Qty', get: (o) => o.delivery?.quantity || 1 },
+                { header: 'Total (Tk)', get: (o) => o.pricing?.total },
+                { header: 'Payment Method', get: (o) => o.payment?.method },
+                { header: 'TrxID', get: (o) => o.payment?.transactionId },
+                { header: 'Payment Verified', get: (o) => (o.payment?.verified ? 'Yes' : 'No') },
+                { header: 'Status', get: (o) => o.status },
+                { header: 'Fulfilment', get: (o) => o.fulfilment },
+                { header: 'Order Date', get: (o) => (o.createdAt ? new Date(o.createdAt).toLocaleString() : '') },
+            ];
+            const csv = buildCsv(columns, orders);
+            const stamp = new Date().toISOString().slice(0, 10);
+            downloadCsv(`store-orders-${stamp}.csv`, csv);
+            enqueueSnackbar(`Exported ${orders.length} order${orders.length === 1 ? '' : 's'}`, { variant: 'success' });
+        } finally {
+            setExporting(false);
+        }
+    };
+
     useEffect(() => {
         fetchOrders();
     }, [fetchOrders]);
@@ -157,20 +192,6 @@ const StoreOrders = ({ embedded = false } = {}) => {
             fetchOrders();
         } finally {
             setBusyId(null);
-        }
-    };
-
-    const syncCatalog = async () => {
-        setSyncing(true);
-        try {
-            const { data } = await axios.post('/api/v1/admin/store/sync', {}, { headers: { Accept: 'application/json' } });
-            enqueueSnackbar(data.result?.skipped
-                ? `Sync skipped: ${data.result.reason}`
-                : `Catalogue synced: ${data.result.count} products`, { variant: data.result?.skipped ? 'warning' : 'success' });
-        } catch (err) {
-            enqueueSnackbar(err.response?.data?.message || 'Sync failed', { variant: 'error' });
-        } finally {
-            setSyncing(false);
         }
     };
 
@@ -208,7 +229,7 @@ const StoreOrders = ({ embedded = false } = {}) => {
             if (!matchesFilter(o, filter)) return false;
             if (!q) return true;
             return [o.customer?.name, o.customer?.phone, o.customer?.address, o.payment?.transactionId,
-                o.product?.name, o.groupId, o.bkOrderId, o._id]
+                o.product?.name, o.groupId, o._id]
                 .filter(Boolean)
                 .some((v) => String(v).toLowerCase().includes(q));
         });
@@ -233,7 +254,7 @@ const StoreOrders = ({ embedded = false } = {}) => {
     return (
         <>
             {!embedded && <MetaData title="Store Orders" />}
-            {(loading || syncing) && <BackdropLoader />}
+            {loading && <BackdropLoader />}
 
             {!embedded ? (
                 <>
@@ -241,7 +262,6 @@ const StoreOrders = ({ embedded = false } = {}) => {
                         <h1 className="text-lg sm:text-xl font-extrabold text-gray-900">Store Orders</h1>
                         <div className="flex gap-2">
                             <button onClick={fetchOrders} className="text-sm font-semibold border border-gray-300 bg-white rounded-full px-4 py-1.5 hover:bg-gray-100">Refresh</button>
-                            <button onClick={syncCatalog} className="text-sm font-semibold bg-black text-white rounded-full px-4 py-1.5 hover:bg-gray-800">Sync catalogue</button>
                         </div>
                     </div>
 
@@ -252,7 +272,6 @@ const StoreOrders = ({ embedded = false } = {}) => {
             ) : (
                 <div className="flex justify-end gap-2">
                     <button onClick={fetchOrders} className="text-xs sm:text-sm font-semibold border border-gray-300 bg-white rounded-full px-3.5 py-1.5 hover:bg-gray-100 active:scale-95 transition">Refresh</button>
-                    <button onClick={syncCatalog} className="text-xs sm:text-sm font-semibold bg-black text-white rounded-full px-3.5 py-1.5 hover:bg-gray-800 active:scale-95 transition">Sync catalogue</button>
                 </div>
             )}
 
@@ -267,6 +286,18 @@ const StoreOrders = ({ embedded = false } = {}) => {
                     placeholder="Search by name, phone or TrxID…"
                     className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-2xl bg-white focus:border-black focus:outline-none"
                 />
+            </div>
+
+            <div className="flex justify-end">
+                <button
+                    type="button"
+                    onClick={exportCsvHandler}
+                    disabled={exporting || orders.length === 0}
+                    className="inline-flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold shadow-sm active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <DownloadIcon sx={{ fontSize: '1.05rem' }} />
+                    <span>{exporting ? 'Exporting…' : 'Export CSV'}</span>
+                </button>
             </div>
 
             {/* queue filter chips */}
@@ -289,20 +320,20 @@ const StoreOrders = ({ embedded = false } = {}) => {
                 ))}
             </div>
 
-            {/* ===== MOBILE: merchant-app order cards (no horizontal scroll) ===== */}
-            <div className="sm:hidden flex flex-col gap-3">
+            {/* ===== ORDERS: card grid (mobile → tablet → desktop) ===== */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-3 sm:gap-4">
                 {filtered.length === 0 && (
-                    <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-8 text-center text-gray-400 text-sm">
+                    <div className="col-span-full bg-white rounded-2xl border border-dashed border-gray-300 p-8 text-center text-gray-400 text-sm">
                         No orders match.
                     </div>
                 )}
                 {filtered.map((order) => {
                     const busy = busyId === order._id;
                     return (
-                        <article key={order._id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                        <article key={order._id} className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col">
                             {/* card header: #id • time • delivery badge */}
                             <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border-b border-gray-100">
-                                <span className="font-bold text-gray-900 text-sm">#{shortOrderId(order._id)}</span>
+                                <span className="font-bold text-gray-900 text-sm font-mono">{order.orderId || `#${shortOrderId(order._id)}`}</span>
                                 <span className="text-[11px] text-gray-400">• {timeAgoBn(order.createdAt)}</span>
                                 <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-full bg-black text-white whitespace-nowrap">
                                     Tk {bn(order.delivery?.charge)} {zoneLabel(order)}
@@ -315,7 +346,7 @@ const StoreOrders = ({ embedded = false } = {}) => {
                                 tabIndex={0}
                                 onClick={() => setSheet({ id: order._id, mode: 'details' })}
                                 onKeyDown={(e) => { if (e.key === 'Enter') setSheet({ id: order._id, mode: 'details' }); }}
-                                className="px-3 py-3 cursor-pointer active:bg-gray-50 transition-colors"
+                                className="px-3 py-3 cursor-pointer active:bg-gray-50 transition-colors flex-1"
                             >
                                 <div className="flex gap-2.5 items-center">
                                     {order.product?.image && (
@@ -365,8 +396,6 @@ const StoreOrders = ({ embedded = false } = {}) => {
                                     <span className={`text-[10px] p-1 px-2 font-medium rounded-full ${FULFILMENT_STYLES[order.fulfilment] || ''}`}>
                                         {FULFILMENT_LABELS[order.fulfilment] || 'Placed'}
                                     </span>
-                                    {order.bkOrderId && <span className="text-[10px] text-gray-400 font-mono self-center">BK: {order.bkOrderId}</span>}
-                                    {order.bkError && <span className="text-[10px] text-red-500 w-full">{order.bkError}</span>}
                                 </div>
                             </div>
 
@@ -401,126 +430,6 @@ const StoreOrders = ({ embedded = false } = {}) => {
                         </article>
                     );
                 })}
-            </div>
-
-            {/* ===== DESKTOP: table (unchanged) ===== */}
-            <div className="hidden sm:block bg-white rounded-2xl border border-gray-200 shadow-sm mt-4 overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                    <thead className="bg-gray-50 text-gray-500 uppercase text-xs">
-                        <tr>
-                            <th className="px-4 py-3">Product</th>
-                            <th className="px-4 py-3">Customer</th>
-                            <th className="px-4 py-3">Payment (TrxID)</th>
-                            <th className="px-4 py-3">Amount</th>
-                            <th className="px-4 py-3">Status</th>
-                            <th className="px-4 py-3">Ordered on</th>
-                            <th className="px-4 py-3">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                        {filtered.length === 0 && (
-                            <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">No store orders yet.</td></tr>
-                        )}
-                        {filtered.map((order) => (
-                            <tr key={order._id} className="hover:bg-gray-50 align-top">
-                                <td className="px-4 py-3">
-                                    <div className="flex gap-2 items-center">
-                                        {order.product?.image && (
-                                            <img src={order.product.image} alt="" className="w-10 h-10 object-contain rounded border" />
-                                        )}
-                                        <div>
-                                            <p className="font-medium text-gray-800 max-w-[180px] truncate">{order.product?.name}</p>
-                                            <p className="text-xs text-gray-400">Qty {order.pricing?.quantity}</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="px-4 py-3">
-                                    <p className="font-medium text-gray-800">{order.customer?.name}</p>
-                                    <p className="text-xs text-gray-500">{order.customer?.phone}</p>
-                                    <p className="text-xs text-gray-500 max-w-[180px]">
-                                        {order.customer?.address}, {order.customer?.area ? `${order.customer.area}, ` : ''}
-                                        {order.customer?.district}, {order.customer?.division}
-                                    </p>
-                                    {/* one-tap contact */}
-                                    <div className="flex gap-1.5 mt-1.5">
-                                        <a
-                                            href={`tel:${order.customer?.phone}`}
-                                            className="text-xs bg-gray-100 text-gray-800 rounded px-2 py-1 hover:bg-gray-200 font-medium flex items-center gap-1">
-                                            <PhoneIcon sx={{ fontSize: '12px' }} />
-                                            Call
-                                        </a>
-                                        <a
-                                            href={waLink(order.customer?.phone)}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="text-xs bg-green-50 text-green-700 rounded px-2 py-1 hover:bg-green-100 font-medium flex items-center gap-1">
-                                            <ChatIcon sx={{ fontSize: '12px' }} />
-                                            WhatsApp
-                                        </a>
-                                    </div>
-                                </td>
-                                <td className="px-4 py-3">
-                                    <p className="font-medium text-gray-800">{order.payment?.method}</p>
-                                    <p className="text-xs text-gray-500 font-mono">{order.payment?.transactionId}</p>
-                                    <button
-                                        onClick={() => updateStatus(order._id, { paymentVerified: !order.payment?.verified }, order.payment?.verified ? 'TrxID unverified' : 'TrxID verified')}
-                                        disabled={busyId === order._id}
-                                        className={`text-xs rounded px-2 py-1 mt-1 disabled:opacity-50 ${
-                                            order.payment?.verified
-                                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                                : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                                        }`}>
-                                        {order.payment?.verified ? <><CheckCircleIcon sx={{ fontSize: '12px' }} /> Verified</> : 'Verify TrxID'}
-                                    </button>
-                                </td>
-                                <td className="px-4 py-3">
-                                    <p className="font-medium">Tk {order.pricing?.sellingPrice?.toLocaleString()} × {order.pricing?.quantity}</p>
-                                    <p className="text-xs text-gray-500">Delivery Tk {order.delivery?.charge} ({order.delivery?.zone === 'inside-dhaka' ? 'in Dhaka' : 'outside'})</p>
-                                    <p className="text-xs font-semibold text-yellow-600 mt-0.5">
-                                        COD collect: Tk {((order.pricing?.sellingPrice || 0) * (order.pricing?.quantity || 0)).toLocaleString()}
-                                    </p>
-                                </td>
-                                <td className="px-4 py-3">
-                                    <span className={`text-xs p-1 px-2 font-medium rounded-full ${STATUS_STYLES[order.status] || ''}`}>{order.status}</span>
-                                    <span className={`block text-xs p-1 px-2 font-medium rounded-full mt-1 w-fit ${FULFILMENT_STYLES[order.fulfilment] || ''}`}>
-                                        {FULFILMENT_LABELS[order.fulfilment] || 'Placed'}
-                                    </span>
-                                    {order.bkOrderId && <p className="text-xs text-gray-400 mt-1 font-mono">BK: {order.bkOrderId}</p>}
-                                    {order.bkError && <p className="text-xs text-red-500 mt-1 max-w-[160px]">{order.bkError}</p>}
-                                </td>
-                                <td className="px-4 py-3 text-xs text-gray-500">{formatDate(order.createdAt)}</td>
-                                <td className="px-4 py-3">
-                                    <select
-                                        value={order.fulfilment || 'PLACED'}
-                                        disabled={busyId === order._id || order.fulfilment === 'CANCELLED'}
-                                        onChange={(e) => updateStatus(order._id, { fulfilment: e.target.value }, `Status → ${FULFILMENT_LABELS[e.target.value]}`)}
-                                        className="text-xs border border-gray-300 rounded px-2 py-1.5 bg-white disabled:opacity-50 mb-1.5 block"
-                                    >
-                                        {FULFILMENT_OPTIONS.map((key) => (
-                                            <option key={key} value={key}>{FULFILMENT_LABELS[key]}</option>
-                                        ))}
-                                    </select>
-                                    {(order.status === 'PENDING_APPROVAL' || order.status === 'FORWARD_FAILED') && (
-                                        <button
-                                            onClick={() => act(order._id, 'approve')}
-                                            disabled={busyId === order._id}
-                                            className="text-xs bg-green-600 text-white rounded px-3 py-1.5 hover:bg-green-700 disabled:opacity-50">
-                                            {order.status === 'FORWARD_FAILED' ? 'Retry' : 'Approve → BK'}
-                                        </button>
-                                    )}
-                                    {order.status !== 'CANCELLED' && order.fulfilment !== 'DELIVERED' && (
-                                        <button
-                                            onClick={() => act(order._id, 'cancel')}
-                                            disabled={busyId === order._id}
-                                            className="text-xs border border-red-300 text-red-600 rounded px-3 py-1.5 ml-2 hover:bg-red-50 disabled:opacity-50">
-                                            Cancel
-                                        </button>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
             </div>
 
             {/* ===== BOTTOM SHEET: order details ===== */}
@@ -585,8 +494,6 @@ const StoreOrders = ({ embedded = false } = {}) => {
                             </span>
                             <span className="text-gray-400">{formatDate(sheetOrder.createdAt)}</span>
                         </div>
-                        {sheetOrder.bkOrderId && <p className="text-xs text-gray-500 font-mono">BK order: {sheetOrder.bkOrderId}</p>}
-                        {sheetOrder.bkError && <p className="text-xs text-red-500">{sheetOrder.bkError}</p>}
 
                         <div className="grid grid-cols-2 gap-2 pt-1">
                             <button
@@ -665,13 +572,13 @@ const StoreOrders = ({ embedded = false } = {}) => {
                         </button>
 
                         <div className="grid grid-cols-2 gap-2">
-                            {(sheetOrder.status === 'PENDING_APPROVAL' || sheetOrder.status === 'FORWARD_FAILED') && (
+                            {sheetOrder.status === 'PENDING_APPROVAL' && (
                                 <button
                                     onClick={() => act(sheetOrder._id, 'approve')}
                                     disabled={busyId === sheetOrder._id}
                                     className="bg-green-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-green-700 disabled:opacity-50"
                                 >
-                                    {sheetOrder.status === 'FORWARD_FAILED' ? 'Retry → BK' : 'Approve → BK'}
+                                    Approve
                                 </button>
                             )}
                             {sheetOrder.status !== 'CANCELLED' && sheetOrder.fulfilment !== 'DELIVERED' && (
@@ -679,7 +586,7 @@ const StoreOrders = ({ embedded = false } = {}) => {
                                     onClick={() => act(sheetOrder._id, 'cancel')}
                                     disabled={busyId === sheetOrder._id}
                                     className={`border border-red-300 text-red-600 rounded-xl py-2.5 text-sm font-semibold hover:bg-red-50 disabled:opacity-50 ${
-                                        !(sheetOrder.status === 'PENDING_APPROVAL' || sheetOrder.status === 'FORWARD_FAILED') ? 'col-span-2' : ''
+                                        sheetOrder.status !== 'PENDING_APPROVAL' ? 'col-span-2' : ''
                                     }`}
                                 >
                                     Cancel order

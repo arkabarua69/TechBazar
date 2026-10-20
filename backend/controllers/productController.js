@@ -179,11 +179,15 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
         };
     }
 
-    let specs = [];
-    (req.body.specifications || []).forEach((s) => {
-        specs.push(JSON.parse(s));
-    });
-    req.body.specifications = specs;
+    // Only touch specifications when the client actually sent them — a partial
+    // update must never blank out the stored list.
+    if (req.body.specifications !== undefined) {
+        let specs = [];
+        (req.body.specifications || []).forEach((s) => {
+            specs.push(JSON.parse(s));
+        });
+        req.body.specifications = specs;
+    }
     req.body.user = req.user.id;
 
     product = await Product.findByIdAndUpdate(req.params.id, req.body, {

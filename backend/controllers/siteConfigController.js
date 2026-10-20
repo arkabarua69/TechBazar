@@ -76,6 +76,36 @@ const updateSiteConfig = async (req, res) => {
         }
         if (body.flashSale !== undefined) {
             update.flashSale = { ...(prev.flashSale || {}), ...body.flashSale };
+            // productIds = the admin-picked flash-sale products (Max 24).
+            // Empty array means "fully automatic" (storefront auto-picks).
+            const ids = Array.isArray(update.flashSale.productIds) ? update.flashSale.productIds : [];
+            update.flashSale.productIds = [...new Set(
+                ids.map((id) => String(id).trim()).filter(Boolean)
+            )].slice(0, 24);
+            // overrides = per-product price/stock/cuttedPrice shown ONLY in the
+            // flash-sale strip. The real product document is never touched.
+            // Only keep entries for the currently-picked productIds.
+            const rawOv = update.flashSale.overrides && typeof update.flashSale.overrides === 'object'
+                ? update.flashSale.overrides : {};
+            const cleanOv = {};
+            update.flashSale.productIds.forEach((id) => {
+                const o = rawOv[id];
+                if (!o || typeof o !== 'object') return;
+                const entry = {};
+                const num = (v) => {
+                    if (v === '' || v === null || v === undefined) return undefined;
+                    const n = Number(v);
+                    return Number.isFinite(n) && n >= 0 ? n : undefined;
+                };
+                const price = num(o.price);
+                const cuttedPrice = num(o.cuttedPrice);
+                const stock = num(o.stock);
+                if (price !== undefined) entry.price = price;
+                if (cuttedPrice !== undefined) entry.cuttedPrice = cuttedPrice;
+                if (stock !== undefined) entry.stock = Math.round(stock);
+                if (Object.keys(entry).length) cleanOv[id] = entry;
+            });
+            update.flashSale.overrides = cleanOv;
         }
 
         if (body.payment) update.payment = { ...(prev.payment || {}), ...body.payment };

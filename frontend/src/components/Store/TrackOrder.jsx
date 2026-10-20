@@ -18,6 +18,8 @@ const FULFILMENT_STEPS = [
 
 const STATUS_LABELS = {
     PENDING_APPROVAL: 'Pending Approval',
+    APPROVED: 'Confirmed',
+    // legacy statuses from before the Business Koro removal
     FORWARDED: 'Confirmed',
     FORWARD_FAILED: 'Issue — Contact Support',
     CANCELLED: 'Cancelled',
@@ -67,7 +69,7 @@ const TrackOrder = () => {
         setNotFound('');
         setOrders(null);
         try {
-            const params = mode === 'phone' ? { phone: q } : { groupId: q };
+            const params = mode === 'phone' ? { phone: q } : { orderId: q };
             const { data } = await axios.get('/api/v1/store/track', {
                 params,
                 headers: { Accept: 'application/json' },
@@ -113,7 +115,7 @@ const TrackOrder = () => {
                                 value={value}
                                 onChange={(e) => setValue(e.target.value)}
                                 inputMode={mode === 'phone' ? 'tel' : 'text'}
-                                placeholder={mode === 'phone' ? 'e.g. 01712345678' : 'e.g. grp-xxxx-xxxx'}
+                                placeholder={mode === 'phone' ? 'e.g. 01712345678' : 'e.g. 8801712345678-4F2A'}
                                 className="flex-1 min-w-0 input-field"
                             />
                             <button type="submit" disabled={loading} className="btn-accent px-4 py-2.5 text-sm font-semibold rounded-lg flex items-center gap-1.5 shrink-0 disabled:opacity-60">
@@ -138,7 +140,7 @@ const TrackOrder = () => {
                             <div className="flex flex-wrap items-center justify-between gap-2">
                                 <div>
                                     <p className="text-xxs uppercase tracking-widest text-slate-400 font-bold">Order ID</p>
-                                    <p className="font-display font-semibold text-sm text-slate-900 break-all">{group.groupId}</p>
+                                    <p className="font-display font-semibold text-sm text-slate-900 break-all font-mono">{group.orderId || group.groupId}</p>
                                 </div>
                                 <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
                                     cancelled ? 'bg-red-50 text-red-500 border border-red-100'

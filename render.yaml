@@ -55,15 +55,3 @@ services:
         value: d-sf5sf7s1g5ff8fd87df48dferg1
       - key: SENDGRID_ORDER_TEMPLATEID
         value: d-sf5sf7s1g5ff8fd87df48df51eg
-      - key: PAYTM_MID
-        value: dgfg515451514451
-      - key: PAYTM_MERCHANT_KEY
-        value: "848dvdvdv848dv"
-      - key: PAYTM_WEBSITE
-        value: WEBSTAGING
-      - key: PAYTM_CHANNEL_ID
-        value: WEB
-      - key: PAYTM_INDUSTRY_TYPE
-        value: Retail
-      - key: PAYTM_CUST_ID
-        value: dgfg515451514451

@@ -4,8 +4,6 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import OffersIcon from '@mui/icons-material/LocalOffer';
 import Searchbar from './Searchbar';
 import PrimaryDropDownMenu from './PrimaryDropDownMenu';
 import { useState } from 'react';
@@ -19,9 +17,11 @@ const Header = () => {
   const { isAuthenticated, user } = useSelector((state) => state.user);
   const { cartItems } = useSelector(state => state.cart);
   const [togglePrimaryDropDown, setTogglePrimaryDropDown] = useState(false);
-  const { config } = useSiteConfig();
+  const { config, ready } = useSiteConfig();
 
-  const brandName = config.branding?.name || 'Store';
+  // Until /siteconfig resolves, config still holds the placeholder defaults —
+  // showing "My Store" on the GeForce HuB site was a visible branding flash.
+  const brandName = ready ? (config.branding?.name || 'Store') : '';
   const logoUrl = config.branding?.logoUrl;
 
   const { pathname } = useLocation();
@@ -62,15 +62,6 @@ const Header = () => {
           {/* Right utility nav */}
           <div className="flex items-center gap-4 ml-auto shrink-0">
 
-            {/* Deliver to */}
-            <div className="hidden lg:flex items-center gap-1.5 cursor-pointer group">
-              <LocationOnIcon sx={{ fontSize: '18px', color: 'var(--color-accent)' }} />
-              <div className="flex flex-col leading-none">
-                <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>Deliver to</span>
-                <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>Select Location</span>
-              </div>
-            </div>
-
             {/* Track order */}
             <Link to="/track" className="hidden lg:flex items-center gap-1.5 group">
               <TrackChangesIcon sx={{ fontSize: '18px', color: 'var(--color-accent)' }} />
@@ -88,15 +79,6 @@ const Header = () => {
                 <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>Gallery</span>
               </div>
             </Link>
-
-            {/* All Offers */}
-            <div className="hidden lg:flex items-center gap-1.5 cursor-pointer">
-              <OffersIcon sx={{ fontSize: '18px', color: 'var(--color-accent)' }} />
-              <div className="flex flex-col leading-none">
-                <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>All</span>
-                <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>Offers</span>
-              </div>
-            </div>
 
             {/* Sign in / Account */}
             <div className="relative">

@@ -32,10 +32,36 @@ const FlashSale = ({ flashSale = {}, products = [] }) => {
 
     if (flashSale.enabled === false) return null;
 
-    const limited = [...products]
-        .filter((p) => p && p.images && p.images[0] && p.stock > 0)
-        .sort((a, b) => (a.stock || 0) - (b.stock || 0))
-        .slice(0, 4);
+    const SLOTS = 4;
+    const usable = [...products].filter((p) => p && p.images && p.images[0] && p.stock > 0);
+
+    // Per-product price/stock overrides — these belong to the flash-sale strip
+    // only and never modify the real product document.
+    const overrides = (flashSale.overrides && typeof flashSale.overrides === 'object') ? flashSale.overrides : {};
+    const applyOverride = (p) => {
+        const o = overrides[String(p._id)];
+        if (!o) return p;
+        return {
+            ...p,
+            price:       o.price       !== undefined ? o.price       : p.price,
+            cuttedPrice: o.cuttedPrice !== undefined ? o.cuttedPrice : p.cuttedPrice,
+            stock:       o.stock       !== undefined ? o.stock       : p.stock,
+        };
+    };
+
+    // 1) Products explicitly picked in Admin → Flash Sale, in the saved order.
+    const pickedIds = Array.isArray(flashSale.productIds) ? flashSale.productIds : [];
+    const byId = new Map(usable.map((p) => [String(p._id), p]));
+    const picked = pickedIds.map((id) => byId.get(String(id))).filter(Boolean).map(applyOverride);
+
+    // 2) Auto-fill the remaining slots with the lowest-stock products
+    //    (classic "limited stock" deal behaviour).
+    const pickedSet = new Set(picked.map((p) => String(p._id)));
+    const auto = usable
+        .filter((p) => !pickedSet.has(String(p._id)))
+        .sort((a, b) => (a.stock || 0) - (b.stock || 0));
+
+    const limited = [...picked, ...auto].slice(0, SLOTS);
 
     const timeBoxes = [
         { value: left.hours, label: 'hrs' },
@@ -92,13 +118,24 @@ const FlashSale = ({ flashSale = {}, products = [] }) => {
                     {/* limited stock gadgets */}
                     {limited.length > 0 && (
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mt-4">
-                            {limited.map((product) => (
+                            {limited.map((product) => {
+                                const price = product.price || 0;
+                                const cut = product.cuttedPrice || 0;
+                                const off = cut > price && price > 0
+                                    ? Math.round(((cut - price) / cut) * 100)
+                                    : 0;
+                                return (
                                 <Link
                                     key={product._id}
                                     to={`/product/${product._id}`}
                                     className="group bg-white rounded-xl border border-line overflow-hidden flex flex-col text-slate-900 hover:shadow-md hover:-translate-y-0.5 transition duration-200"
                                 >
-                                    <div className="h-24 sm:h-28 bg-white overflow-hidden flex items-center justify-center">
+                                    <div className="h-24 sm:h-28 bg-white overflow-hidden flex items-center justify-center relative">
+                                        {off > 0 && (
+                                            <span className="absolute top-1.5 left-1.5 z-10 text-[9px] font-bold text-white bg-red-600 px-1.5 py-0.5 rounded-full">
+                                                {off}% OFF
+                                            </span>
+                                        )}
                                         <img
                                             draggable="false"
                                             src={product.images[0].url}
@@ -111,8 +148,15 @@ const FlashSale = ({ flashSale = {}, products = [] }) => {
                                             {product.name}
                                         </p>
                                         <div className="flex items-baseline justify-between gap-1">
-                                            <span className="font-extrabold text-sm sm:text-base text-slate-900">
-                                                Tk {(product.price || 0).toLocaleString()}
+                                            <span className="flex items-baseline gap-1.5 min-w-0">
+                                                <span className="font-extrabold text-sm sm:text-base text-slate-900">
+                                                    Tk {price.toLocaleString()}
+                                                </span>
+                                                {cut > price && (
+                                                    <span className="text-[10px] text-slate-400 line-through">
+                                                        Tk {cut.toLocaleString()}
+                                                    </span>
+                                                )}
                                             </span>
                                             <span className="text-[10px] font-bold text-red-500 shrink-0">
                                                 Stock: {product.stock}
@@ -123,7 +167,8 @@ const FlashSale = ({ flashSale = {}, products = [] }) => {
                                         </span>
                                     </div>
                                 </Link>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </div>

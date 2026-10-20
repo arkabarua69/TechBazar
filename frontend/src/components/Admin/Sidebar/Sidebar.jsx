@@ -10,6 +10,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import SettingsIcon from '@mui/icons-material/Settings';
 import CategoryIcon from '@mui/icons-material/Category';
+import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import StorageIcon from '@mui/icons-material/Storage';
 import HomeIcon from '@mui/icons-material/Home';
 import CloseIcon from '@mui/icons-material/Close';
@@ -22,6 +23,9 @@ import { useSnackbar } from 'notistack';
 import { logoutUser } from '../../../actions/userAction';
 import { useSiteConfig } from '../../../context/SiteConfigContext';
 
+// Grouped navigation — mirrors the storefront's warm palette (deep brown rail,
+// orange accent for the active item) and keeps related tools together so the
+// desktop sidebar reads like a proper admin console instead of a flat list.
 const Sidebar = ({ setToggleSidebar }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -29,8 +33,9 @@ const Sidebar = ({ setToggleSidebar }) => {
     const { enqueueSnackbar } = useSnackbar();
     const { t } = useTranslation();
     const { user } = useSelector((state) => state.user);
-    const { config } = useSiteConfig();
-    const siteName = config?.branding?.name || 'Admin';
+    const { config, ready } = useSiteConfig();
+    // Blank until the real site name arrives — never flash the placeholder.
+    const siteName = ready ? (config?.branding?.name || 'Admin') : '';
 
     const handleLogout = () => {
         dispatch(logoutUser());
@@ -38,20 +43,45 @@ const Sidebar = ({ setToggleSidebar }) => {
         navigate('/login');
     };
 
-    const navMenu = [
-        { icon: <HomeIcon />,        label: t('view_store'),  ref: '/',                   id: 'home' },
-        { icon: <EqualizerIcon />,   label: t('dashboard'),    ref: '/admin/dashboard',    id: 'dashboard' },
-        { icon: <ShoppingBagIcon />, label: t('orders'),       ref: '/admin/orders',       id: 'orders' },
-        { icon: <InventoryIcon />,   label: t('products'),     ref: '/admin/products',     id: 'products' },
-        { icon: <AddBoxIcon />,      label: t('add_product'),  ref: '/admin/new_product',  id: 'add_product' },
-        { icon: <GroupIcon />,       label: t('users'),        ref: '/admin/users',        id: 'users' },
-        { icon: <ReviewsIcon />,     label: t('reviews'),      ref: '/admin/reviews',      id: 'reviews' },
-        { icon: <ChatBubbleIcon />,  label: t('chat_inbox'),   ref: '/admin/chat',         id: 'chat_inbox' },
-        { icon: <CategoryIcon />,    label: t('categories'),   ref: '/admin/categories',   id: 'categories' },
-        { icon: <SettingsIcon />,    label: t('config'),       ref: '/admin/config',       id: 'config' },
-        { icon: <StorageIcon />,     label: 'Database',        ref: '/admin/database',     id: 'database' },
-        { icon: <AccountBoxIcon />,  label: t('my_profile'),   ref: '/account',            id: 'my_profile' },
-        { icon: <LogoutIcon />,      label: t('logout'),                                   id: 'logout' },
+    const navSections = [
+        {
+            title: null,
+            items: [
+                { icon: <HomeIcon />,        label: t('view_store'), ref: '/',                id: 'home' },
+                { icon: <EqualizerIcon />,   label: t('dashboard'),  ref: '/admin/dashboard', id: 'dashboard' },
+            ],
+        },
+        {
+            title: 'Sales',
+            items: [
+                { icon: <ShoppingBagIcon />, label: t('orders'),  ref: '/admin/orders', id: 'orders' },
+                { icon: <ReviewsIcon />,     label: t('reviews'), ref: '/admin/reviews', id: 'reviews' },
+            ],
+        },
+        {
+            title: 'Catalogue',
+            items: [
+                { icon: <InventoryIcon />,   label: t('products'),    ref: '/admin/products',    id: 'products' },
+                { icon: <AddBoxIcon />,      label: t('add_product'), ref: '/admin/new_product', id: 'add_product' },
+                { icon: <CategoryIcon />,    label: t('categories'),  ref: '/admin/categories',  id: 'categories' },
+                { icon: <LocalFireDepartmentIcon />, label: t('flash_sale', 'Flash Sale'), ref: '/admin/flash_sale', id: 'flash_sale' },
+            ],
+        },
+        {
+            title: 'Customers',
+            items: [
+                { icon: <GroupIcon />,       label: t('users'),      ref: '/admin/users', id: 'users' },
+                { icon: <ChatBubbleIcon />,  label: t('chat_inbox'), ref: '/admin/chat',  id: 'chat_inbox' },
+            ],
+        },
+        {
+            title: 'System',
+            items: [
+                { icon: <SettingsIcon />,    label: t('config'),             ref: '/admin/config',   id: 'config' },
+                { icon: <StorageIcon />,     label: 'Database',              ref: '/admin/database', id: 'database' },
+                { icon: <AccountBoxIcon />,  label: t('my_profile'),         ref: '/account',        id: 'my_profile' },
+            ],
+        },
     ];
 
     // Path-based highlight so the menu stays correct even if entries are added
@@ -65,10 +95,41 @@ const Sidebar = ({ setToggleSidebar }) => {
         if (id === 'reviews')    return pathname.startsWith('/admin/reviews');
         if (id === 'chat_inbox') return pathname.startsWith('/admin/chat');
         if (id === 'categories') return pathname.startsWith('/admin/categories');
+        if (id === 'flash_sale') return pathname.startsWith('/admin/flash_sale');
         if (id === 'config')     return pathname.startsWith('/admin/config') || pathname.startsWith('/admin/homepage');
         if (id === 'database')   return pathname.startsWith('/admin/database');
         if (id === 'my_profile') return pathname.startsWith('/account');
         return false;
+    };
+
+    const renderItem = ({ icon, label, ref, id }) => {
+        const isActive = itemActive(id);
+        return (
+            <Link
+                key={id}
+                to={ref}
+                className={`group relative flex items-center gap-3 pl-3 pr-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                    isActive ? 'admin-nav-active' : 'text-white/60 hover:text-white hover:bg-white/[0.06]'
+                }`}
+                style={isActive ? { background: 'linear-gradient(90deg, rgba(232,75,15,0.95), rgba(232,75,15,0.75))' } : undefined}
+            >
+                {/* active indicator bar */}
+                <span
+                    className={`absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full transition-opacity ${
+                        isActive ? 'opacity-100' : 'opacity-0'
+                    }`}
+                    style={{ backgroundColor: '#fff' }}
+                />
+                <span
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                        isActive ? 'bg-white/20 text-white' : 'bg-white/[0.06] text-white/70 group-hover:bg-white/10 group-hover:text-white'
+                    }`}
+                >
+                    {icon}
+                </span>
+                <span className="truncate">{label}</span>
+            </Link>
+        );
     };
 
     return (
@@ -104,51 +165,39 @@ const Sidebar = ({ setToggleSidebar }) => {
                 )}
             </div>
 
-            {/* Nav items */}
-            <nav className="flex flex-col gap-0.5 px-3 py-2">
-                {navMenu.map((item) => {
-                    const { icon, label, ref, id } = item;
-
-                    if (id === 'logout') {
-                        return (
-                            <button
-                                key={id}
-                                onClick={handleLogout}
-                                className="flex gap-3 items-center py-2.5 px-4 rounded-xl font-medium text-sm transition-all duration-150"
-                                style={{ color: '#f87171' }}
-                                onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(248,113,113,0.1)'}
-                                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+            {/* Nav sections */}
+            <nav className="flex flex-col gap-4 px-3 py-1">
+                {navSections.map((section, si) => (
+                    <div key={section.title || `section-${si}`} className="flex flex-col gap-0.5">
+                        {section.title && (
+                            <p
+                                className="px-3 pt-1 pb-1.5 text-[10px] font-bold uppercase tracking-[0.14em]"
+                                style={{ color: 'rgba(255,255,255,0.35)' }}
                             >
-                                <span>{icon}</span>
-                                <span>{label}</span>
-                            </button>
-                        );
-                    }
-
-                    const isActive = itemActive(id);
-                    return (
-                        <Link
-                            key={id}
-                            to={ref}
-                            className="flex gap-3 items-center py-2.5 px-4 rounded-xl font-medium text-sm transition-all duration-150"
-                            style={
-                                isActive
-                                    ? { backgroundColor: 'var(--color-accent)', color: '#fff' }
-                                    : { color: 'rgba(255,255,255,0.65)' }
-                            }
-                            onMouseEnter={e => { if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(232,75,15,0.15)'; }}
-                            onMouseLeave={e => { if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'; }}
-                        >
-                            <span>{icon}</span>
-                            <span>{label}</span>
-                        </Link>
-                    );
-                })}
+                                {section.title}
+                            </p>
+                        )}
+                        {section.items.map(renderItem)}
+                    </div>
+                ))}
             </nav>
+
+            {/* Logout — pinned at the bottom of the group list */}
+            <div className="px-3 pt-3">
+                <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 pl-3 pr-4 py-2.5 rounded-xl text-sm font-medium text-red-400 transition-all duration-150 hover:bg-red-500/10"
+                >
+                    <span className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-red-500/10">
+                        <LogoutIcon sx={{ fontSize: '18px' }} />
+                    </span>
+                    <span>{t('logout')}</span>
+                </button>
+            </div>
 
             {/* Footer credit */}
             <div
-                className="mx-4 mb-6 mt-6 p-3 rounded-2xl text-center"
+                className="mx-4 mb-6 mt-5 p-3 rounded-2xl text-center"
                 style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
             >
                 <h5 className="font-semibold text-xs text-white">{siteName} Admin</h5>

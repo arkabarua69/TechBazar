@@ -1,5 +1,5 @@
 const express = require('express');
-const { registerUser, loginUser, logoutUser, getUserDetails, forgotPassword, resetPassword, updatePassword, updateProfile, getAllUsers, getSingleUser, updateUserRole, deleteUser } = require('../controllers/userController');
+const { registerUser, loginUser, logoutUser, getUserDetails, forgotPassword, resetPassword, updatePassword, updateProfile, getAllUsers, getSingleUser, updateUserRole, updateCodAllowed, deleteUser, getMyAddresses, addAddress, updateAddress, deleteAddress, setDefaultAddress } = require('../controllers/userController');
 const { getProviders, startOAuth, oauthCallback } = require('../controllers/oauthController');
 const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 
@@ -23,11 +23,25 @@ router.route('/password/update').put(isAuthenticatedUser, updatePassword);
 
 router.route('/me/update').put(isAuthenticatedUser, updateProfile);
 
+// Manage Addresses — saved delivery addresses on the user's profile
+router.route('/addresses')
+    .get(isAuthenticatedUser, getMyAddresses)
+    .post(isAuthenticatedUser, addAddress);
+
+router.route('/addresses/:addressId')
+    .put(isAuthenticatedUser, updateAddress)
+    .delete(isAuthenticatedUser, deleteAddress);
+
+router.route('/addresses/:addressId/default').put(isAuthenticatedUser, setDefaultAddress);
+
 router.route("/admin/users").get(isAuthenticatedUser, authorizeRoles("admin"), getAllUsers);
 
 router.route("/admin/user/:id")
     .get(isAuthenticatedUser, authorizeRoles("admin"), getSingleUser)
     .put(isAuthenticatedUser, authorizeRoles("admin"), updateUserRole)
     .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteUser);
+
+// COD (Cash on Delivery) permission toggle — Admin → Users
+router.route("/admin/user/:id/cod").put(isAuthenticatedUser, authorizeRoles("admin"), updateCodAllowed);
 
 module.exports = router;
