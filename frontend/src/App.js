@@ -6,8 +6,9 @@ import Login from './components/User/Login';
 import Register from './components/User/Register';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { loadUser } from './actions/userAction';
-import { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import MaintenancePage from './components/MaintenancePage';
 import ForgotPassword from './components/User/ForgotPassword';
 import ResetPassword from './components/User/ResetPassword';
 import Account from './components/User/Account';
@@ -42,10 +43,10 @@ import Policy from './components/Policy';
 import Wishlist from './components/Wishlist/Wishlist';
 import NotFound from './components/NotFound';
 import ImageGallery from './components/Gallery/ImageGallery';
-import { SiteConfigProvider } from './context/SiteConfigContext';
+import { SiteConfigProvider, useSiteConfig } from './context/SiteConfigContext';
 import MobileTopBar from './components/Layouts/Header/MobileTopBar';
 
-function App() {
+function AppInner() {
   const dispatch = useDispatch();
   const { pathname } = useLocation();
 
@@ -129,8 +130,35 @@ function App() {
     };
   }, []);
 
+  // Maintenance mode — take the public site offline, keep admin access
+  const { config } = useSiteConfig();
+  const { user } = useSelector((state) => state.user);
+  const isAdmin = !!(user && user.role === 'admin');
+  const [maintenance, setMaintenance] = useState({ on: false, message: '' });
+
+  useEffect(() => {
+    let cancelled = false;
+    const check = async () => {
+      try {
+        const res = await fetch('/api/v1/websiteconfig/public', { headers: { Accept: 'application/json' } });
+        const data = await res.json();
+        if (cancelled) return;
+        const g = (data && data.config && data.config.general) || {};
+        setMaintenance({ on: !!g.maintenanceMode, message: g.maintenanceMessage || 'We are performing maintenance. Please check back soon.' });
+      } catch (e) { /* ignore */ }
+    };
+    check();
+    const id = setInterval(check, 30000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+
+  if (maintenance.on && !isAdmin) {
+    return <MaintenancePage message={maintenance.message} />;
+  }
+
   return (
-    <SiteConfigProvider>
+    <>
       <Header />
       <MobileTopBar />
       <BottomBar />
@@ -213,6 +241,14 @@ function App() {
       </Routes>
       <Footer />
       <ChatWidget />
+    </>
+  );
+}
+
+function App() {
+  return (
+    <SiteConfigProvider>
+      <AppInner />
     </SiteConfigProvider>
   );
 }
