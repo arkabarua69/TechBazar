@@ -43,6 +43,7 @@ import {
     ScrollText,
     Package,
     Star,
+    Copyright,
 } from 'lucide-react';
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MASK_STRING = '••••••••••••••••••••';
@@ -64,6 +65,7 @@ const CATEGORIES = [
     { id: 'features',  label: 'Features',       Icon: Sliders,     count: 7  },
     { id: 'database',  label: 'Database',       Icon: Database,    count: null },
     { id: 'homepage',  label: 'Homepage',       Icon: Layout,      count: null },
+    { id: 'footer',    label: 'Footer',         Icon: Copyright, count: null },
     { id: 'changelog', label: 'Change Log',     Icon: History,     count: null },
 ];
 // Fields that carry sensitive data – if value still equals MASK_STRING, send "" on save
@@ -1539,35 +1541,7 @@ const HomepagePanel = ({ registerSave, registerReset, onSavingChange }) => {
                 </div>
             </Card>
 
-            {/* Footer */}
-            <Card>
-                <SectionHeading>Footer</SectionHeading>
-                <p className="text-xs text-gray-500 mb-3">Link format: Name =&gt; /path or Name =&gt; https://...</p>
-                {(c.footer?.columns || []).map((col, ci) => (
-                    <div key={ci} className="bg-gray-50 rounded-xl p-3 flex flex-col gap-2 relative mb-2">
-                        <button onClick={() => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, columns: (prev.content?.footer?.columns || []).filter((_, idx) => idx !== ci) } } }))}
-                            className="absolute top-1 right-1 text-xs text-red-500 hover:underline">x</button>
-                        <HomepageField label="Column Title" value={col.title} onChange={(v) => setHpConfig((prev) => { const cols = JSON.parse(JSON.stringify(prev.content?.footer?.columns || [])); cols[ci] = { ...cols[ci], title: v }; return { ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, columns: cols } } }; })} />
-                        <HomepageField label="Links (one per line)" textarea value={linksToText(col.links)} onChange={(v) => setHpConfig((prev) => { const cols = JSON.parse(JSON.stringify(prev.content?.footer?.columns || [])); cols[ci] = { ...cols[ci], links: textToLinks(v) }; return { ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, columns: cols } } }; })} />
-                    </div>
-                ))}
-                <button onClick={() => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, columns: [...(prev.content?.footer?.columns || []), { title: 'New Group', links: [] }] } } }))}
-                    className="text-sm border border-dashed border-gray-400 rounded-xl px-3 py-1.5 hover:bg-gray-50 mb-4">+ Add Column</button>
-
-                <div className="border-t pt-4 flex flex-col gap-3">
-                    <p className="text-xs font-semibold text-gray-500 uppercase">Company Block</p>
-                    <HomepageField label="Company Name" value={c.footer?.company?.name} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, name: v } } } }))} />
-                    <HomepageField label="Mail Us" textarea value={c.footer?.company?.mailUs} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, mailUs: v } } } }))} />
-                    <div className="grid sm:grid-cols-2 gap-3">
-                        <HomepageField label="CIN" value={c.footer?.company?.cin} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, cin: v } } } }))} />
-                        <HomepageField label="Telephone" value={c.footer?.company?.telephone} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, telephone: v } } } }))} />
-                    </div>
-                    <div className="grid sm:grid-cols-2 gap-3">
-                        <HomepageField label="Copyright Text" value={c.footer?.copyright} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, copyright: v } } }))} />
-                        <HomepageField label="Since Year" type="number" value={c.footer?.since} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, since: Number(v) } } }))} />
-                    </div>
-                </div>
-            </Card>
+            {/* Footer moved to its own admin tab */}
 
             {/* Account FAQs */}
             <Card>
@@ -1590,6 +1564,133 @@ const HomepagePanel = ({ registerSave, registerReset, onSavingChange }) => {
                 <HomepageField label="Welcome Message" textarea value={ch.welcomeMessage} onChange={(v) => setHpSection('chat', 'welcomeMessage', v)} />
             </Card>
 
+        </div>
+    );
+};
+
+// ─── Footer Panel (separate from Homepage) ────────────────────────────────────
+const FooterPanel = ({ registerSave, registerReset, onSavingChange }) => {
+    const { enqueueSnackbar } = useSnackbar();
+    const { reloadConfig } = useSiteConfig();
+    const [hpConfig, setHpConfig] = useState(null);
+    const [hpLoading, setHpLoading] = useState(true);
+    const [hpSaving, setHpSaving] = useState(false);
+
+    useEffect(() => {
+        setHpLoading(true);
+        axios.get('/api/v1/siteconfig', { headers: { Accept: 'application/json' } })
+            .then((res) => {
+                if (res.data?.config) {
+                    const merged = { ...JSON.parse(JSON.stringify(DEFAULT_SITE_CONFIG)), ...JSON.parse(JSON.stringify(res.data.config)) };
+                    setHpConfig(merged);
+                }
+            })
+            .catch(() => enqueueSnackbar('Using default footer content', { variant: 'warning' }))
+            .finally(() => setHpLoading(false));
+    }, [enqueueSnackbar]);
+
+    const saveHp = useCallback(async () => {
+        if (!hpConfig) return;
+        setHpSaving(true);
+        if (onSavingChange) onSavingChange(true);
+        try {
+            const payload = {
+                announcement: hpConfig.announcement,
+                hero: hpConfig.hero,
+                trustBadges: hpConfig.trustBadges,
+                flashSale: hpConfig.flashSale,
+                payment: hpConfig.payment,
+                delivery: hpConfig.delivery,
+                support: hpConfig.support,
+                categories: hpConfig.categories,
+                categoryImages: hpConfig.categoryImages,
+                branding: hpConfig.branding,
+                seo: hpConfig.seo,
+                navigation: hpConfig.navigation,
+                content: hpConfig.content,
+                chat: hpConfig.chat,
+                theme: hpConfig.theme,
+            };
+            await axios.put('/api/v1/admin/siteconfig', payload, { headers: { 'Content-Type': 'application/json', Accept: 'application/json' } });
+            await reloadConfig();
+            enqueueSnackbar('Footer updated successfully', { variant: 'success' });
+        } catch (err) {
+            enqueueSnackbar(err?.response?.data?.message || 'Failed to update footer', { variant: 'error' });
+        } finally {
+            setHpSaving(false);
+            if (onSavingChange) onSavingChange(false);
+        }
+    }, [hpConfig, enqueueSnackbar, reloadConfig, onSavingChange]);
+
+    const resetHp = useCallback(() => {
+        if (!hpConfig) return;
+        setHpConfig({ ...JSON.parse(JSON.stringify(DEFAULT_SITE_CONFIG)) });
+        enqueueSnackbar('Footer reset to defaults (not saved yet)', { variant: 'info' });
+    }, [hpConfig, enqueueSnackbar]);
+
+    useEffect(() => { if (registerSave) registerSave(saveHp); }, [registerSave, saveHp]);
+    useEffect(() => { if (registerReset) registerReset(resetHp); }, [registerReset, resetHp]);
+    useEffect(() => { if (onSavingChange) onSavingChange(hpSaving); }, [hpSaving, onSavingChange]);
+
+    if (hpLoading) {
+        return (
+            <div className="flex items-center justify-center py-16">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E84B0F]"></div>
+            </div>
+        );
+    }
+    if (!hpConfig) return null;
+
+    const c = hpConfig.content || {};
+
+    const linksToText = (links = []) => (links || []).map((l) => `${l.name || ''} => ${l.redirect || ''}`).join('\n');
+    const textToLinks = (txt = '') => txt.split('\n').map((line) => {
+        const s = line.trim();
+        if (!s) return null;
+        const i = s.indexOf('=>');
+        if (i < 0) return { name: s, redirect: s.startsWith('http') ? s : `/${s.replace(/^\/+/, '')}`, internal: !s.startsWith('http') };
+        const name = s.slice(0, i).trim();
+        const redirect = s.slice(i + 2).trim();
+        const internal = !/^https?:\/\//i.test(redirect);
+        return { name, redirect, internal };
+    }).filter(Boolean);
+
+    return (
+        <div className="flex flex-col gap-5">
+            <Card>
+                <SectionHeading>Footer Columns</SectionHeading>
+                <p className="text-xs text-gray-500 mb-3">Manage footer link groups and their destinations. Format: Name =&gt; /path or Name =&gt; https://...</p>
+                {(c.footer?.columns || []).map((col, ci) => (
+                    <div key={ci} className="bg-gray-50 rounded-xl p-3 flex flex-col gap-2 relative mb-2">
+                        <button onClick={() => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, columns: (prev.content?.footer?.columns || []).filter((_, idx) => idx !== ci) } } }))}
+                            className="absolute top-1 right-1 text-xs text-red-500 hover:underline">Remove</button>
+                        <HomepageField label="Column Title" value={col.title} onChange={(v) => setHpConfig((prev) => { const cols = JSON.parse(JSON.stringify(prev.content?.footer?.columns || [])); cols[ci] = { ...cols[ci], title: v }; return { ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, columns: cols } } }; })} />
+                        <HomepageField label="Links (one per line)" textarea value={linksToText(col.links)} onChange={(v) => setHpConfig((prev) => { const cols = JSON.parse(JSON.stringify(prev.content?.footer?.columns || [])); cols[ci] = { ...cols[ci], links: textToLinks(v) }; return { ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, columns: cols } } }; })} />
+                    </div>
+                ))}
+                <button onClick={() => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, columns: [...(prev.content?.footer?.columns || []), { title: 'New Group', links: [] }] } } }))}
+                    className="text-sm border border-dashed border-gray-400 rounded-xl px-3 py-1.5 hover:bg-gray-50">+ Add Column</button>
+            </Card>
+
+            <Card>
+                <SectionHeading>Footer Company Info</SectionHeading>
+                <div className="flex flex-col gap-3">
+                    <HomepageField label="Company Name" value={c.footer?.company?.name} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, name: v } } } }))} />
+                    <HomepageField label="Mail Us / Address" textarea value={c.footer?.company?.mailUs} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, mailUs: v } } } }))} />
+                    <div className="grid sm:grid-cols-2 gap-3">
+                        <HomepageField label="CIN" value={c.footer?.company?.cin} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, cin: v } } } }))} />
+                        <HomepageField label="Telephone" value={c.footer?.company?.telephone} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, company: { ...prev.content?.footer?.company, telephone: v } } } }))} />
+                    </div>
+                </div>
+            </Card>
+
+            <Card>
+                <SectionHeading>Copyright</SectionHeading>
+                <div className="grid sm:grid-cols-2 gap-3">
+                    <HomepageField label="Copyright Text" value={c.footer?.copyright} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, copyright: v } } }))} />
+                    <HomepageField label="Since Year" type="number" value={c.footer?.since} onChange={(v) => setHpConfig((prev) => ({ ...prev, content: { ...prev.content, footer: { ...prev.content?.footer, since: Number(v) } } }))} />
+                </div>
+            </Card>
         </div>
     );
 };
@@ -1987,6 +2088,15 @@ const WebsiteConfig = () => {
         if (activeCategory === 'homepage') {
             return (
                 <HomepagePanel
+                    registerSave={(fn) => { homepageSaveRef.current = fn; }}
+                    registerReset={(fn) => { homepageResetRef.current = fn; }}
+                    onSavingChange={setHomepageSaving}
+                />
+            );
+        }
+        if (activeCategory === 'footer') {
+            return (
+                <FooterPanel
                     registerSave={(fn) => { homepageSaveRef.current = fn; }}
                     registerReset={(fn) => { homepageResetRef.current = fn; }}
                     onSavingChange={setHomepageSaving}
