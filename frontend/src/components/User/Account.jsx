@@ -286,7 +286,7 @@ const Account = () => {
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white transition-all duration-200"
                         style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 4px 12px rgba(232,75,15,0.25)' }}
                     >
-                        <AddIcon sx={{ fontSize: 16 }} /> Add new address
+                        <AddIcon sx={{ fontSize: 16 }} /> Add New Address
                     </button>
                 </div>
             )}
@@ -648,7 +648,7 @@ const Account = () => {
             )}
 
             {/* ── Body ── */}
-            <main className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 pb-20 md:py-6 md:pt-6">
+            <main className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 pt-3 pb-20 md:py-6 md:pt-6">
                 {isMobile ? (
                     /* Phone: app shell — section content only. Navigation lives
                        in the side drawer opened by the bottom bar's Menu button,
