@@ -124,15 +124,6 @@ const TicketPanel = () => {
         }
     };
 
-    const closeTicket = async () => {
-        try {
-            await axios.put(`/api/v1/admin/tickets/${active._id}/status`, { status: 'closed' }, { headers: { 'Content-Type': 'application/json', Accept: 'application/json' } });
-        } catch (err) {
-            // user can't close via admin route; ignore — admin handles closing
-        }
-        setView('list');
-    };
-
     // ── List view ──────────────────────────────────────────────────────
     if (view === 'list') {
         return (

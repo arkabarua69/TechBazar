@@ -8,7 +8,7 @@ import AccountSidebar from './AccountSidebar';
 import EditProfilePanel from './EditProfilePanel';
 import AddressForm from './AddressForm';
 import ChangePasswordPanel from './ChangePasswordPanel';
-import { logoutUser, myAddresses, deleteAddress, setDefaultAddress, clearErrors } from '../../actions/userAction';
+import { myAddresses, deleteAddress, setDefaultAddress, clearErrors } from '../../actions/userAction';
 import { useSiteConfig } from '../../context/SiteConfigContext';
 import { DEFAULT_SITE_CONFIG } from '../../utils/siteConfig';
 import { richTextToHtml } from '../../utils/richText';
@@ -18,12 +18,10 @@ import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import WcIcon from '@mui/icons-material/Wc';
-import EditIcon from '@mui/icons-material/Edit';
 import ShieldIcon from '@mui/icons-material/Shield';
 import FolderIcon from '@mui/icons-material/Folder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
@@ -195,12 +193,6 @@ const Account = () => {
         if (addressDelete?.error) { enqueueSnackbar(addressDelete.error, { variant: 'error' }); dispatch(clearErrors()); }
     }, [addressDelete?.error, enqueueSnackbar, dispatch]);
 
-    const handleLogout = () => {
-        dispatch(logoutUser());
-        enqueueSnackbar('Logged out successfully', { variant: 'success' });
-        navigate('/login');
-    };
-
     if (loading || !user) return <Loader />;
 
     const initials = user.name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase();
@@ -216,7 +208,6 @@ const Account = () => {
     })();
 
     const openAdd = () => { setEditing(null); setFormOpen(true); };
-    const openEdit = (addr) => { setEditing(addr); setFormOpen(true); };
 
     // The save/delete actions return the fresh list, but the sidebar tab also
     // reads `state.addresses` — refetch so both stay in sync.
@@ -282,23 +273,40 @@ const Account = () => {
     );
 
     const AddressesBody = (
-        <Panel
-            title="Manage Addresses"
-            action={
-                !formOpen && (
+        <>
+            {isMobile && !formOpen && (
+                <div className="flex items-center justify-between mb-3">
+                    <div>
+                        <h3 className="font-bold text-sm" style={{ color: 'var(--color-text-primary)' }}>Manage Addresses</h3>
+                        <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>Saved delivery addresses</p>
+                    </div>
                     <button
                         type="button"
                         onClick={openAdd}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all duration-150"
-                        style={{ backgroundColor: 'var(--color-accent)' }}
-                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-accent)'; }}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white transition-all duration-200"
+                        style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 4px 12px rgba(232,75,15,0.25)' }}
                     >
-                        <AddIcon sx={{ fontSize: 15 }} /> Add a new address
+                        <AddIcon sx={{ fontSize: 16 }} /> Add new address
                     </button>
-                )
-            }
-        >
+                </div>
+            )}
+            <Panel
+                title="Manage Addresses"
+                action={
+                    !formOpen && (
+                        <button
+                            type="button"
+                            onClick={openAdd}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all duration-150"
+                            style={{ backgroundColor: 'var(--color-accent)' }}
+                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-accent)'; }}
+                        >
+                            <AddIcon sx={{ fontSize: 15 }} /> Add a new address
+                        </button>
+                    )
+                }
+            >
             {formOpen && (
                 <AddressForm
                     initial={editing}
@@ -396,6 +404,7 @@ const Account = () => {
                 </div>
             )}
         </Panel>
+        </>
     );
 
     const WishlistBody = (
@@ -636,19 +645,6 @@ const Account = () => {
                         </div>
                     </aside>
                 </div>
-            )}
-
-            {/* ── Mobile floating "Add address" button ── */}
-            {isMobile && tab === 'addresses' && !formOpen && (
-                <button
-                    type="button"
-                    onClick={openAdd}
-                    aria-label="Add a new address"
-                    className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full flex items-center justify-center text-white transition active:scale-90"
-                    style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 8px 20px rgba(232,75,15,0.4)' }}
-                >
-                    <AddIcon sx={{ fontSize: 26 }} />
-                </button>
             )}
 
             {/* ── Body ── */}

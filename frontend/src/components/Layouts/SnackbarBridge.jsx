@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useSnackbar } from 'notistack';
 
 // Bridge: expose notistack's closeSnackbar globally so non-React code (e.g. the
