@@ -369,16 +369,6 @@ const Account = () => {
                             <div className="flex items-center gap-3 pt-2 mt-auto" style={{ borderTop: '1px solid var(--color-border)' }}>
                                 <button
                                     type="button"
-                                    onClick={() => openEdit(a)}
-                                    className="inline-flex items-center gap-1 text-xs font-semibold transition-colors"
-                                    style={{ color: 'var(--color-text-secondary)' }}
-                                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-accent)'; }}
-                                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
-                                >
-                                    <EditIcon sx={{ fontSize: 14 }} /> Edit
-                                </button>
-                                <button
-                                    type="button"
                                     onClick={() => handleDelete(a._id)}
                                     disabled={addressDelete?.loading}
                                     className="inline-flex items-center gap-1 text-xs font-semibold transition-colors disabled:opacity-50"
