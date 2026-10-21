@@ -648,6 +648,19 @@ const Account = () => {
                 </div>
             )}
 
+            {/* ── Mobile floating "Add address" button ── */}
+            {isMobile && tab === 'addresses' && !formOpen && (
+                <button
+                    type="button"
+                    onClick={openAdd}
+                    aria-label="Add a new address"
+                    className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full flex items-center justify-center text-white transition active:scale-90"
+                    style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 8px 20px rgba(232,75,15,0.4)' }}
+                >
+                    <AddIcon sx={{ fontSize: 26 }} />
+                </button>
+            )}
+
             {/* ── Body ── */}
             <main className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 pb-20 md:py-6 md:pt-6">
                 {isMobile ? (
