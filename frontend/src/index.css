@@ -2,8 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Google Fonts ── */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+/* ── Google Fonts ──
+   Every family the admin Typography pickers offer must actually be loaded,
+   otherwise choosing it silently falls back to the default stack and the
+   setting looks broken. Keep this list in sync with FONT_BODY_OPTIONS /
+   FONT_DISPLAY_OPTIONS in components/Admin/ThemeEditor.jsx. */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Roboto:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&family=Nunito:wght@400;600;700;800&family=Lato:wght@300;400;700&family=Sora:wght@600;700;800&family=Montserrat:wght@500;600;700;800&family=Raleway:wght@500;600;700;800&family=Playfair+Display:wght@600;700;800&family=Merriweather:wght@400;700&display=swap');
 
 /* ── CSS Custom Properties ─────────────────────────────────────────────────── */
 :root {
@@ -49,18 +53,23 @@
   --accent-darker:        #831f06;
 }
 
-/* ── Dark mode ── */
+/* ── Dark mode (first-paint fallback only) ──
+   The live values are written inline on <html> by SiteConfigContext (see
+   utils/themeColors.darkPalette), which always wins over this stylesheet
+   rule. These are brand-neutral defaults so the very first frame is not
+   stuck on the light palette before the config loads — previously they were
+   hard-coded orange-brown, which flashed wrong on a green/blue theme. */
 html.dark-mode {
-  --color-bg:             #1a0e08;
-  --color-surface:        #2d1b0e;
-  --color-border:         #4a2e1a;
-  --color-text-primary:   #fdf0e8;
-  --color-text-secondary: #c4907a;
-  --color-text-muted:     #8a6050;
-  --color-header:         #2d1b0e;
-  --color-header-text:    #fdf0e8;
-  --color-footer:         #0d0703;
-  --color-footer-text:    #8a6050;
+  --color-bg:             #0f172a;
+  --color-surface:        #1e293b;
+  --color-border:         #334155;
+  --color-text-primary:   #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted:     #64748b;
+  --color-header:         #1e293b;
+  --color-header-text:    #f1f5f9;
+  --color-footer:         #020617;
+  --color-footer-text:    #8a94a6;
 }
 
 /* ── Base ── */
@@ -449,8 +458,28 @@ body:not(.admin-page) .border-gray-200 { border-color: var(--color-border); }
 body:not(.admin-page) .btn-accent,
 body:not(.admin-page) .btn-ghost { border-radius: var(--btn-radius); }
 
-/* -- Font utilities ---------------------------------------------------- */
-.font-display { font-family: var(--font-display); }
+/* -- Utility: typography tokens -----------------------------------------
+   Tailwind bakes literal family names into .font-sans / .font-display
+   (tailwind.config.js), so anything carrying those classes ignored the
+   admin's Body Font / Display Font pickers. Re-bind them to the live theme
+   tokens for the storefront. The base body/heading rules cover everything
+   that does not set a family class explicitly. */
+body:not(.admin-page) .font-display,
+body:not(.admin-page) .section-title { font-family: var(--font-display); }
+
+body:not(.admin-page) .font-sans { font-family: var(--font-body); }
+body:not(.admin-page) h1,
+body:not(.admin-page) h2,
+body:not(.admin-page) h3,
+body:not(.admin-page) h4 { font-family: var(--font-display); }
+
+/* -- Utility: card radius token -----------------------------------------
+   Only some cards read --card-radius via an inline style. The rest use
+   Tailwind rounded-* classes, so the admin's Card Radius was half-applied.
+   Re-bind the common card radii to the token on the storefront; chips,
+   pills and avatars keep their intentionally round shapes. */
+body:not(.admin-page) .rounded-2xl,
+body:not(.admin-page) .rounded-3xl { border-radius: var(--card-radius); }
 
 /* Snackbar (notistack) — top-center, below the nav bar */
 .site-snackbar-container {

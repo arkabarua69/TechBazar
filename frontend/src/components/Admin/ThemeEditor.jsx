@@ -5,7 +5,7 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 import FormatSizeIcon from '@mui/icons-material/FormatSize';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import CheckIcon from '@mui/icons-material/Check';
-import { tintColor, darkenColor, isHexColor } from '../../utils/themeColors';
+import { tintColor, darkenColor, isHexColor, darkPalette, resolveFont } from '../../utils/themeColors';
 
 // ── Preset colour palettes ────────────────────────────────────────────────────
 // A preset is a *complete* look: colour + shape + typography. Every token the
@@ -270,7 +270,7 @@ const ThemeEditor = ({ theme, onChange }) => {
         const root = document.documentElement;
         Object.entries(CSS_VAR_MAP).forEach(([key, cssVar]) => {
             if (t[key] !== undefined && t[key] !== null && t[key] !== '') {
-                root.style.setProperty(cssVar, String(t[key]));
+                root.style.setProperty(cssVar, String(resolveFont(key, t[key])));
             }
         });
         previewDerivedAccent(t.colorAccent);
@@ -311,12 +311,22 @@ const ThemeEditor = ({ theme, onChange }) => {
     };
 
     const handleDarkMode = (dark) => {
+        // Toggling dark mode must visibly change the preview: apply the derived
+        // dark palette inline (or restore the theme's own light tokens).
+        const next = { ...theme, darkMode: dark };
+        previewTheme(next);
         if (dark) {
+            const palette = darkPalette(theme);
+            Object.entries(palette).forEach(([key, value]) => {
+                if (value && CSS_VAR_MAP[key]) {
+                    document.documentElement.style.setProperty(CSS_VAR_MAP[key], String(value));
+                }
+            });
             document.documentElement.classList.add('dark-mode');
         } else {
             document.documentElement.classList.remove('dark-mode');
         }
-        set('darkMode', dark);
+        onChange(next);
     };
 
     // Generic setter for non-colour tokens (shape / typography) with preview.
@@ -324,7 +334,7 @@ const ThemeEditor = ({ theme, onChange }) => {
         if (key === 'btnStyle') {
             document.documentElement.setAttribute('data-btn-style', value || 'filled');
         } else if (CSS_VAR_MAP[key]) {
-            document.documentElement.style.setProperty(CSS_VAR_MAP[key], value);
+            document.documentElement.style.setProperty(CSS_VAR_MAP[key], String(resolveFont(key, value)));
         }
         set(key, value);
     };

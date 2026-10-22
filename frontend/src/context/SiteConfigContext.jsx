@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { DEFAULT_SITE_CONFIG } from '../utils/siteConfig';
-import { isHexColor, tintColor, darkenColor } from '../utils/themeColors';
+import { isHexColor, tintColor, darkenColor, darkPalette, FONT_PRESETS, DISPLAY_PRESETS } from '../utils/themeColors';
 
 // Single fetch of GET /api/v1/siteconfig shared by every consumer.
 // Also applies CSS custom properties from config.theme to :root so every
@@ -38,22 +38,6 @@ const CSS_VAR_MAP = {
     fontDisplay:           '--font-display',
     fontScale:             '--font-scale',
     containerWidth:        '--container-width',
-};
-
-const FONT_PRESETS = {
-    Manrope: 'Manrope, ui-sans-serif, system-ui, sans-serif',
-    Roboto:  'Roboto, ui-sans-serif, system-ui, sans-serif',
-    Inter:   'Inter, ui-sans-serif, system-ui, sans-serif',
-    Poppins: 'Poppins, ui-sans-serif, system-ui, sans-serif',
-    Nunito:  'Nunito, ui-sans-serif, system-ui, sans-serif',
-    Lato:    'Lato, ui-sans-serif, system-ui, sans-serif',
-};
-const DISPLAY_PRESETS = {
-    Sora:         'Sora, Manrope, ui-sans-serif, system-ui, sans-serif',
-    Montserrat:   'Montserrat, ui-sans-serif, system-ui, sans-serif',
-    Raleway:      'Raleway, ui-sans-serif, system-ui, sans-serif',
-    'Playfair Display': '"Playfair Display", Georgia, serif',
-    Merriweather: 'Merriweather, Georgia, serif',
 };
 
 const applyTheme = (theme = {}) => {
@@ -101,8 +85,16 @@ const applyTheme = (theme = {}) => {
         root.style.setProperty('--accent-darker', darkenColor(effective.colorAccent, 0.44));
     }
 
-    // Dark mode via class on <html>
+    // Dark mode. The palette is written *inline* on <html> (like every other
+    // token), so a stylesheet-only `html.dark-mode { … }` block can never win
+    // against it. Derive the dark tokens from the active theme and apply them
+    // here — that makes the Dark Mode switch work on its own, not just as part
+    // of a preset that happens to ship dark colours.
     if (effective.darkMode) {
+        const dark = darkPalette(effective);
+        Object.entries(dark).forEach(([key, value]) => {
+            if (value) root.style.setProperty(CSS_VAR_MAP[key], String(value));
+        });
         root.classList.add('dark-mode');
     } else {
         root.classList.remove('dark-mode');
