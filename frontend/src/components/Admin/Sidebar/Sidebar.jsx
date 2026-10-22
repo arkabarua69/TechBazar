@@ -129,7 +129,7 @@ const Sidebar = ({ setToggleSidebar }) => {
                 className={`group relative flex items-center gap-3 pl-3 pr-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                     isActive ? 'admin-nav-active' : 'text-white/60 hover:text-white hover:bg-white/[0.06]'
                 }`}
-                style={isActive ? { background: 'linear-gradient(90deg, rgba(232,75,15,0.95), rgba(232,75,15,0.75))' } : undefined}
+                style={isActive ? { background: 'linear-gradient(90deg, var(--color-accent) 0%, color-mix(in srgb, var(--color-accent) 75%, transparent) 100%)' } : undefined}
             >
                 {/* active indicator bar */}
                 <span
@@ -159,14 +159,17 @@ const Sidebar = ({ setToggleSidebar }) => {
         <aside
             className="sidebar z-50 sm:z-0 block min-h-screen fixed left-0 pb-14 max-h-screen w-3/4 sm:w-72 overflow-x-hidden overflow-y-auto"
             style={{
-                background: 'linear-gradient(160deg, #2D1B0E 0%, #1a0e08 100%)',
-                borderRight: '1px solid rgba(232,75,15,0.15)',
+                background: 'linear-gradient(160deg, var(--color-footer) 0%, var(--color-footer-deep, #0d0703) 100%)',
+                borderRight: '1px solid color-mix(in srgb, var(--color-accent) 15%, transparent)',
             }}
         >
             {/* Profile card */}
             <div
                 className="flex items-center gap-3 m-4 p-3 rounded-2xl"
-                style={{ backgroundColor: 'rgba(232,75,15,0.15)', border: '1px solid rgba(232,75,15,0.25)' }}
+                style={{
+                    backgroundColor: 'color-mix(in srgb, var(--color-accent) 15%, transparent)',
+                    border: '1px solid color-mix(in srgb, var(--color-accent) 25%, transparent)',
+                }}
             >
                 <Avatar
                     alt="Avatar"

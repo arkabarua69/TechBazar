@@ -240,10 +240,6 @@ const ProductTable = () => {
                                         -{off}%
                                     </span>
                                 )}
-                                {product.stock <= 0 && (
-                                    <span className="absolute bottom-2 left-2 text-[10px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
-                                        Out of stock
-                                    </span>
                                 )}
                             </div>
 

@@ -410,6 +410,51 @@ body, .surface, header, footer, aside { transition: background-color 0.25s ease,
   .to-primary-accent\/\[0\.02\] { --tw-gradient-to: color-mix(in srgb, var(--color-accent) 2%, transparent); }
 }
 
+/* ── Admin follows the store theme ───────────────────────────────────────────
+   The admin console used to be hard-coded orange (#E84B0F in arbitrary-value
+   classes like bg-[#E84B0F], plus inline rgba(232,75,15,…) styles) while the
+   storefront honoured the theme. Branding a store green/blue left the admin
+   orange, which reads as a different product.
+
+   These rules bind the admin's orange utilities to the same theme tokens the
+   storefront uses, so one Theme setting restyles the whole admin too:
+
+   • the primary-* palette classes above are already unscoped, so
+     bg-primary-accent / text-primary-accent / hover:bg-primary-accent/90
+     already work — nothing to do there
+   • arbitrary-value classes ([#E84B0F], [#C63E0A], [#FFF7F2], [#fdf6f2])
+     are generated from literal hex, so they need re-binding here
+   • the sidebar / app bar / page background use inline styles, handled in the
+     components themselves
+
+   Admin-only, so the storefront's own handling is untouched. */
+body.admin-page .bg-\[\#E84B0F\]      { background-color: var(--color-accent); }
+body.admin-page .bg-\[\#E84B0F\]\/10 { background-color: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+body.admin-page .bg-\[\#E84B0F\]\/5  { background-color: color-mix(in srgb, var(--color-accent) 5%, transparent); }
+body.admin-page .hover\:bg-\[\#C63E0A\]:hover { background-color: var(--color-accent-hover); }
+body.admin-page .text-\[\#E84B0F\]      { color: var(--color-accent); }
+body.admin-page .border-\[\#E84B0F\]    { border-color: var(--color-accent); }
+body.admin-page .focus\:border-\[\#E84B0F\]:focus { border-color: var(--color-accent); }
+body.admin-page .accent-\[\#E84B0F\]    { accent-color: var(--color-accent); }
+body.admin-page .bg-\[\#FFF7F2\],
+body.admin-page .bg-\[\#fdf6f2\]        { background-color: var(--color-accent-light); }
+
+/* Accent-tinted washes used for chips / icon tiles / focus rings. */
+body.admin-page .bg-\[\#E84B0F\]\/10.text-\[\#E84B0F\] { color: var(--color-accent); }
+body.admin-page .border-\[\#f3e8e0\]   { border-color: var(--color-border); }
+body.admin-page .ring-\[\#E84B0F\]\/20,
+body.admin-page .ring-\[\#E84B0F\]\/30 { --tw-ring-color: color-mix(in srgb, var(--color-accent) 30%, transparent); }
+body.admin-page .focus\:ring-\[\#E84B0F\]\/20:focus,
+body.admin-page .focus\:ring-\[\#E84B0F\]\/30:focus {
+  --tw-ring-color: color-mix(in srgb, var(--color-accent) 25%, transparent);
+}
+body.admin-page .shadow-\[\#E84B0F\]\/30 { --tw-shadow-color: color-mix(in srgb, var(--color-accent) 30%, transparent); }
+body.admin-page .from-\[\#E84B0F\]\/5 {
+  --tw-gradient-from: color-mix(in srgb, var(--color-accent) 5%, transparent);
+  --tw-gradient-to: rgb(255 255 255 / 0);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
 /* -- Utility: legacy aliases ------------------------------------------- */
 .bg-cloud  { background-color: var(--color-bg); }
 .bg-line   { background-color: var(--color-border); }

@@ -165,7 +165,7 @@ const ToggleField = ({ label, description, value, onChange }) => (
                 width: 40,
                 height: 22,
                 borderRadius: 11,
-                backgroundColor: value ? '#E84B0F' : '#d1d5db',
+                backgroundColor: value ? 'var(--color-accent)' : '#d1d5db',
                 position: 'relative',
                 transition: 'background-color 0.2s',
                 flexShrink: 0,

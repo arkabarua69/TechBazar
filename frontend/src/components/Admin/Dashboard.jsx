@@ -46,7 +46,7 @@ const Dashboard = ({ activeTab, children }) => {
             {/* Main content */}
             <div
                 className="w-full sm:flex-1 sm:ml-72 min-h-screen overflow-x-hidden"
-                style={{ backgroundColor: '#FDF5EF' }}
+                style={{ backgroundColor: 'color-mix(in srgb, var(--color-border) 30%, var(--color-surface))' }}
             >
                 {onMobile && (
                     <AdminAppBar onMenu={() => setToggleSidebar(true)} />

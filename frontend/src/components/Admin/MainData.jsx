@@ -24,7 +24,18 @@ import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import { bn, shortOrderId, timeAgoBn } from '../../utils/adminHelpers';
 
 // ── monochrome design tokens (iOS-style admin redesign) ──
-const INK = '#E84B0F';
+// Chart.js paints to a <canvas>, so var(--color-accent) cannot be used here —
+// it must be a resolved colour. Read the live token from :root and fall back
+// to the brand default, keeping charts in step with the admin theme.
+const readAccent = () => {
+    try {
+        const v = getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim();
+        return v || '#01bc17';
+    } catch (e) {
+        return '#01bc17';
+    }
+};
+const INK = readAccent();
 const PINK = '#FDBA74';
 
 const isToday = (d) => new Date(d).toDateString() === new Date().toDateString();

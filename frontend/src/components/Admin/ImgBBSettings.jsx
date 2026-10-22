@@ -199,7 +199,7 @@ const ImgBBSettings = () => {
                         onClick={() => setEnabled((v) => !v)}
                         style={{
                             width: 40, height: 22, borderRadius: 11,
-                            backgroundColor: enabled ? '#E84B0F' : '#d1d5db',
+                            backgroundColor: enabled ? 'var(--color-accent)' : '#d1d5db',
                             position: 'relative', transition: 'background-color 0.2s',
                             flexShrink: 0, border: 'none', cursor: 'pointer', padding: 0,
                         }}

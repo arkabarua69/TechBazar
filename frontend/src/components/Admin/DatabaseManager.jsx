@@ -92,7 +92,7 @@ const CreateCollectionModal = ({ open, onClose, onCreated }) => {
             <DialogActions>
                 <Button onClick={onClose} color="inherit">Cancel</Button>
                 <Button onClick={handleCreate} variant="contained" disabled={loading || !name.trim()}
-                    sx={{ backgroundColor: '#E84B0F', '&:hover': { backgroundColor: '#C63E0A' } }}>
+                    sx={{ backgroundColor: 'var(--color-accent)', '&:hover': { backgroundColor: 'var(--color-accent-hover)' } }}>
                     {loading ? <CircularProgress size={16} color="inherit" /> : 'Create'}
                 </Button>
             </DialogActions>
@@ -158,7 +158,7 @@ const EditDocModal = ({ open, doc, collection, onClose, onSaved }) => {
             <DialogActions>
                 <Button onClick={onClose} color="inherit">Cancel</Button>
                 <Button onClick={handleSave} variant="contained" disabled={loading}
-                    sx={{ backgroundColor: '#E84B0F', '&:hover': { backgroundColor: '#C63E0A' } }}>
+                    sx={{ backgroundColor: 'var(--color-accent)', '&:hover': { backgroundColor: 'var(--color-accent-hover)' } }}>
                     {loading ? <CircularProgress size={16} color="inherit" /> : 'Save'}
                 </Button>
             </DialogActions>
@@ -245,7 +245,7 @@ const CollectionList = ({ onSelect, onCreateClick }) => {
                 </button>
                 <button onClick={onCreateClick}
                     className="flex items-center gap-1.5 text-sm font-semibold text-white rounded-full px-3.5 py-2 shrink-0"
-                    style={{ backgroundColor: '#E84B0F' }}>
+                    style={{ backgroundColor: 'var(--color-accent)' }}>
                     <Plus size={15} /> <span className="hidden sm:inline">New Collection</span><span className="sm:hidden">New</span>
                 </button>
             </div>
@@ -288,12 +288,12 @@ const CollectionList = ({ onSelect, onCreateClick }) => {
                     {/* Desktop table */}
                     <div className="hidden sm:block">
                         <TableContainer component={Paper} elevation={0}
-                            sx={{ border: '1px solid #f3e8e0', borderRadius: '1rem', overflow: 'hidden' }}>
+                            sx={{ border: '1px solid var(--color-border)', borderRadius: '1rem', overflow: 'hidden' }}>
                             <Table size="small">
                                 <TableHead>
-                                    <TableRow sx={{ backgroundColor: '#fdf6f2' }}>
+                                    <TableRow sx={{ backgroundColor: 'var(--color-accent-light)' }}>
                                         {['Collection Name', 'Documents', 'Data Size', 'Storage', 'Indexes', ''].map(h => (
-                                            <TableCell key={h} sx={{ fontWeight: 700, fontSize: 12, color: '#7A5C48', borderBottom: '1px solid #f3e8e0' }}>
+                                            <TableCell key={h} sx={{ fontWeight: 700, fontSize: 12, color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)' }}>
                                                 {h}
                                             </TableCell>
                                         ))}
@@ -306,17 +306,17 @@ const CollectionList = ({ onSelect, onCreateClick }) => {
                                             onClick={() => onSelect(col.name)}>
                                             <TableCell>
                                                 <div className="flex items-center gap-2">
-                                                    <TableRowsIcon sx={{ fontSize: 14, color: '#E84B0F' }} />
+                                                    <TableRowsIcon sx={{ fontSize: 14, color: 'var(--color-accent)' }} />
                                                     <span className="font-semibold text-gray-800 text-sm">{col.name}</span>
                                                 </div>
                                             </TableCell>
                                             <TableCell>
                                                 <Chip label={col.count.toLocaleString()} size="small"
-                                                    sx={{ backgroundColor: '#fdf6f2', color: '#E84B0F', fontWeight: 700, fontSize: 11, border: '1px solid #f3e8e0' }} />
+                                                    sx={{ backgroundColor: 'var(--color-accent-light)', color: 'var(--color-accent)', fontWeight: 700, fontSize: 11, border: '1px solid var(--color-border)' }} />
                                             </TableCell>
-                                            <TableCell sx={{ fontSize: 12, color: '#7A5C48' }}>{fmt(col.size)}</TableCell>
-                                            <TableCell sx={{ fontSize: 12, color: '#7A5C48' }}>{fmt(col.storageSize)}</TableCell>
-                                            <TableCell sx={{ fontSize: 12, color: '#7A5C48' }}>{col.indexes}</TableCell>
+                                            <TableCell sx={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{fmt(col.size)}</TableCell>
+                                            <TableCell sx={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{fmt(col.storageSize)}</TableCell>
+                                            <TableCell sx={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{col.indexes}</TableCell>
                                             <TableCell sx={{ textAlign: 'right' }}>
                                                 <button onClick={e => { e.stopPropagation(); onSelect(col.name); }}
                                                     className="text-xs font-medium text-orange-500 hover:text-orange-700 hover:underline">
@@ -432,7 +432,7 @@ const DocumentBrowser = ({ collectionName, onBack }) => {
                 </div>
                 <button onClick={handleSearch}
                     className="text-sm font-semibold text-white rounded-full px-4 py-2.5 shrink-0"
-                    style={{ backgroundColor: '#E84B0F' }}>
+                    style={{ backgroundColor: 'var(--color-accent)' }}>
                     Search
                 </button>
                 <button onClick={() => { setSearchInput(''); setSearch(''); load(1, ''); }}
@@ -490,22 +490,22 @@ const DocumentBrowser = ({ collectionName, onBack }) => {
                     {/* Desktop table */}
                     <div className="hidden sm:block mb-3">
                     <TableContainer component={Paper} elevation={0}
-                        sx={{ border: '1px solid #f3e8e0', borderRadius: '1rem', overflow: 'hidden' }}>
+                        sx={{ border: '1px solid var(--color-border)', borderRadius: '1rem', overflow: 'hidden' }}>
                         <Table size="small">
                             <TableHead>
-                                <TableRow sx={{ backgroundColor: '#fdf6f2' }}>
+                                <TableRow sx={{ backgroundColor: 'var(--color-accent-light)' }}>
                                     {displayFields.map(f => (
                                         <TableCell key={f}
-                                            sx={{ fontWeight: 700, fontSize: 11, color: '#7A5C48', borderBottom: '1px solid #f3e8e0', fontFamily: 'monospace' }}>
+                                            sx={{ fontWeight: 700, fontSize: 11, color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)', fontFamily: 'monospace' }}>
                                             {f}
                                         </TableCell>
                                     ))}
                                     {fields.length > 6 && (
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, color: '#B8937A', borderBottom: '1px solid #f3e8e0' }}>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}>
                                             +{fields.length - 6} more
                                         </TableCell>
                                     )}
-                                    <TableCell sx={{ fontWeight: 700, fontSize: 11, color: '#7A5C48', borderBottom: '1px solid #f3e8e0', textAlign: 'right' }}>
+                                    <TableCell sx={{ fontWeight: 700, fontSize: 11, color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)', textAlign: 'right' }}>
                                         Actions
                                     </TableCell>
                                 </TableRow>
@@ -514,15 +514,15 @@ const DocumentBrowser = ({ collectionName, onBack }) => {
                                 {docs.map((doc) => (
                                     <TableRow key={doc._id} hover sx={{ '&:last-child td': { border: 0 } }}>
                                         {displayFields.map(f => (
-                                            <TableCell key={f} sx={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderBottom: '1px solid #fdf6f2' }}>
+                                            <TableCell key={f} sx={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderBottom: '1px solid var(--color-border)' }}>
                                                 {cellVal(doc, f)}
                                             </TableCell>
                                         ))}
-                                        {fields.length > 6 && <TableCell sx={{ borderBottom: '1px solid #fdf6f2' }} />}
-                                        <TableCell sx={{ textAlign: 'right', borderBottom: '1px solid #fdf6f2' }}>
+                                        {fields.length > 6 && <TableCell sx={{ borderBottom: '1px solid var(--color-border)' }} />}
+                                        <TableCell sx={{ textAlign: 'right', borderBottom: '1px solid var(--color-border)' }}>
                                             <Tooltip title="Edit document">
                                                 <IconButton size="small" onClick={() => setEditDoc(doc)}
-                                                    sx={{ color: '#E84B0F', '&:hover': { backgroundColor: 'rgba(232,75,15,0.08)' } }}>
+                                                    sx={{ color: 'var(--color-accent)', '&:hover': { backgroundColor: 'var(--color-accent-light)' } }}>
                                                     <EditIcon sx={{ fontSize: 16 }} />
                                                 </IconButton>
                                             </Tooltip>
@@ -546,7 +546,7 @@ const DocumentBrowser = ({ collectionName, onBack }) => {
                             <Pagination count={pages} page={page} onChange={handlePageChange}
                                 sx={{
                                     '& .MuiPaginationItem-root': { borderRadius: '0.6rem' },
-                                    '& .Mui-selected': { backgroundColor: '#E84B0F !important', color: '#fff' },
+                                    '& .Mui-selected': { backgroundColor: 'var(--color-accent) !important', color: '#fff' },
                                 }} />
                         </div>
                     )}

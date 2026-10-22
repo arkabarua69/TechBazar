@@ -15,7 +15,7 @@
     background-color: rgba(255, 255, 255, 0.24);
 }
 
-/* Active nav item gets a soft glow so the desktop rail reads clearly. */
+/* Active nav item gets a soft accent glow so the desktop rail reads clearly. */
 .admin-nav-active {
-    box-shadow: 0 6px 18px -6px rgba(232, 75, 15, 0.7);
+    box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--color-accent) 70%, transparent);
 }

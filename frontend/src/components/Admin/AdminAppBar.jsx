@@ -103,7 +103,10 @@ const AdminAppBar = ({ onMenu }) => {
     return (
         <div
             className="fixed top-0 left-0 right-0 z-40 px-3 py-2 flex items-center gap-2"
-            style={{ backgroundColor: '#2D1B0E', borderBottom: '1px solid rgba(232,75,15,0.2)' }}
+            style={{
+                backgroundColor: 'var(--color-footer)',
+                borderBottom: '1px solid color-mix(in srgb, var(--color-accent) 20%, transparent)',
+            }}
         >
             <button
                 onClick={onMenu}
@@ -117,7 +120,7 @@ const AdminAppBar = ({ onMenu }) => {
             <div className="flex items-center gap-2 min-w-0 flex-1">
                 <div
                     className="w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm text-white"
-                    style={{ backgroundColor: 'rgba(232,75,15,0.3)' }}
+                    style={{ backgroundColor: 'color-mix(in srgb, var(--color-accent) 30%, transparent)' }}
                 >
                     <User size={20} strokeWidth={1.75} />
                 </div>
@@ -147,7 +150,7 @@ const AdminAppBar = ({ onMenu }) => {
                     {unseen > 0 && (
                         <span
                             className="absolute top-0.5 right-0.5 min-w-[17px] h-[17px] px-1 rounded-full text-white text-[10px] font-bold flex items-center justify-center border-2"
-                            style={{ backgroundColor: 'var(--color-accent)', borderColor: '#2D1B0E' }}
+                            style={{ backgroundColor: 'var(--color-accent)', borderColor: 'var(--color-footer)' }}
                         >
                             {unseen > 9 ? '9+' : unseen}
                         </span>

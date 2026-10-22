@@ -149,7 +149,7 @@ const ColorRow = ({ label, value, onChange, description, readOnly = false }) => 
     // The native picker only accepts hex. Tokens like the accent tint are
     // stored as rgba(), so fall back to the accent's hex for the swatch while
     // still showing the real value in the text box.
-    const hexForPicker = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(value || '') ? value : '#E84B0F';
+    const hexForPicker = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(value || '') ? value : '#01bc17';
     const swatch = value || 'transparent';
     return (
         <div className="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0">
