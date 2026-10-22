@@ -59,7 +59,7 @@ const ProductCard = ({ product }) => {
                 borderRadius: 'var(--card-radius)',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
             }}
-            onMouseEnter={e => e.currentTarget.style.boxShadow = '0 8px 24px rgba(232,75,15,0.12)'}
+            onMouseEnter={e => e.currentTarget.style.boxShadow = '0 8px 24px var(--shadow-accent-soft)'}
             onMouseLeave={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)'}
         >
             {/* Image area */}

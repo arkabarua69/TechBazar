@@ -31,7 +31,7 @@ const StatTile = ({ icon, label, value, tint, bg }) => (
             borderRadius: 'var(--card-radius)',
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(232,75,15,0.12)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+        onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 8px 24px var(--shadow-accent-soft)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
         onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)'; e.currentTarget.style.transform = 'translateY(0)'; }}
     >
         <span className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: bg }}>

@@ -1,7 +1,22 @@
 const SiteConfig = require('../models/siteConfigModel');
 const { DEFAULT_CONFIG, DEFAULT_THEME } = require('../models/siteConfigModel');
+const { isHex, tint, darken } = require('../utils/theme');
 
 const str = (v) => (typeof v === 'string' ? v.trim() : '');
+
+// ── Theme normalisation ──────────────────────────────────────────────────────
+// The accent has two derived tokens: the hover shade and the pale tint used
+// behind icons/badges (--color-accent-light). They are ALWAYS recomputed from
+// colorAccent so changing the accent can never leave an old colour behind
+// (the classic symptom was a green accent with an orange tint).
+const normalizeTheme = (theme = {}) => {
+    const t = { ...DEFAULT_THEME, ...theme };
+    const accent = isHex(t.colorAccent) ? t.colorAccent : DEFAULT_THEME.colorAccent;
+    t.colorAccent = accent;
+    t.colorAccentHover = darken(accent, 0.14);
+    t.colorAccentLight = tint(accent, 0.1);
+    return t;
+};
 
 // A hero banner is { image, badge, title, subtitle, buttonLabel, buttonLink }
 // with its own copy — including its own CTA button.
@@ -31,6 +46,9 @@ const getSiteConfig = async (req, res) => {
         const config = { ...DEFAULT_CONFIG, ...doc.toObject() };
         // Normalise legacy string banners into { image, badge, title, subtitle }
         config.hero = { ...(config.hero || {}), banners: normalizeBanners(config.hero?.banners) };
+        // Keep accent-derived tokens (hover / tint) in sync on read as well so
+        // documents saved before this logic existed render correctly.
+        config.theme = normalizeTheme(config.theme);
         return res.status(200).json({ success: true, config, isDefault: false });
     } catch (err) {
         return res.status(500).json({ success: false, message: err.message });
@@ -151,7 +169,11 @@ const updateSiteConfig = async (req, res) => {
             allowedKeys.forEach((k) => {
                 if (t[k] !== undefined) themeUpdate[k] = t[k];
             });
-            if (Object.keys(themeUpdate).length) update.theme = { ...DEFAULT_THEME, ...themeUpdate };
+            if (Object.keys(themeUpdate).length) {
+                // normalizeTheme always re-derives hover + tint from the accent
+                // so a new accent is applied consistently everywhere.
+                update.theme = normalizeTheme({ ...(prev.theme || {}), ...themeUpdate });
+            }
         }
 
         // branding — deep merge so partial updates keep existing fields

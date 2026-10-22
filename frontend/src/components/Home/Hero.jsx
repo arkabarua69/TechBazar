@@ -110,7 +110,7 @@ const Hero = ({ hero = {} }) => {
                         <Link
                             to={buttonLink}
                             className="inline-flex items-center gap-2 mt-5 px-6 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-200 hover:-translate-y-0.5"
-                            style={{ backgroundColor: 'var(--color-accent)', color: '#fff', boxShadow: '0 4px 14px rgba(232,75,15,0.4)' }}
+                            style={{ backgroundColor: 'var(--color-accent)', color: '#fff', boxShadow: '0 4px 14px var(--shadow-accent-strong)' }}
                         >
                             {buttonLabel}
                         </Link>

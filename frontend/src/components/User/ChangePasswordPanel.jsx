@@ -4,7 +4,6 @@ import { clearErrors, updatePassword } from '../../actions/userAction';
 import { UPDATE_PASSWORD_RESET } from '../../constants/userConstants';
 import { useSnackbar } from 'notistack';
 import BackdropLoader from '../Layouts/BackdropLoader';
-import MetaData from '../Layouts/MetaData';
 import KeyIcon from '@mui/icons-material/Key';
 import LockIcon from '@mui/icons-material/Lock';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -76,7 +75,7 @@ const ChangePasswordPanel = ({ onDone }) => {
     };
 
     const focusHandlers = {
-        onFocus: (e) => { e.currentTarget.style.borderColor = 'var(--color-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(232,75,15,0.12)'; },
+        onFocus: (e) => { e.currentTarget.style.borderColor = 'var(--color-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--shadow-accent-soft)'; },
         onBlur: (e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.boxShadow = 'none'; },
     };
 
@@ -150,7 +149,7 @@ const ChangePasswordPanel = ({ onDone }) => {
                             type="submit"
                             disabled={loading}
                             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white transition-all duration-200 disabled:opacity-60"
-                            style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 4px 12px rgba(232,75,15,0.25)' }}
+                            style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 4px 12px var(--shadow-accent-mid)' }}
                             onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
                             onMouseLeave={(e) => { if (!loading) { e.currentTarget.style.backgroundColor = 'var(--color-accent)'; e.currentTarget.style.transform = 'translateY(0)'; } }}
                         >

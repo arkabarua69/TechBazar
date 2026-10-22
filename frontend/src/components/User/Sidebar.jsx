@@ -69,7 +69,7 @@ const Sidebar = ({ activeTab }) => {
                         style={{
                             color: activeTab === 'profile' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
                             borderLeftColor: activeTab === 'profile' ? 'var(--color-accent)' : 'transparent',
-                            backgroundColor: activeTab === 'profile' ? 'rgba(232,75,15,0.06)' : 'transparent',
+                            backgroundColor: activeTab === 'profile' ? 'var(--accent-06)' : 'transparent',
                         }}>
                         Profile Information
                     </Link>
@@ -113,7 +113,7 @@ const Sidebar = ({ activeTab }) => {
                         style={{
                             color: activeTab === 'wishlist' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
                             borderLeftColor: activeTab === 'wishlist' ? 'var(--color-accent)' : 'transparent',
-                            backgroundColor: activeTab === 'wishlist' ? 'rgba(232,75,15,0.06)' : 'transparent',
+                            backgroundColor: activeTab === 'wishlist' ? 'var(--accent-06)' : 'transparent',
                         }}>
                         <FavoriteIcon sx={{ fontSize: 16 }} /> My Wishlist
                     </Link>

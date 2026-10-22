@@ -6,7 +6,11 @@ module.exports = {
     screens: { sm: '640px', md: '768px', lg: '1024px', xl: '1280px', '2xl': '1536px' },
     extend: {
       colors: {
-        // Peach/Orange design system
+        // NOTE: these stay literal hex on purpose. The live theme is applied by
+        // overriding the generated utility classes in index.css ("primary
+        // accent color classes" block) — a var() here would break Tailwind
+        // 3.2's opacity modifiers such as bg-primary-accent/10, which the app
+        // relies on for tinted chips and cards.
         peach:   '#FAE5D3',
         cloud:   '#FFFFFF',
         line:    '#F2D9C8',
@@ -36,9 +40,9 @@ module.exports = {
         '4xl': '2rem',
       },
       boxShadow: {
-        card:       '0 4px 24px -4px rgba(232,75,15,0.10), 0 1px 3px rgba(0,0,0,0.06)',
-        'card-hover':'0 8px 32px -4px rgba(232,75,15,0.18), 0 2px 6px rgba(0,0,0,0.08)',
-        form:       '0 8px 40px -8px rgba(232,75,15,0.14), 0 2px 8px rgba(0,0,0,0.06)',
+        card:       '0 4px 24px -4px var(--shadow-accent-soft), 0 1px 3px rgba(0,0,0,0.06)',
+        'card-hover':'0 8px 32px -4px var(--shadow-accent-mid), 0 2px 6px rgba(0,0,0,0.08)',
+        form:       '0 8px 40px -8px var(--shadow-accent-soft), 0 2px 8px rgba(0,0,0,0.06)',
       },
       keyframes: {
         marquee: {

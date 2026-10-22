@@ -137,7 +137,7 @@ const TicketPanel = () => {
                         type="button"
                         onClick={() => setView('create')}
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white transition-all duration-200"
-                        style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 4px 12px rgba(232,75,15,0.25)' }}
+                        style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 4px 12px var(--shadow-accent-mid)' }}
                     >
                         <AddIcon sx={{ fontSize: 16 }} />
                         New Ticket
@@ -224,7 +224,7 @@ const TicketPanel = () => {
                         required
                         className="w-full px-3 py-2.5 text-sm rounded-lg outline-none transition-all duration-150"
                         style={{ border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-primary)' }}
-                        onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--color-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(232,75,15,0.12)'; }}
+                        onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--color-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--shadow-accent-soft)'; }}
                         onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.boxShadow = 'none'; }}
                     />
 
@@ -258,7 +258,7 @@ const TicketPanel = () => {
                         rows={5}
                         className="w-full px-3 py-2.5 text-sm rounded-lg outline-none transition-all duration-150 resize-none"
                         style={{ border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-primary)' }}
-                        onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--color-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(232,75,15,0.12)'; }}
+                        onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--color-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--shadow-accent-soft)'; }}
                         onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.boxShadow = 'none'; }}
                     />
 
@@ -267,7 +267,7 @@ const TicketPanel = () => {
                             type="submit"
                             disabled={creating || !subject.trim() || !message.trim()}
                             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                            style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 4px 12px rgba(232,75,15,0.25)' }}
+                            style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 4px 12px var(--shadow-accent-mid)' }}
                         >
                             <SendIcon sx={{ fontSize: 16 }} />
                             {creating ? 'Submitting…' : 'Submit Ticket'}
@@ -349,7 +349,7 @@ const TicketPanel = () => {
                         maxLength={2000}
                         className="flex-1 min-w-0 px-3 py-2.5 text-sm rounded-lg outline-none transition-all duration-150"
                         style={{ border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-primary)' }}
-                        onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--color-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(232,75,15,0.12)'; }}
+                        onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--color-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--shadow-accent-soft)'; }}
                         onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.boxShadow = 'none'; }}
                     />
                     <button
@@ -357,7 +357,7 @@ const TicketPanel = () => {
                         disabled={sending || !replyText.trim()}
                         aria-label="Send reply"
                         className="w-10 h-10 shrink-0 rounded-full flex items-center justify-center transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
-                        style={{ backgroundColor: 'var(--color-accent)', color: '#fff', boxShadow: '0 4px 12px rgba(232,75,15,0.25)' }}
+                        style={{ backgroundColor: 'var(--color-accent)', color: '#fff', boxShadow: '0 4px 12px var(--shadow-accent-mid)' }}
                     >
                         <SendIcon sx={{ fontSize: 18 }} />
                     </button>

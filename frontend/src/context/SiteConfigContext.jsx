@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { DEFAULT_SITE_CONFIG } from '../utils/siteConfig';
+import { isHexColor, tintColor, darkenColor } from '../utils/themeColors';
 
 // Single fetch of GET /api/v1/siteconfig shared by every consumer.
 // Also applies CSS custom properties from config.theme to :root so every
@@ -58,10 +59,21 @@ const DISPLAY_PRESETS = {
 const applyTheme = (theme = {}) => {
     const root = document.documentElement;
 
+    // Derive the accent hover + tint when the saved theme is missing them
+    // (older documents stored a stale orange tint even after the accent
+    // changed, which made pale accent surfaces look wrong).
+    const effective = { ...theme };
+    if (isHexColor(effective.colorAccent)) {
+        if (!isHexColor(effective.colorAccentHover)) effective.colorAccentHover = darkenColor(effective.colorAccent);
+        if (!effective.colorAccentLight || !String(effective.colorAccentLight).trim()) {
+            effective.colorAccentLight = tintColor(effective.colorAccent);
+        }
+    }
+
     // Apply CSS custom properties
     Object.entries(CSS_VAR_MAP).forEach(([key, cssVar]) => {
-        if (theme[key] !== undefined && theme[key] !== null) {
-            let val = String(theme[key]);
+        if (effective[key] !== undefined && effective[key] !== null && effective[key] !== '') {
+            let val = String(effective[key]);
             // Resolve font names to full font stacks
             if (key === 'fontBody')    val = FONT_PRESETS[val] || val;
             if (key === 'fontDisplay') val = DISPLAY_PRESETS[val] || val;
@@ -69,8 +81,23 @@ const applyTheme = (theme = {}) => {
         }
     });
 
+    // Button style drives .btn-accent / .btn-ghost via a data attribute
+    root.setAttribute('data-btn-style', effective.btnStyle || 'filled');
+
+    // Accent-tinted shadows — so hover glows match a custom accent instead of
+    // staying orange. Derived from the accent colour with a few alphas.
+    if (isHexColor(effective.colorAccent)) {
+        root.style.setProperty('--shadow-accent-soft', tintColor(effective.colorAccent, 0.12));
+        root.style.setProperty('--shadow-accent-mid', tintColor(effective.colorAccent, 0.25));
+        root.style.setProperty('--shadow-accent-strong', tintColor(effective.colorAccent, 0.4));
+        root.style.setProperty('--accent-06', tintColor(effective.colorAccent, 0.06));
+        root.style.setProperty('--accent-03', tintColor(effective.colorAccent, 0.03));
+        root.style.setProperty('--accent-15', tintColor(effective.colorAccent, 0.15));
+        root.style.setProperty('--accent-20', tintColor(effective.colorAccent, 0.2));
+    }
+
     // Dark mode via class on <html>
-    if (theme.darkMode) {
+    if (effective.darkMode) {
         root.classList.add('dark-mode');
     } else {
         root.classList.remove('dark-mode');

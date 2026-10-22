@@ -38,7 +38,7 @@ const field = (withIcon = false) => ({
 const inputFocusHandlers = {
     onFocus: (e) => {
         e.currentTarget.style.borderColor = 'var(--color-accent)';
-        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(232,75,15,0.12)';
+        e.currentTarget.style.boxShadow = '0 0 0 3px var(--shadow-accent-soft)';
     },
     onBlur: (e) => {
         e.currentTarget.style.borderColor = 'var(--color-border)';
@@ -168,7 +168,7 @@ const AddressForm = ({ initial, onDone }) => {
                             onClick={() => setForm((f) => ({ ...f, label: l.key }))}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-150"
                             style={active
-                                ? { backgroundColor: 'var(--color-accent)', color: '#fff', borderColor: 'var(--color-accent)', boxShadow: '0 4px 12px rgba(232,75,15,0.25)' }
+                                ? { backgroundColor: 'var(--color-accent)', color: '#fff', borderColor: 'var(--color-accent)', boxShadow: '0 4px 12px var(--shadow-accent-mid)' }
                                 : { backgroundColor: 'var(--color-surface)', color: 'var(--color-text-secondary)', borderColor: 'var(--color-border)' }}
                             onMouseEnter={(e) => { if (!active) { e.currentTarget.style.borderColor = 'var(--color-accent)'; e.currentTarget.style.color = 'var(--color-accent)'; } }}
                             onMouseLeave={(e) => { if (!active) { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.color = 'var(--color-text-secondary)'; } }}
@@ -281,7 +281,7 @@ const AddressForm = ({ initial, onDone }) => {
                     type="submit"
                     disabled={loading}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white transition-all duration-200 disabled:opacity-60"
-                    style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 4px 12px rgba(232,75,15,0.25)' }}
+                    style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 4px 12px var(--shadow-accent-mid)' }}
                     onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
                     onMouseLeave={(e) => { if (!loading) { e.currentTarget.style.backgroundColor = 'var(--color-accent)'; e.currentTarget.style.transform = 'translateY(0)'; } }}
                 >

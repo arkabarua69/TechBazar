@@ -24,7 +24,7 @@ const statusDesc = (s) => {
 
 // Order card shaped like the Account → Manage Addresses card:
 //   badges row on top · product line · info rows · bordered action footer.
-// Hover = the site-wide 0 8px 24px rgba(232,75,15,0.12) glow; the border turns
+// Hover = the site-wide 0 8px 24px var(--shadow-accent-soft) glow; the border turns
 // accent so it reads as "live" exactly like the default-address card.
 const OrderItem = ({ orderId, displayId, items = [], totalPrice, createdAt, deliveredAt, orderStatus }) => {
     const cfg = statusConfig[orderStatus] || statusConfig.Processing;
@@ -43,7 +43,7 @@ const OrderItem = ({ orderId, displayId, items = [], totalPrice, createdAt, deli
                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
             }}
             onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = '0 8px 24px rgba(232,75,15,0.12)';
+                e.currentTarget.style.boxShadow = '0 8px 24px var(--shadow-accent-soft)';
                 e.currentTarget.style.borderColor = 'var(--color-accent)';
             }}
             onMouseLeave={(e) => {

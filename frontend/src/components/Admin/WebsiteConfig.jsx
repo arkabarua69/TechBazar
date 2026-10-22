@@ -730,28 +730,15 @@ const BrandingPanel = () => {
                         />
                     </div>
 
-                    {/* Quick color fields */}
-                    <div className="grid sm:grid-cols-3 gap-4">
-                        {[
-                            { label: 'Primary Color', field: 'primaryColor' },
-                            { label: 'Secondary Color', field: 'secondaryColor' },
-                            { label: 'Accent Color', field: 'accentColor' },
-                        ].map(({ label, field }) => (
-                            <div key={field}>
-                                <label className={labelCls}>{label}</label>
-                                <div className="flex items-center gap-2">
-                                    <input type="color" value={/^#[0-9a-fA-F]{3,6}$/.test(b[field] || '') ? b[field] : '#000000'}
-                                        onChange={(e) => setBrand(field, e.target.value)}
-                                        className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white shrink-0" style={{ minWidth: 40 }} />
-                                    <input type="text" value={b[field] ?? ''} onChange={(e) => setBrand(field, e.target.value)}
-                                        placeholder="#000000" className={inputCls} maxLength={7} />
-                                </div>
-                            </div>
-                        ))}
+                    {/* Colours now live in the Theme section below — it is the
+                        single source of truth so the two never conflict. */}
+                    <div className="rounded-xl border border-orange-200 bg-orange-50/60 p-3">
+                        <p className="text-xs font-semibold text-gray-700">Colours are managed in the Theme section</p>
+                        <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">
+                            Use <strong>Theme &amp; Visual Customisation</strong> below for the accent, backgrounds,
+                            header/footer and text colours. It applies everywhere on the storefront instantly.
+                        </p>
                     </div>
-
-                    <ToggleField label="Dark Mode" description="Enable dark theme by default"
-                        value={!!b.darkMode} onChange={(v) => setBrand('darkMode', v)} />
                 </div>
             </Card>
 

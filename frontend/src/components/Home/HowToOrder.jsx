@@ -55,7 +55,7 @@ const HowToOrder = ({ steps = [] }) => {
                         {/* icon */}
                         <div
                             className="w-14 h-14 rounded-full flex items-center justify-center mt-1"
-                            style={{ backgroundColor: 'var(--color-accent-light, rgba(232,75,15,0.08))', border: '1.5px solid rgba(232,75,15,0.2)' }}
+                            style={{ backgroundColor: 'var(--color-accent-light, rgba(232,75,15,0.08))', border: '1.5px solid var(--accent-20)' }}
                         >
                             <StepIcon iconKey={step.icon} />
                         </div>

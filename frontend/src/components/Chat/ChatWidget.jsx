@@ -174,7 +174,7 @@ const ChatWidget = () => {
             <button
                 onClick={toggle}
                 aria-label={open ? 'Close live chat' : 'Open live chat'}
-                className="fixed right-4 bottom-[150px] md:bottom-6 z-50 w-14 h-14 rounded-full bg-primary-accent text-white shadow-[0_8px_24px_rgba(232,75,15,0.40)] flex items-center justify-center transition active:scale-95 hover:bg-primary-hover"
+                className="fixed right-4 bottom-[150px] md:bottom-6 z-50 w-14 h-14 rounded-full bg-primary-accent text-white shadow-[0_8px_24px_var(--shadow-accent-strong)] flex items-center justify-center transition active:scale-95 hover:bg-primary-hover"
             >
                 {open ? <CloseIcon /> : <ChatIcon />}
                 {!open && unread > 0 && (

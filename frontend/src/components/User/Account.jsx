@@ -284,7 +284,7 @@ const Account = () => {
                         type="button"
                         onClick={openAdd}
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white transition-all duration-200"
-                        style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 4px 12px rgba(232,75,15,0.25)' }}
+                        style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 4px 12px var(--shadow-accent-mid)' }}
                     >
                         <AddIcon sx={{ fontSize: 16 }} /> Add New Address
                     </button>
@@ -340,7 +340,7 @@ const Account = () => {
                                 borderRadius: 'var(--card-radius)',
                                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
                             }}
-                            onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(232,75,15,0.12)'; }}
+                            onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 8px 24px var(--shadow-accent-soft)'; }}
                             onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)'; }}
                         >
                             <div className="flex items-center gap-2 flex-wrap">
@@ -442,7 +442,7 @@ const Account = () => {
                             borderRadius: 'var(--card-radius)',
                             boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
                         }}
-                        onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(232,75,15,0.12)'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.borderColor = 'var(--color-accent)'; }}
+                        onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 8px 24px var(--shadow-accent-soft)'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.borderColor = 'var(--color-accent)'; }}
                         onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
                     >
                         <p className="text-lg font-extrabold leading-none truncate" style={{ color: 'var(--color-text-primary)' }}>{s.value}</p>

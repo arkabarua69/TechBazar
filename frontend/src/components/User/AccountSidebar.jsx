@@ -72,7 +72,7 @@ const AccountSidebar = ({ activeTab, onSelect, onNavigate, mobile = false }) => 
             color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
             fontWeight: isActive ? 600 : 500,
             borderLeftColor: isActive ? 'var(--color-accent)' : 'transparent',
-            backgroundColor: isActive ? 'rgba(232,75,15,0.06)' : 'transparent',
+            backgroundColor: isActive ? 'var(--accent-06)' : 'transparent',
             opacity: soon ? 0.75 : 1,
         };
 
@@ -88,7 +88,7 @@ const AccountSidebar = ({ activeTab, onSelect, onNavigate, mobile = false }) => 
                 style={style}
                 onMouseEnter={(e) => {
                     if (!isActive) {
-                        e.currentTarget.style.backgroundColor = 'rgba(232,75,15,0.03)';
+                        e.currentTarget.style.backgroundColor = 'var(--accent-03)';
                         e.currentTarget.style.color = 'var(--color-accent)';
                     }
                 }}

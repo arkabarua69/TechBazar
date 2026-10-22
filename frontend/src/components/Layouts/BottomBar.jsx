@@ -75,7 +75,7 @@ const BottomBar = () => {
                                     >
                                         <span
                             className="mt-[-1.375rem] w-14 h-14 rounded-full text-white shadow-lg border-4 border-white flex items-center justify-center transition active:scale-95"
-                            style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 8px 20px rgba(232,75,15,0.4)' }}
+                            style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 8px 20px var(--shadow-accent-strong)' }}
                         >
                                             <MenuIcon sx={{ fontSize: '22px' }} />
                                         </span>

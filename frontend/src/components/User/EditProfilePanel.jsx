@@ -4,7 +4,6 @@ import { clearErrors, loadUser, updateProfile } from '../../actions/userAction';
 import { UPDATE_PROFILE_RESET } from '../../constants/userConstants';
 import { useSnackbar } from 'notistack';
 import BackdropLoader from '../Layouts/BackdropLoader';
-import MetaData from '../Layouts/MetaData';
 import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
 import WcIcon from '@mui/icons-material/Wc';
@@ -100,7 +99,7 @@ const EditProfilePanel = ({ onDone }) => {
     };
 
     const focusHandlers = {
-        onFocus: (e) => { e.currentTarget.style.borderColor = 'var(--color-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(232,75,15,0.12)'; },
+        onFocus: (e) => { e.currentTarget.style.borderColor = 'var(--color-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--shadow-accent-soft)'; },
         onBlur: (e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.boxShadow = 'none'; },
     };
 
@@ -139,7 +138,7 @@ const EditProfilePanel = ({ onDone }) => {
                     <label className="flex items-center gap-4 cursor-pointer self-start group">
                         <div
                             className="w-16 h-16 rounded-full overflow-hidden border-2 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:shadow-lg"
-                            style={{ borderColor: 'var(--color-accent)', boxShadow: '0 2px 8px rgba(232,75,15,0.15)' }}
+                            style={{ borderColor: 'var(--color-accent)', boxShadow: '0 2px 8px var(--accent-15)' }}
                         >
                             {avatarPreview
                                 ? <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
@@ -223,7 +222,7 @@ const EditProfilePanel = ({ onDone }) => {
                             type="submit"
                             disabled={loading}
                             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white transition-all duration-200 disabled:opacity-60"
-                            style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 4px 12px rgba(232,75,15,0.25)' }}
+                            style={{ backgroundColor: 'var(--color-accent)', boxShadow: '0 4px 12px var(--shadow-accent-mid)' }}
                             onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
                             onMouseLeave={(e) => { if (!loading) { e.currentTarget.style.backgroundColor = 'var(--color-accent)'; e.currentTarget.style.transform = 'translateY(0)'; } }}
                         >

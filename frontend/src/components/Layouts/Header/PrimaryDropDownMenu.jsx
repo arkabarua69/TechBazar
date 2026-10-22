@@ -45,7 +45,7 @@ const PrimaryDropDownMenu = ({ setTogglePrimaryDropDown, user }) => {
             style={{
                 backgroundColor: 'var(--color-surface)',
                 border: '1px solid var(--color-border)',
-                boxShadow: '0 16px 40px rgba(232,75,15,0.15)',
+                boxShadow: '0 16px 40px var(--accent-15)',
             }}
         >
             {/* Account header — avatar + name + email */}

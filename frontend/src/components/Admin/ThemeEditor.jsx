@@ -5,17 +5,25 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 import FormatSizeIcon from '@mui/icons-material/FormatSize';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import CheckIcon from '@mui/icons-material/Check';
+import { tintColor, darkenColor } from '../../utils/themeColors';
 
 // ── Preset colour palettes ────────────────────────────────────────────────────
+// A preset is a *complete* look: colour + shape + typography. Every token the
+// ThemeEditor exposes is included so switching presets never leaves a stale
+// accent tint, radius, font or status colour behind.
 const PRESETS = [
     {
         name: 'Ocean Blue',
         theme: {
-            colorAccent: '#3b82f6', colorAccentHover: '#2563eb',
+            colorAccent: '#3b82f6', colorAccentHover: '#2563eb', colorAccentLight: 'rgba(59,130,246,0.10)',
+            colorSuccess: '#16a34a', colorWarning: '#f59e0b', colorDanger: '#ef4444',
             colorHeader: '#ffffff', colorHeaderText: '#0f172a',
             colorFooter: '#0f172a', colorFooterText: '#94a3b8',
-            colorAnnouncement: '#0f172a', colorAnnouncementText: '#ffffff',
+            colorAnnouncement: '#3b82f6', colorAnnouncementText: '#ffffff',
             colorBg: '#fafbfc', colorSurface: '#ffffff', colorBorder: '#e8ecf1',
+            colorTextPrimary: '#0f172a', colorTextSecondary: '#475569', colorTextMuted: '#94a3b8',
+            btnRadius: '0.75rem', cardRadius: '0.75rem',
+            fontBody: 'Inter', fontDisplay: 'Sora', fontScale: '1', containerWidth: '1280px', btnStyle: 'filled',
             darkMode: false,
         },
         accent: '#3b82f6',
@@ -23,11 +31,15 @@ const PRESETS = [
     {
         name: 'Purple Pro',
         theme: {
-            colorAccent: '#7c3aed', colorAccentHover: '#6d28d9',
-            colorHeader: '#ffffff', colorHeaderText: '#0f172a',
+            colorAccent: '#7c3aed', colorAccentHover: '#6d28d9', colorAccentLight: 'rgba(124,58,237,0.10)',
+            colorSuccess: '#16a34a', colorWarning: '#f59e0b', colorDanger: '#ef4444',
+            colorHeader: '#ffffff', colorHeaderText: '#1e1b4b',
             colorFooter: '#1e1b4b', colorFooterText: '#a5b4fc',
             colorAnnouncement: '#7c3aed', colorAnnouncementText: '#ffffff',
             colorBg: '#faf9ff', colorSurface: '#ffffff', colorBorder: '#ede9fe',
+            colorTextPrimary: '#1e1b4b', colorTextSecondary: '#5b5578', colorTextMuted: '#9c96b8',
+            btnRadius: '0.75rem', cardRadius: '1rem',
+            fontBody: 'Poppins', fontDisplay: 'Montserrat', fontScale: '1', containerWidth: '1280px', btnStyle: 'filled',
             darkMode: false,
         },
         accent: '#7c3aed',
@@ -35,11 +47,15 @@ const PRESETS = [
     {
         name: 'Emerald Fresh',
         theme: {
-            colorAccent: '#059669', colorAccentHover: '#047857',
-            colorHeader: '#ffffff', colorHeaderText: '#0f172a',
+            colorAccent: '#059669', colorAccentHover: '#047857', colorAccentLight: 'rgba(5,150,105,0.10)',
+            colorSuccess: '#16a34a', colorWarning: '#f59e0b', colorDanger: '#ef4444',
+            colorHeader: '#ffffff', colorHeaderText: '#064e3b',
             colorFooter: '#064e3b', colorFooterText: '#6ee7b7',
             colorAnnouncement: '#059669', colorAnnouncementText: '#ffffff',
             colorBg: '#f0fdf4', colorSurface: '#ffffff', colorBorder: '#d1fae5',
+            colorTextPrimary: '#064e3b', colorTextSecondary: '#3f6b58', colorTextMuted: '#86b8a0',
+            btnRadius: '0.75rem', cardRadius: '0.75rem',
+            fontBody: 'Nunito', fontDisplay: 'Raleway', fontScale: '1', containerWidth: '1280px', btnStyle: 'filled',
             darkMode: false,
         },
         accent: '#059669',
@@ -47,11 +63,15 @@ const PRESETS = [
     {
         name: 'Rose Bold',
         theme: {
-            colorAccent: '#e11d48', colorAccentHover: '#be123c',
-            colorHeader: '#ffffff', colorHeaderText: '#0f172a',
+            colorAccent: '#e11d48', colorAccentHover: '#be123c', colorAccentLight: 'rgba(225,29,72,0.10)',
+            colorSuccess: '#16a34a', colorWarning: '#f59e0b', colorDanger: '#ef4444',
+            colorHeader: '#ffffff', colorHeaderText: '#881337',
             colorFooter: '#881337', colorFooterText: '#fda4af',
             colorAnnouncement: '#e11d48', colorAnnouncementText: '#ffffff',
             colorBg: '#fff1f2', colorSurface: '#ffffff', colorBorder: '#fecdd3',
+            colorTextPrimary: '#4c0519', colorTextSecondary: '#7c3a4a', colorTextMuted: '#b98a94',
+            btnRadius: '9999px', cardRadius: '1rem',
+            fontBody: 'Manrope', fontDisplay: 'Playfair Display', fontScale: '1', containerWidth: '1280px', btnStyle: 'filled',
             darkMode: false,
         },
         accent: '#e11d48',
@@ -59,11 +79,15 @@ const PRESETS = [
     {
         name: 'Amber Warm',
         theme: {
-            colorAccent: '#d97706', colorAccentHover: '#b45309',
-            colorHeader: '#fffbeb', colorHeaderText: '#0f172a',
+            colorAccent: '#d97706', colorAccentHover: '#b45309', colorAccentLight: 'rgba(217,119,6,0.10)',
+            colorSuccess: '#16a34a', colorWarning: '#f59e0b', colorDanger: '#ef4444',
+            colorHeader: '#fffbeb', colorHeaderText: '#451a03',
             colorFooter: '#78350f', colorFooterText: '#fcd34d',
             colorAnnouncement: '#d97706', colorAnnouncementText: '#ffffff',
             colorBg: '#fffbeb', colorSurface: '#ffffff', colorBorder: '#fde68a',
+            colorTextPrimary: '#451a03', colorTextSecondary: '#78500f', colorTextMuted: '#b08d52',
+            btnRadius: '0.75rem', cardRadius: '1rem',
+            fontBody: 'Poppins', fontDisplay: 'Sora', fontScale: '1', containerWidth: '1280px', btnStyle: 'filled',
             darkMode: false,
         },
         accent: '#d97706',
@@ -71,12 +95,15 @@ const PRESETS = [
     {
         name: 'Dark Night',
         theme: {
-            colorAccent: '#6366f1', colorAccentHover: '#4f46e5',
+            colorAccent: '#6366f1', colorAccentHover: '#4f46e5', colorAccentLight: 'rgba(99,102,241,0.16)',
+            colorSuccess: '#22c55e', colorWarning: '#fbbf24', colorDanger: '#f87171',
             colorHeader: '#1e293b', colorHeaderText: '#f1f5f9',
             colorFooter: '#020617', colorFooterText: '#64748b',
             colorAnnouncement: '#1e293b', colorAnnouncementText: '#a5b4fc',
             colorBg: '#0f172a', colorSurface: '#1e293b', colorBorder: '#334155',
             colorTextPrimary: '#f1f5f9', colorTextSecondary: '#94a3b8', colorTextMuted: '#64748b',
+            btnRadius: '0.75rem', cardRadius: '1rem',
+            fontBody: 'Inter', fontDisplay: 'Sora', fontScale: '1', containerWidth: '1280px', btnStyle: 'filled',
             darkMode: true,
         },
         accent: '#6366f1',
@@ -111,36 +138,56 @@ const CONTAINER_OPTIONS = [
     { label: '1440px',  value: '1440px' },
     { label: 'Full',    value: '100%' },
 ];
+const BTN_STYLE_OPTIONS = [
+    { label: 'Filled',  value: 'filled' },
+    { label: 'Outline', value: 'outline' },
+    { label: 'Soft',    value: 'soft' },
+];
 
 // ── Colour picker row ─────────────────────────────────────────────────────────
-const ColorRow = ({ label, value, onChange, description }) => (
-    <div className="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0">
-        <div
-            className="w-9 h-9 rounded-xl border border-gray-200 flex-shrink-0 overflow-hidden cursor-pointer shadow-sm relative"
-            title={label}
-        >
-            <input
-                type="color"
-                value={value || '#000000'}
-                onChange={(e) => onChange(e.target.value)}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                aria-label={label}
-            />
-            <div className="w-full h-full rounded-xl" style={{ backgroundColor: value }} />
+const ColorRow = ({ label, value, onChange, description, readOnly = false }) => {
+    // The native picker only accepts hex. Tokens like the accent tint are
+    // stored as rgba(), so fall back to the accent's hex for the swatch while
+    // still showing the real value in the text box.
+    const hexForPicker = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(value || '') ? value : '#E84B0F';
+    const swatch = value || 'transparent';
+    return (
+        <div className="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0">
+            <div
+                className="w-9 h-9 rounded-xl border border-gray-200 flex-shrink-0 overflow-hidden shadow-sm relative"
+                title={label}
+                style={{ backgroundColor: swatch, cursor: readOnly ? 'default' : 'pointer' }}
+            >
+                {!readOnly && (
+                    <input
+                        type="color"
+                        value={hexForPicker}
+                        onChange={(e) => onChange(e.target.value)}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        aria-label={label}
+                    />
+                )}
+            </div>
+            <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">{label}</p>
+                {description && <p className="text-xs text-gray-400">{description}</p>}
+            </div>
+            {readOnly ? (
+                <span className="w-28 text-xs font-mono text-gray-500 bg-gray-100 border border-gray-200 rounded-lg px-2 py-1.5 truncate" title={value}>
+                    {value || '—'}
+                </span>
+            ) : (
+                <input
+                    type="text"
+                    value={value || ''}
+                    onChange={(e) => onChange(e.target.value)}
+                    className="w-28 text-xs font-mono border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-400 bg-gray-50"
+                    placeholder="#000000"
+                />
+            )}
         </div>
-        <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">{label}</p>
-            {description && <p className="text-xs text-gray-400">{description}</p>}
-        </div>
-        <input
-            type="text"
-            value={value || ''}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-24 text-xs font-mono border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-400 bg-gray-50"
-            placeholder="#000000"
-        />
-    </div>
-);
+    );
+};
 
 // ── Select row ────────────────────────────────────────────────────────────────
 const SelectRow = ({ label, value, options, onChange }) => (
@@ -173,41 +220,80 @@ const Section = ({ icon, title, children }) => (
     </div>
 );
 
+// ── CSS variable map shared by the live preview ───────────────────────────────
+// (one source of truth so every editable token also previews instantly)
+const CSS_VAR_MAP = {
+    colorAccent:           '--color-accent',
+    colorAccentHover:      '--color-accent-hover',
+    colorAccentLight:      '--color-accent-light',
+    colorSuccess:          '--color-success',
+    colorWarning:          '--color-warning',
+    colorDanger:           '--color-danger',
+    colorBg:               '--color-bg',
+    colorSurface:          '--color-surface',
+    colorBorder:           '--color-border',
+    colorTextPrimary:      '--color-text-primary',
+    colorTextSecondary:    '--color-text-secondary',
+    colorTextMuted:        '--color-text-muted',
+    colorHeader:           '--color-header',
+    colorHeaderText:       '--color-header-text',
+    colorFooter:           '--color-footer',
+    colorFooterText:       '--color-footer-text',
+    colorAnnouncement:     '--color-announcement',
+    colorAnnouncementText: '--color-announcement-text',
+    btnRadius:             '--btn-radius',
+    cardRadius:            '--card-radius',
+    fontBody:              '--font-body',
+    fontDisplay:           '--font-display',
+    fontScale:             '--font-scale',
+    containerWidth:        '--container-width',
+};
+
 // ── Main ThemeEditor ──────────────────────────────────────────────────────────
 const ThemeEditor = ({ theme, onChange }) => {
     const [activePreset, setActivePreset] = useState(null);
 
     const set = (key, value) => onChange({ ...theme, [key]: value });
 
+    // Apply a whole theme object to :root for instant live preview.
+    const previewTheme = (t) => {
+        const root = document.documentElement;
+        Object.entries(CSS_VAR_MAP).forEach(([key, cssVar]) => {
+            if (t[key] !== undefined && t[key] !== null && t[key] !== '') {
+                root.style.setProperty(cssVar, String(t[key]));
+            }
+        });
+        // Button style is a data attribute (drives .btn-accent variants), not
+        // a CSS variable, so it is previewed separately.
+        root.setAttribute('data-btn-style', t.btnStyle || 'filled');
+    };
+
     const applyPreset = (preset) => {
         setActivePreset(preset.name);
-        onChange({ ...theme, ...preset.theme });
+        const next = { ...theme, ...preset.theme };
+        // Keep the accent-derived tint/hover in sync even if a preset omitted them
+        if (!next.colorAccentHover) next.colorAccentHover = darkenColor(next.colorAccent);
+        if (!next.colorAccentLight) next.colorAccentLight = tintColor(next.colorAccent);
+        previewTheme(next);
+        // Dark mode is a class toggle, not a CSS var
+        document.documentElement.classList.toggle('dark-mode', !!next.darkMode);
+        onChange(next);
     };
 
     // Live preview: apply to CSS vars in real time as admin changes them
     const handleColorChange = (key, value) => {
-        // Apply immediately for live preview
-        const cssVarMap = {
-            colorAccent:           '--color-accent',
-            colorAccentHover:      '--color-accent-hover',
-            colorSuccess:          '--color-success',
-            colorWarning:          '--color-warning',
-            colorDanger:           '--color-danger',
-            colorBg:               '--color-bg',
-            colorSurface:          '--color-surface',
-            colorBorder:           '--color-border',
-            colorTextPrimary:      '--color-text-primary',
-            colorTextSecondary:    '--color-text-secondary',
-            colorTextMuted:        '--color-text-muted',
-            colorHeader:           '--color-header',
-            colorHeaderText:       '--color-header-text',
-            colorFooter:           '--color-footer',
-            colorFooterText:       '--color-footer-text',
-            colorAnnouncement:     '--color-announcement',
-            colorAnnouncementText: '--color-announcement-text',
-        };
-        if (cssVarMap[key]) {
-            document.documentElement.style.setProperty(cssVarMap[key], value);
+        if (CSS_VAR_MAP[key]) {
+            document.documentElement.style.setProperty(CSS_VAR_MAP[key], value);
+        }
+        // Changing the accent re-derives the tint + hover so the pale accent
+        // surfaces never keep the *previous* colour.
+        if (key === 'colorAccent') {
+            const hover = darkenColor(value);
+            const light = tintColor(value);
+            document.documentElement.style.setProperty('--color-accent-hover', hover);
+            document.documentElement.style.setProperty('--color-accent-light', light);
+            onChange({ ...theme, colorAccent: value, colorAccentHover: hover, colorAccentLight: light });
+            return;
         }
         set(key, value);
     };
@@ -219,6 +305,16 @@ const ThemeEditor = ({ theme, onChange }) => {
             document.documentElement.classList.remove('dark-mode');
         }
         set('darkMode', dark);
+    };
+
+    // Generic setter for non-colour tokens (shape / typography) with preview.
+    const setToken = (key, value) => {
+        if (key === 'btnStyle') {
+            document.documentElement.setAttribute('data-btn-style', value || 'filled');
+        } else if (CSS_VAR_MAP[key]) {
+            document.documentElement.style.setProperty(CSS_VAR_MAP[key], value);
+        }
+        set(key, value);
     };
 
     return (
@@ -281,7 +377,8 @@ const ThemeEditor = ({ theme, onChange }) => {
             {/* ── Brand & Accent Colours ── */}
             <Section icon={<PaletteIcon sx={{ fontSize: 18 }} />} title="Brand & Accent Colours">
                 <ColorRow label="Primary Accent"     value={theme.colorAccent}       onChange={(v) => handleColorChange('colorAccent', v)}       description="Buttons, links, highlights" />
-                <ColorRow label="Accent Hover"       value={theme.colorAccentHover}  onChange={(v) => handleColorChange('colorAccentHover', v)}  description="Button hover state" />
+                <ColorRow label="Accent Hover"       value={theme.colorAccentHover}  readOnly                    description="Auto-derived from the accent (darker shade)" />
+                <ColorRow label="Accent Tint"        value={theme.colorAccentLight}  readOnly                    description="Auto-derived pale wash behind icons & badges" />
                 <ColorRow label="Success / In Stock" value={theme.colorSuccess}      onChange={(v) => handleColorChange('colorSuccess', v)}      description="Green badges, stock" />
                 <ColorRow label="Warning / COD"      value={theme.colorWarning}      onChange={(v) => handleColorChange('colorWarning', v)}      description="Amber badges" />
                 <ColorRow label="Danger / Error"     value={theme.colorDanger}       onChange={(v) => handleColorChange('colorDanger', v)}       description="Error states, out-of-stock" />
@@ -313,16 +410,17 @@ const ThemeEditor = ({ theme, onChange }) => {
 
             {/* ── Typography ── */}
             <Section icon={<FormatSizeIcon sx={{ fontSize: 18 }} />} title="Typography">
-                <SelectRow label="Body Font"    value={theme.fontBody}    options={FONT_BODY_OPTIONS}    onChange={(v) => { document.documentElement.style.setProperty('--font-body', v); set('fontBody', v); }} />
-                <SelectRow label="Display Font" value={theme.fontDisplay} options={FONT_DISPLAY_OPTIONS} onChange={(v) => { document.documentElement.style.setProperty('--font-display', v); set('fontDisplay', v); }} />
-                <SelectRow label="Font Scale"   value={theme.fontScale}   options={FONT_SCALE_OPTIONS}   onChange={(v) => { document.documentElement.style.setProperty('--font-scale', v); set('fontScale', v); }} />
+                <SelectRow label="Body Font"    value={theme.fontBody}    options={FONT_BODY_OPTIONS}    onChange={(v) => setToken('fontBody', v)} />
+                <SelectRow label="Display Font" value={theme.fontDisplay} options={FONT_DISPLAY_OPTIONS} onChange={(v) => setToken('fontDisplay', v)} />
+                <SelectRow label="Font Scale"   value={theme.fontScale}   options={FONT_SCALE_OPTIONS}   onChange={(v) => setToken('fontScale', v)} />
             </Section>
 
             {/* ── Layout & Shape ── */}
             <Section icon={<DashboardIcon sx={{ fontSize: 18 }} />} title="Layout & Shape">
-                <SelectRow label="Button Radius"   value={theme.btnRadius}       options={BTN_RADIUS_OPTIONS}   onChange={(v) => { document.documentElement.style.setProperty('--btn-radius', v); set('btnRadius', v); }} />
-                <SelectRow label="Card Radius"     value={theme.cardRadius}      options={CARD_RADIUS_OPTIONS}  onChange={(v) => { document.documentElement.style.setProperty('--card-radius', v); set('cardRadius', v); }} />
-                <SelectRow label="Container Width" value={theme.containerWidth}  options={CONTAINER_OPTIONS}    onChange={(v) => { document.documentElement.style.setProperty('--container-width', v); set('containerWidth', v); }} />
+                <SelectRow label="Button Radius"   value={theme.btnRadius}       options={BTN_RADIUS_OPTIONS}   onChange={(v) => setToken('btnRadius', v)} />
+                <SelectRow label="Card Radius"     value={theme.cardRadius}      options={CARD_RADIUS_OPTIONS}  onChange={(v) => setToken('cardRadius', v)} />
+                <SelectRow label="Container Width" value={theme.containerWidth}  options={CONTAINER_OPTIONS}    onChange={(v) => setToken('containerWidth', v)} />
+                <SelectRow label="Button Style"    value={theme.btnStyle || 'filled'} options={BTN_STYLE_OPTIONS} onChange={(v) => setToken('btnStyle', v)} />
             </Section>
 
         </div>

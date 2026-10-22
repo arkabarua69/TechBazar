@@ -56,6 +56,11 @@ const syncToStorefront = async (cfg = {}) => {
     if (branding.logoUrl !== undefined) set('branding.logoUrl', branding.logoUrl);
     if (branding.faviconUrl !== undefined) set('branding.faviconUrl', branding.faviconUrl);
 
+    // NOTE: branding.primaryColor / secondaryColor / accentColor / darkMode are
+    // NOT mirrored into the theme. The Theme section (Admin → Config →
+    // Branding → Theme & Visual Customisation) is the single source of truth
+    // for storefront colours, so the two never fight over the accent.
+
     // ── Contact + SEO description ───────────────────────────────────────────
     if (general.contactPhone !== undefined) set('support.hotline', general.contactPhone);
     if (social.whatsappNumber !== undefined) set('support.whatsapp', social.whatsappNumber);
