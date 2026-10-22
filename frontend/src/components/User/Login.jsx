@@ -75,7 +75,7 @@ const Login = () => {
 
                         {/* Title */}
                         <div className="text-center mb-7">
-                            <h1 className="text-2xl font-bold" style={{ color: '#E84B0F' }}>Login here</h1>
+                            <h1 className="text-2xl font-bold" style={{ color: 'var(--color-accent)' }}>Login here</h1>
                             <p className="text-gray-600 font-medium mt-1 text-sm">Welcome back you've been missed!</p>
                         </div>
 
@@ -102,7 +102,7 @@ const Login = () => {
 
                             {/* Forgot password */}
                             <div className="text-right -mt-1">
-                                <Link to="/password/forgot" className="text-sm font-medium" style={{ color: '#E84B0F' }}>
+                                <Link to="/password/forgot" className="text-sm font-medium" style={{ color: 'var(--color-accent)' }}>
                                     Forgot your password?
                                 </Link>
                             </div>

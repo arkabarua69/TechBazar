@@ -177,7 +177,7 @@ const OrderDetails = () => {
                         >
                             {/* ══ Invoice header ══ */}
                             <div className="relative px-4 sm:px-7 pt-6 pb-5" style={{ background: `linear-gradient(135deg, ${ACCENT_SOFT} 0%, #FFFFFF 55%)` }}>
-                                <div className="absolute inset-x-0 top-0 h-[3px]" style={{ background: 'linear-gradient(90deg, var(--color-accent) 0%, #F97316 55%, var(--color-accent) 100%)' }} />
+                                <div className="absolute inset-x-0 top-0 h-[3px]" style={{ background: 'linear-gradient(90deg, var(--color-accent) 0%, var(--accent-dark) 55%, var(--color-accent) 100%)' }} />
 
                                 <div className="flex flex-wrap items-start justify-between gap-4">
                                     <div className="flex items-center gap-3 min-w-0">

@@ -279,7 +279,7 @@ const ImageGallery = () => {
                 {/* ── Hero header ───────────────────────────────────────── */}
                 <div
                     className="py-10 sm:py-14 px-4 text-center"
-                    style={{ background: 'linear-gradient(135deg, var(--color-accent, #E84B0F) 0%, #c63e0a 100%)' }}
+                    style={{ background: 'linear-gradient(135deg, var(--color-accent, #E84B0F) 0%, var(--accent-dark) 100%)' }}
                 >
                     <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                         Image Gallery

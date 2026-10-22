@@ -15,7 +15,7 @@ const Policy = () => {
             <MetaData title={`${heading} | ${brandName}`} />
             <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)' }}>
                 {/* Header */}
-                <section style={{ background: 'linear-gradient(135deg, var(--color-accent) 0%, #c63e0a 100%)' }}>
+                <section style={{ background: 'linear-gradient(135deg, var(--color-accent) 0%, var(--accent-dark) 100%)' }}>
                     <div className="mx-auto max-w-3xl px-5 sm:px-6 py-8 sm:py-10">
                         <h1 className="font-bold text-xl sm:text-2xl text-white">{heading}</h1>
                         <p className="text-white/70 text-sm mt-1">Our commitment to you</p>

@@ -79,7 +79,7 @@ const PrimaryDropDownMenu = ({ setTogglePrimaryDropDown, user }) => {
                 <Link
                     className="flex gap-3 items-center px-4 py-2.5 text-sm font-medium transition-colors"
                     style={{ color: 'var(--color-text-primary)' }}
-                    onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--color-accent-light,#fff0eb)'; e.currentTarget.style.color = 'var(--color-accent)'; }}
+                    onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--color-accent-light)'; e.currentTarget.style.color = 'var(--color-accent)'; }}
                     onMouseLeave={e => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = 'var(--color-text-primary)'; }}
                     to="/admin/dashboard"
                 >
@@ -91,7 +91,7 @@ const PrimaryDropDownMenu = ({ setTogglePrimaryDropDown, user }) => {
             <Link
                 className="flex gap-3 items-center px-4 py-2.5 text-sm font-medium transition-colors"
                 style={{ color: 'var(--color-text-primary)' }}
-                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--color-accent-light,#fff0eb)'; e.currentTarget.style.color = 'var(--color-accent)'; }}
+                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--color-accent-light)'; e.currentTarget.style.color = 'var(--color-accent)'; }}
                 onMouseLeave={e => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = 'var(--color-text-primary)'; }}
                 to="/account"
             >
@@ -105,7 +105,7 @@ const PrimaryDropDownMenu = ({ setTogglePrimaryDropDown, user }) => {
                     <Link
                         className="flex gap-3 items-center px-4 py-2.5 text-sm font-medium transition-colors"
                         style={{ color: 'var(--color-text-primary)' }}
-                        onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--color-accent-light,#fff0eb)'; e.currentTarget.style.color = 'var(--color-accent)'; }}
+                        onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--color-accent-light)'; e.currentTarget.style.color = 'var(--color-accent)'; }}
                         onMouseLeave={e => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = 'var(--color-text-primary)'; }}
                         to={redirect}
                         key={i}
@@ -124,7 +124,7 @@ const PrimaryDropDownMenu = ({ setTogglePrimaryDropDown, user }) => {
             <div
                 className="flex gap-3 items-center px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer"
                 style={{ color: 'var(--color-text-primary)' }}
-                onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#fff0eb'; e.currentTarget.style.color = 'var(--color-accent)'; }}
+                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--color-accent-light)'; e.currentTarget.style.color = 'var(--color-accent)'; }}
                 onMouseLeave={e => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = 'var(--color-text-primary)'; }}
                 onClick={handleLogout}
             >

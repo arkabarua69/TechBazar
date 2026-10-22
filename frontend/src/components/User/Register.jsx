@@ -89,7 +89,7 @@ const Register = () => {
                     <div className="auth-card p-7 sm:p-8">
                         {/* Header */}
                         <div className="text-center mb-6">
-                            <h1 className="text-2xl font-bold" style={{ color: '#E84B0F' }}>Create Account</h1>
+                            <h1 className="text-2xl font-bold" style={{ color: 'var(--color-accent)' }}>Create Account</h1>
                             <p className="text-gray-500 text-sm mt-1">Sign up and start shopping with {brandName}</p>
                         </div>
 
@@ -178,7 +178,7 @@ const Register = () => {
 
                         <p className="text-center text-sm text-gray-500 mt-4">
                             Already have an account?{' '}
-                            <Link to="/login" className="font-semibold hover:underline" style={{ color: '#E84B0F' }}>
+                            <Link to="/login" className="font-semibold hover:underline" style={{ color: 'var(--color-accent)' }}>
                                 Sign in
                             </Link>
                         </p>

@@ -32,7 +32,7 @@ const Sidebar = ({ activeTab }) => {
             <div className="surface p-4 flex items-center gap-3">
                 <div
                     className="w-12 h-12 rounded-full overflow-hidden text-white font-bold text-sm flex items-center justify-center shrink-0"
-                    style={{ background: 'linear-gradient(135deg, var(--color-accent), #c63e0a)' }}
+                    style={{ background: 'linear-gradient(135deg, var(--color-accent), var(--accent-dark))' }}
                 >
                     {user?.avatar?.url ? (
                         <img draggable="false" className="h-full w-full object-cover" src={user.avatar.url} alt="Avatar" />

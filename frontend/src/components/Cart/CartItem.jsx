@@ -50,7 +50,7 @@ const CartItem = ({ product, name, seller, price, cuttedPrice, image, stock, qua
                     <div className="flex flex-col gap-0.5 min-w-0">
                         <p
                             className="text-sm font-medium leading-snug group-hover:underline transition-colors truncate"
-                            style={{ color: '#E84B0F' }}
+                            style={{ color: 'var(--color-accent)' }}
                         >
                             {name.length > 40 ? `${name.substring(0, 40)}…` : name}
                         </p>
@@ -76,17 +76,17 @@ const CartItem = ({ product, name, seller, price, cuttedPrice, image, stock, qua
                 <div className="flex items-center gap-1">
                     <button
                         onClick={() => decreaseQuantity(product, quantity)}
-                        className="w-7 h-7 flex items-center justify-center rounded-full border border-slate-200 text-lg font-light text-slate-600 hover:border-[#E84B0F] hover:text-[#E84B0F] transition-colors"
+                        className="w-7 h-7 flex items-center justify-center rounded-full border border-slate-200 text-lg font-light text-slate-600 hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors"
                     >−</button>
                     <span className="w-8 text-center text-sm font-semibold text-slate-800">{quantity}</span>
                     <button
                         onClick={() => increaseQuantity(product, quantity, stock)}
-                        className="w-7 h-7 flex items-center justify-center rounded-full border border-slate-200 text-lg font-light text-slate-600 hover:border-[#E84B0F] hover:text-[#E84B0F] transition-colors"
+                        className="w-7 h-7 flex items-center justify-center rounded-full border border-slate-200 text-lg font-light text-slate-600 hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors"
                     >+</button>
                 </div>
 
                 {/* Total */}
-                <span className="text-sm font-bold" style={{ color: '#E84B0F' }}>
+                <span className="text-sm font-bold" style={{ color: 'var(--color-accent)' }}>
                     Tk {(price * quantity).toLocaleString()}
                 </span>
 
@@ -105,7 +105,7 @@ const CartItem = ({ product, name, seller, price, cuttedPrice, image, stock, qua
                 </Link>
                 <div className="flex-1 min-w-0 flex flex-col gap-2">
                     <Link to={`/product/${product}`}>
-                        <p className="text-sm font-medium leading-snug" style={{ color: '#E84B0F' }}>
+                        <p className="text-sm font-medium leading-snug" style={{ color: 'var(--color-accent)' }}>
                             {name.length > 45 ? `${name.substring(0, 45)}…` : name}
                         </p>
                     </Link>
@@ -115,7 +115,7 @@ const CartItem = ({ product, name, seller, price, cuttedPrice, image, stock, qua
                             <span className="text-xs text-slate-400 line-through">Tk {(cuttedPrice * quantity).toLocaleString()}</span>
                         )}
                         {discount > 0 && (
-                            <span className="text-xs font-semibold" style={{ color: '#E84B0F' }}>{discount}% off</span>
+                            <span className="text-xs font-semibold" style={{ color: 'var(--color-accent)' }}>{discount}% off</span>
                         )}
                     </div>
                     <div className="flex items-center justify-between">
@@ -127,7 +127,7 @@ const CartItem = ({ product, name, seller, price, cuttedPrice, image, stock, qua
                         </div>
                         {inCart && (
                             <div className="flex gap-3">
-                                <button onClick={() => saveForLaterHandler(product)} className="text-xs font-semibold" style={{ color: '#E84B0F' }}>Save</button>
+                                <button onClick={() => saveForLaterHandler(product)} className="text-xs font-semibold" style={{ color: 'var(--color-accent)' }}>Save</button>
                                 <button onClick={() => removeCartItem(product)} className="text-xs font-semibold text-slate-400 hover:text-red-500">Remove</button>
                             </div>
                         )}

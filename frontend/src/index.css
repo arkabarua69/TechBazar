@@ -45,6 +45,8 @@
   --accent-03:            rgba(232, 75, 15, 0.03);
   --accent-15:            rgba(232, 75, 15, 0.15);
   --accent-20:            rgba(232, 75, 15, 0.2);
+  --accent-dark:          #a33408;
+  --accent-darker:        #831f06;
 }
 
 /* ── Dark mode ── */
@@ -401,6 +403,51 @@ body, .surface, header, footer, aside { transition: background-color 0.25s ease,
 .bg-line   { background-color: var(--color-border); }
 .border-line { border-color: var(--color-border); }
 .divide-line > * + * { border-top-color: var(--color-border); }
+
+/* -- Utility: theme-bound neutrals --------------------------------------
+   The storefront markup uses Tailwind's neutral utility classes (bg-white,
+   text-gray-900, border-gray-200 …) for cards, headings and separators. Those
+   are literal hex, so a theme preset (brand colours, or the Dark Night preset)
+   would not reach them and cards stayed white on a dark background.
+
+   These re-bind the *solid* variants to the theme tokens for the storefront
+   only (body:not(.admin-page)). Opacity variants such as bg-white/20 are
+   different classes and are intentionally left alone. */
+body:not(.admin-page) .bg-white   { background-color: var(--color-surface); }
+body:not(.admin-page) .bg-gray-50,
+body:not(.admin-page) .bg-slate-50 { background-color: color-mix(in srgb, var(--color-border) 35%, var(--color-surface)); }
+body:not(.admin-page) .bg-gray-100,
+body:not(.admin-page) .bg-slate-100 { background-color: color-mix(in srgb, var(--color-border) 55%, var(--color-surface)); }
+body:not(.admin-page) .bg-gray-200,
+body:not(.admin-page) .bg-slate-200 { background-color: color-mix(in srgb, var(--color-border) 75%, var(--color-surface)); }
+
+body:not(.admin-page) .text-gray-900,
+body:not(.admin-page) .text-slate-900,
+body:not(.admin-page) .text-gray-800,
+body:not(.admin-page) .text-slate-800 { color: var(--color-text-primary); }
+
+body:not(.admin-page) .text-gray-700,
+body:not(.admin-page) .text-slate-700,
+body:not(.admin-page) .text-gray-600,
+body:not(.admin-page) .text-slate-600 { color: var(--color-text-secondary); }
+
+body:not(.admin-page) .text-gray-500,
+body:not(.admin-page) .text-slate-500,
+body:not(.admin-page) .text-gray-400,
+body:not(.admin-page) .text-slate-400,
+body:not(.admin-page) .text-gray-300 { color: var(--color-text-muted); }
+
+body:not(.admin-page) .border-gray-100,
+body:not(.admin-page) .border-gray-200 { border-color: var(--color-border); }
+
+/* -- Utility: button radius token ---------------------------------------
+   .btn-accent / .btn-ghost carry border-radius: var(--btn-radius), but the
+   storefront also adds Tailwind rounded-* utility classes to individual
+   buttons (e.g. "btn-accent rounded-lg"). Utilities come after @layer
+   components, so the class silently overrode the admin's Button Radius
+   setting. This scoped rule restores the token's authority. */
+body:not(.admin-page) .btn-accent,
+body:not(.admin-page) .btn-ghost { border-radius: var(--btn-radius); }
 
 /* -- Font utilities ---------------------------------------------------- */
 .font-display { font-family: var(--font-display); }

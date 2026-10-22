@@ -53,7 +53,7 @@ const ResetPassword = () => {
                     <div className="auth-card p-7 sm:p-8">
                         <div className="text-center mb-6">
                             <LockIcon sx={{ fontSize: '2.5rem', color: 'var(--color-accent)' }} />
-                            <h1 className="text-2xl font-bold mt-2" style={{ color: '#E84B0F' }}>Reset Password</h1>
+                            <h1 className="text-2xl font-bold mt-2" style={{ color: 'var(--color-accent)' }}>Reset Password</h1>
                             <p className="text-gray-500 text-sm mt-1">Create a new secure password</p>
                         </div>
 
@@ -82,7 +82,7 @@ const ResetPassword = () => {
                         </form>
 
                         <p className="text-center text-sm text-gray-500 mt-4">
-                            <Link to="/login" className="font-semibold hover:underline" style={{ color: '#E84B0F' }}>
+                            <Link to="/login" className="font-semibold hover:underline" style={{ color: 'var(--color-accent)' }}>
                                 Back to Login
                             </Link>
                         </p>

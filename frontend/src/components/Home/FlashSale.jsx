@@ -71,10 +71,11 @@ const FlashSale = ({ flashSale = {}, products = [] }) => {
 
     return (
         <section>
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-yellow-50 via-white to-red-50 border border-line text-slate-900 shadow-sm">
+            <div className="relative overflow-hidden rounded-2xl border border-line shadow-sm"
+                style={{ background: 'linear-gradient(135deg, var(--color-accent-light) 0%, var(--color-surface) 55%, var(--color-bg) 100%)' }}>
                 {/* decorative blobs */}
-                <div className="pointer-events-none absolute -top-16 -right-10 w-56 h-56 bg-yellow-200/50 rounded-full blur-2xl" />
-                <div className="pointer-events-none absolute -bottom-20 -left-10 w-56 h-56 bg-red-200/40 rounded-full blur-2xl" />
+                <div className="pointer-events-none absolute -top-16 -right-10 w-56 h-56 rounded-full blur-2xl" style={{ backgroundColor: 'var(--accent-20)' }} />
+                <div className="pointer-events-none absolute -bottom-20 -left-10 w-56 h-56 rounded-full blur-2xl" style={{ backgroundColor: 'var(--accent-15)' }} />
 
                 <div className="relative p-4 sm:p-6">
                     {/* headline + countdown */}

@@ -94,6 +94,11 @@ const applyTheme = (theme = {}) => {
         root.style.setProperty('--accent-03', tintColor(effective.colorAccent, 0.03));
         root.style.setProperty('--accent-15', tintColor(effective.colorAccent, 0.15));
         root.style.setProperty('--accent-20', tintColor(effective.colorAccent, 0.2));
+        // Deeper shades used by decorative gradients (account hero, sidebar,
+        // policy header). Without these the gradients kept a hard-coded orange
+        // tail even when the accent was blue/green.
+        root.style.setProperty('--accent-dark', darkenColor(effective.colorAccent, 0.28));
+        root.style.setProperty('--accent-darker', darkenColor(effective.colorAccent, 0.44));
     }
 
     // Dark mode via class on <html>

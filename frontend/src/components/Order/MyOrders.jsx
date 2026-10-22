@@ -94,7 +94,7 @@ const MyOrders = () => {
             <MetaData title="My Orders" />
 
             {/* ── Hero band (same band as the Account page) ── */}
-            <section style={{ background: 'linear-gradient(135deg, var(--color-accent) 0%, #c63e0a 60%, #a33408 100%)' }}>
+            <section style={{ background: 'linear-gradient(135deg, var(--color-accent) 0%, var(--accent-dark) 60%, var(--accent-darker) 100%)' }}>
                 <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 py-6 sm:py-8">
                     <div className="flex items-center gap-4">
                         {user?.avatar?.url ? (

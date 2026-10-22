@@ -67,7 +67,7 @@ const Header = () => {
               <TrackChangesIcon sx={{ fontSize: '18px', color: 'var(--color-accent)' }} />
               <div className="flex flex-col leading-none">
                 <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>Track</span>
-                <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>Your order</span>
+                <span className="text-xs font-semibold" style={{ color: 'var(--color-header-text)' }}>Your order</span>
               </div>
             </Link>
 
@@ -76,7 +76,7 @@ const Header = () => {
               <PhotoLibraryIcon sx={{ fontSize: '18px', color: 'var(--color-accent)' }} />
               <div className="flex flex-col leading-none">
                 <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>Image</span>
-                <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>Gallery</span>
+                <span className="text-xs font-semibold" style={{ color: 'var(--color-header-text)' }}>Gallery</span>
               </div>
             </Link>
 
@@ -93,7 +93,7 @@ const Header = () => {
               ) : (
                 <button
                   className="flex items-center gap-2 text-sm font-semibold transition"
-                  style={{ color: 'var(--color-text-primary)' }}
+                  style={{ color: 'var(--color-header-text)' }}
                   onClick={(e) => { e.stopPropagation(); setTogglePrimaryDropDown(!togglePrimaryDropDown); }}
                 >
                   {user?.avatar?.url ? (
@@ -141,7 +141,7 @@ const Header = () => {
               </div>
               <div className="flex flex-col leading-none">
                 <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>My</span>
-                <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>Cart</span>
+                <span className="text-xs font-semibold" style={{ color: 'var(--color-header-text)' }}>Cart</span>
               </div>
             </Link>
           </div>

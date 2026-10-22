@@ -489,7 +489,7 @@ const Account = () => {
                 <section
                     className="md:hidden"
                     style={{
-                        background: 'linear-gradient(135deg, var(--color-accent) 0%, #c63e0a 60%, #a33408 100%)',
+                        background: 'linear-gradient(135deg, var(--color-accent) 0%, var(--accent-dark) 60%, var(--accent-darker) 100%)',
                         marginTop: '56px',
                     }}
                 >
@@ -517,7 +517,7 @@ const Account = () => {
             )}
 
             {/* ── Hero band (desktop) ── */}
-            <section className="hidden md:block" style={{ background: 'linear-gradient(135deg, var(--color-accent) 0%, #c63e0a 60%, #a33408 100%)' }}>
+            <section className="hidden md:block" style={{ background: 'linear-gradient(135deg, var(--color-accent) 0%, var(--accent-dark) 60%, var(--accent-darker) 100%)' }}>
                 <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 py-6 sm:py-8">
                     <div className="flex items-center gap-4">
                         {user.avatar?.url ? (
@@ -545,7 +545,7 @@ const Account = () => {
                 <div
                     className="fixed top-0 left-0 right-0 z-30"
                     style={{
-                        background: 'linear-gradient(135deg, var(--color-accent) 0%, #c63e0a 60%, #a33408 100%)',
+                        background: 'linear-gradient(135deg, var(--color-accent) 0%, var(--accent-dark) 60%, var(--accent-darker) 100%)',
                     }}
                 >
                     <div className="mx-auto max-w-7xl px-3">
@@ -596,7 +596,7 @@ const Account = () => {
                     >
                         <div
                             className="flex items-center justify-between px-4 h-14 shrink-0"
-                            style={{ background: 'linear-gradient(135deg, var(--color-accent) 0%, #c63e0a 60%, #a33408 100%)' }}
+                            style={{ background: 'linear-gradient(135deg, var(--color-accent) 0%, var(--accent-dark) 60%, var(--accent-darker) 100%)' }}
                         >
                             <span className="font-display font-extrabold text-lg text-white tracking-tight">{brandName}</span>
                             <button

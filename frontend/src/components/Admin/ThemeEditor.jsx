@@ -5,7 +5,7 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 import FormatSizeIcon from '@mui/icons-material/FormatSize';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import CheckIcon from '@mui/icons-material/Check';
-import { tintColor, darkenColor } from '../../utils/themeColors';
+import { tintColor, darkenColor, isHexColor } from '../../utils/themeColors';
 
 // ── Preset colour palettes ────────────────────────────────────────────────────
 // A preset is a *complete* look: colour + shape + typography. Every token the
@@ -255,6 +255,16 @@ const ThemeEditor = ({ theme, onChange }) => {
 
     const set = (key, value) => onChange({ ...theme, [key]: value });
 
+    // Derived accent shades are not editable tokens, but the storefront uses
+    // them for the account / policy / invoice gradients. Keep them in sync so
+    // the live preview matches what the saved theme will look like.
+    const previewDerivedAccent = (accent) => {
+        if (!isHexColor(accent)) return;
+        const root = document.documentElement;
+        root.style.setProperty('--accent-dark', darkenColor(accent, 0.28));
+        root.style.setProperty('--accent-darker', darkenColor(accent, 0.44));
+    };
+
     // Apply a whole theme object to :root for instant live preview.
     const previewTheme = (t) => {
         const root = document.documentElement;
@@ -263,6 +273,7 @@ const ThemeEditor = ({ theme, onChange }) => {
                 root.style.setProperty(cssVar, String(t[key]));
             }
         });
+        previewDerivedAccent(t.colorAccent);
         // Button style is a data attribute (drives .btn-accent variants), not
         // a CSS variable, so it is previewed separately.
         root.setAttribute('data-btn-style', t.btnStyle || 'filled');
@@ -292,6 +303,7 @@ const ThemeEditor = ({ theme, onChange }) => {
             const light = tintColor(value);
             document.documentElement.style.setProperty('--color-accent-hover', hover);
             document.documentElement.style.setProperty('--color-accent-light', light);
+            previewDerivedAccent(value);
             onChange({ ...theme, colorAccent: value, colorAccentHover: hover, colorAccentLight: light });
             return;
         }

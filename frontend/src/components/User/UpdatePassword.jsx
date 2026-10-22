@@ -55,7 +55,7 @@ const UpdatePassword = () => {
                 <div className="w-full max-w-sm mx-auto">
                     <div className="auth-card p-7 sm:p-8">
                         <div className="text-center mb-6">
-                            <h1 className="text-2xl font-bold" style={{ color: '#E84B0F' }}>Change Password</h1>
+                            <h1 className="text-2xl font-bold" style={{ color: 'var(--color-accent)' }}>Change Password</h1>
                             <p className="text-gray-500 text-sm mt-1">Enter your current and new password</p>
                         </div>
 
