@@ -44,7 +44,7 @@ export const expandHex = (hex) => {
 
 // Translucent wash of a colour — used for the --color-accent-light token.
 export const tintColor = (hex, alpha = 0.1) => {
-    if (!isHexColor(hex)) return `rgba(232, 75, 15, ${alpha})`;
+    if (!isHexColor(hex)) return `rgba(1, 188, 23, ${alpha})`;
     const h = expandHex(hex).slice(1);
     const r = parseInt(h.slice(0, 2), 16);
     const g = parseInt(h.slice(2, 4), 16);
@@ -106,7 +106,7 @@ export const isDarkTheme = (theme = {}) => luminance(theme.colorBg) < 0.35;
 export const darkPalette = (theme = {}) => {
     // Already dark (e.g. the Dark Night preset) → trust the authored tokens,
     // only guarantee that the text tokens are light enough to stay readable.
-    const accent = isHexColor(theme.colorAccent) ? theme.colorAccent : '#E84B0F';
+    const accent = isHexColor(theme.colorAccent) ? theme.colorAccent : '#01bc17';
     const surface = theme.colorSurface || '#ffffff';
     const border = theme.colorBorder || '#F2D9C8';
 

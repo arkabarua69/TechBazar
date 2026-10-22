@@ -10,6 +10,12 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { LanguageProvider } from './i18n/LanguageContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import SnackbarBridge from './components/Layouts/SnackbarBridge';
+import { applyCachedTheme } from './utils/applyTheme';
+
+// Restore the last known brand colours *before* React renders. Without this the
+// first frame shows the built-in default accent, then snaps to the real theme
+// once GET /siteconfig resolves — the orange flash on reload.
+applyCachedTheme();
 
 // Match MUI components (forms, DataGrid, buttons) to the site's `primary-blue`
 const theme = createTheme({
